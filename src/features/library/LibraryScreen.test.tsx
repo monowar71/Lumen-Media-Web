@@ -24,7 +24,7 @@ describe('LibraryScreen', () => {
 
   it('filters items via the search box', async () => {
     authenticate();
-    const { getByLabelText } = renderWithProviders(
+    const { getByLabelText, getByRole } = renderWithProviders(
       <Routes>
         <Route path="/library/:libraryId" element={<LibraryScreen />} />
       </Routes>,
@@ -33,9 +33,11 @@ describe('LibraryScreen', () => {
 
     await waitFor(() => expect(screen.getByText('The Matrix')).toBeInTheDocument());
 
-    const input = getByLabelText(/filter items|фильтр элементов/i);
     const { default: userEvent } = await import('@testing-library/user-event');
     const user = userEvent.setup();
+    await user.click(getByRole('button', { name: /filters|фильтры/i }));
+
+    const input = getByLabelText(/filter items|фильтр элементов/i);
     await user.type(input, 'matrix');
 
     await waitFor(() => expect(screen.queryByText('Inception')).not.toBeInTheDocument());

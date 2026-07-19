@@ -7,6 +7,9 @@ import { VirtualPosterGrid } from '@/components/VirtualPosterGrid';
 import { FullPageSpinner } from '@/components/ui/Spinner';
 import { ErrorState, EmptyState } from '@/components/StateViews';
 import { Input } from '@/components/ui/Input';
+import { Button } from '@/components/ui/Button';
+import { IconFilter } from '@/components/AppIcons';
+import { cn } from '@/lib/utils';
 
 type SortKey = NonNullable<LibraryItemsQuery['sort']>;
 type OrderKey = NonNullable<LibraryItemsQuery['order']>;
@@ -39,6 +42,9 @@ export function LibraryScreen() {
   const [search, setSearch] = useState('');
   const [genre, setGenre] = useState('');
   const [year, setYear] = useState('');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const activeFilterCount = [search, genre, year, watched].filter(Boolean).length;
 
   const query = useMemo<Omit<LibraryItemsQuery, 'page'>>(
     () => ({
@@ -67,64 +73,24 @@ export function LibraryScreen() {
   const total = data?.pages[0]?.total ?? 0;
 
   const selectClass =
-    'h-10 rounded-lg border border-border bg-surface px-2 text-sm text-text focus:border-accent focus:outline-none';
+    'h-10 w-full rounded-lg border border-border bg-surface-2 px-3 text-sm text-text focus:border-accent focus:outline-none';
 
   return (
-    <div>
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
+    <div className="px-4 py-5 sm:px-6 lg:px-8">
+      <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold">{library?.name ?? t('title')}</h1>
+          <h1 className="text-display text-2xl font-extrabold sm:text-3xl">
+            {library?.name ?? t('title')}
+          </h1>
           {!isLoading && <p className="text-sm text-muted">{t('itemsCount', { count: total })}</p>}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            type="search"
-            placeholder={t('filterPlaceholder')}
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            aria-label={t('filterAria')}
-            className="w-40"
-          />
-          <label className="sr-only" htmlFor="genre">
-            {t('genre')}
-          </label>
           <select
-            id="genre"
-            className={selectClass}
-            value={genre}
-            onChange={(e) => setGenre(e.target.value)}
-          >
-            <option value="">{t('allGenres')}</option>
-            {GENRE_KEYS.map((g) => (
-              <option key={g} value={g}>
-                {t(`genres.${g}`)}
-              </option>
-            ))}
-          </select>
-          <label className="sr-only" htmlFor="year">
-            {t('year')}
-          </label>
-          <Input
-            id="year"
-            type="number"
-            inputMode="numeric"
-            placeholder={t('year')}
-            value={year}
-            onChange={(e) => setYear(e.target.value)}
-            aria-label={t('yearAria')}
-            className="w-24"
-            min={1900}
-            max={2100}
-          />
-          <label className="sr-only" htmlFor="sort">
-            {t('sortBy')}
-          </label>
-          <select
-            id="sort"
-            className={selectClass}
+            className={cn(selectClass, 'w-auto min-w-[8rem]')}
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
+            aria-label={t('sortBy')}
           >
             {SORT_KEYS.map((key) => (
               <option key={key} value={key}>
@@ -134,27 +100,73 @@ export function LibraryScreen() {
           </select>
           <button
             type="button"
-            className={selectClass}
+            className={cn(selectClass, 'w-auto px-3')}
             onClick={() => setOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
             aria-label={order === 'asc' ? t('orderAriaAsc') : t('orderAriaDesc')}
           >
             {order === 'asc' ? t('orderAsc') : t('orderDesc')}
           </button>
-          <label className="sr-only" htmlFor="watched">
-            {t('watchedFilter')}
-          </label>
+          <Button
+            size="sm"
+            variant={filtersOpen || activeFilterCount > 0 ? 'primary' : 'secondary'}
+            onClick={() => setFiltersOpen((v) => !v)}
+            aria-expanded={filtersOpen}
+          >
+            <IconFilter size={16} />
+            {t('filters')}
+            {activeFilterCount > 0 && (
+              <span className="rounded-full bg-black/20 px-1.5 text-[10px] font-bold">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+        </div>
+      </div>
+
+      {filtersOpen && (
+        <div className="mb-5 grid gap-3 rounded-xl border border-border bg-surface/80 p-4 sm:grid-cols-2 lg:grid-cols-4">
+          <Input
+            type="search"
+            placeholder={t('filterPlaceholder')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            aria-label={t('filterAria')}
+          />
           <select
-            id="watched"
+            className={selectClass}
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            aria-label={t('genre')}
+          >
+            <option value="">{t('allGenres')}</option>
+            {GENRE_KEYS.map((g) => (
+              <option key={g} value={g}>
+                {t(`genres.${g}`)}
+              </option>
+            ))}
+          </select>
+          <Input
+            type="number"
+            inputMode="numeric"
+            placeholder={t('year')}
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            aria-label={t('yearAria')}
+            min={1900}
+            max={2100}
+          />
+          <select
             className={selectClass}
             value={watched}
             onChange={(e) => setWatched(e.target.value as '' | 'true' | 'false')}
+            aria-label={t('watchedFilter')}
           >
             <option value="">{t('all')}</option>
             <option value="false">{t('unwatched')}</option>
             <option value="true">{t('watched')}</option>
           </select>
         </div>
-      </div>
+      )}
 
       {isLoading ? (
         <FullPageSpinner />

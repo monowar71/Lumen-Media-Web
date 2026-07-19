@@ -18,8 +18,10 @@ export function SearchScreen() {
   const empty = movies.length === 0 && series.length === 0 && episodes.length === 0;
 
   return (
-    <div>
-      <h1 className="mb-6 text-2xl font-bold">{t('search.title', { query: q })}</h1>
+    <div className="px-4 py-5 sm:px-6 lg:px-8">
+      <h1 className="text-display mb-6 text-2xl font-extrabold sm:text-3xl">
+        {t('search.title', { query: q })}
+      </h1>
       {isLoading ? (
         <FullPageSpinner />
       ) : isError ? (
