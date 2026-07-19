@@ -5,13 +5,30 @@
     "settings": "Настройки",
     "signOut": "Выйти",
     "search": "Поиск",
-    "searchPlaceholder": "Поиск…",
-    "openSearch": "Открыть поиск"
+    "searchPlaceholder": "Искать фильмы и сериалы…",
+    "openSearch": "Открыть поиск",
+    "openMenu": "Открыть меню",
+    "closeMenu": "Закрыть меню",
+    "mainNav": "Основная навигация",
+    "browse": "Обзор",
+    "libraries": "Библиотеки",
+    "manage": "Управление",
+    "activity": "Активность",
+    "devices": "Устройства",
+    "noLibraries": "Библиотек пока нет"
   },
   "home": {
     "title": "Главная",
     "emptyTitle": "Пока пусто",
-    "emptyBody": "Добавьте медиа в библиотеки, чтобы начать."
+    "emptyBody": "Добавьте медиа в библиотеки, чтобы начать.",
+    "continueWatching": "Продолжить просмотр",
+    "featured": "Рекомендуем",
+    "play": "Смотреть",
+    "resume": "Продолжить",
+    "details": "Подробнее"
+  },
+  "badge": {
+    "watched": "Просмотрено"
   },
   "search": {
     "title": "Поиск: «{{query}}»",

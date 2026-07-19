@@ -95,14 +95,21 @@ export function LoginScreen() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4">
-      <div className="w-full max-w-sm rounded-2xl border border-border bg-surface p-8 shadow-xl">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-10">
+      <div
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{
+          background:
+            'radial-gradient(ellipse 80% 50% at 50% -20%, color-mix(in srgb, var(--color-accent) 35%, transparent), transparent), radial-gradient(ellipse 60% 40% at 100% 100%, color-mix(in srgb, #3b82f6 20%, transparent), transparent)',
+        }}
+      />
+      <div className="relative w-full max-w-sm rounded-2xl border border-border/80 bg-surface/90 p-8 shadow-2xl shadow-black/50 backdrop-blur-xl">
         <div className="mb-6 flex items-center gap-3">
-          <span className="grid h-10 w-10 place-items-center rounded-lg bg-accent text-lg text-black">
+          <span className="grid h-11 w-11 place-items-center rounded-xl bg-accent text-lg font-black text-black shadow-[0_0_32px_var(--color-accent-soft)]">
             ▶
           </span>
           <div>
-            <h1 className="text-xl font-bold">{t('common:brand')}</h1>
+            <h1 className="text-display text-xl font-extrabold">{t('common:brand')}</h1>
             <p className="text-sm text-muted">
               {needsSetup ? t('subtitleSetup') : t('subtitleLogin')}
             </p>

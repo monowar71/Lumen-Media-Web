@@ -1,7 +1,29 @@
 {
   "title": "Settings",
   "saved": "Saved ✓",
-  "save": "Save settings",
+  "save": "Save",
+  "tabs": {
+    "general": "General",
+    "playback": "Playback",
+    "libraries": "Libraries",
+    "activity": "Activity",
+    "devices": "Devices",
+    "admin": "Admin"
+  },
+  "activity": {
+    "title": "Activity",
+    "description": "Who is watching now and recent sessions.",
+    "empty": "Nothing playing right now",
+    "hint": "Now Playing and device history will appear here — mock until the API lands."
+  },
+  "devices": {
+    "title": "Devices",
+    "description": "Signed-in sessions and linked clients.",
+    "thisBrowser": "This browser",
+    "online": "online",
+    "current": "Current",
+    "comingSoon": "Managing other devices is coming later."
+  },
   "language": {
     "title": "Interface language",
     "description": "Language of the FreePlex web UI. Metadata language is configured separately under Server settings.",
@@ -30,7 +52,7 @@
   },
   "libraries": {
     "title": "Libraries",
-    "description": "Paths are inside the server container. Use separate folders (e.g. /media/movies and /media/tv) or one shared folder (/media) for both library types — files stay in place; scan classifies by filename (S01E02 → series).",
+    "description": "Paths inside the server container. Use separate folders or one shared /media — files stay in place; scan classifies by filename.",
     "empty": "No libraries yet.",
     "noPaths": "no paths",
     "items": "{{count}} items",
@@ -41,7 +63,7 @@
     "name": "Name",
     "type": "Type",
     "path": "Folder path (inside container)",
-    "pathHint": "Same path on Movies and Series is fine. Episode names need SxxExx (or 1x02). Already-imported files keep their library until removed and re-scanned.",
+    "pathHint": "Same path on Movies and Series is fine. Episode names need SxxExx (or 1x02).",
     "createScan": "Create & scan",
     "creating": "Creating…",
     "namePathRequired": "Name and path are required",

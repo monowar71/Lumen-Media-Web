@@ -1,17 +1,22 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-bg: #0b0c10;
-  --color-surface: #15171e;
-  --color-surface-2: #1e212b;
-  --color-border: #2a2e3a;
-  --color-muted: #9aa3b2;
-  --color-text: #f2f4f8;
+  --color-bg: #0f1014;
+  --color-surface: #1a1c23;
+  --color-surface-2: #242730;
+  --color-surface-3: #2e323c;
+  --color-border: #343844;
+  --color-muted: #a0a7b5;
+  --color-text: #f5f6f8;
   --color-accent: #e5a00d;
   --color-accent-hover: #f2b21f;
+  --color-accent-soft: color-mix(in srgb, #e5a00d 18%, transparent);
 
-  --font-sans:
-    'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: 'Manrope', system-ui, sans-serif;
+
+  --spacing-sidebar: 15rem;
+  --spacing-sidebar-collapsed: 4.5rem;
 }
 
 @layer base {
@@ -27,11 +32,16 @@
     color: var(--color-text);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
 
   :focus-visible {
     outline: 2px solid var(--color-accent);
     outline-offset: 2px;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 40%, transparent);
   }
 }
 
@@ -42,5 +52,28 @@
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
+  }
+
+  .text-display {
+    font-family: var(--font-display);
+    letter-spacing: -0.02em;
+  }
+
+  .gradient-fade-r {
+    mask-image: linear-gradient(to right, #000 85%, transparent);
+  }
+
+  .hero-scrim {
+    background: linear-gradient(
+      to top,
+      var(--color-bg) 0%,
+      color-mix(in srgb, var(--color-bg) 75%, transparent) 35%,
+      color-mix(in srgb, var(--color-bg) 25%, transparent) 65%,
+      transparent 100%
+    );
+  }
+
+  .safe-pb {
+    padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
   }
 }

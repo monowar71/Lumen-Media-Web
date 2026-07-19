@@ -5,13 +5,30 @@
     "settings": "Settings",
     "signOut": "Sign out",
     "search": "Search",
-    "searchPlaceholder": "Search…",
-    "openSearch": "Open search"
+    "searchPlaceholder": "Search movies & shows…",
+    "openSearch": "Open search",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu",
+    "mainNav": "Main navigation",
+    "browse": "Browse",
+    "libraries": "Libraries",
+    "manage": "Manage",
+    "activity": "Activity",
+    "devices": "Devices",
+    "noLibraries": "No libraries yet"
   },
   "home": {
     "title": "Home",
     "emptyTitle": "Nothing here yet",
-    "emptyBody": "Add media to your libraries to get started."
+    "emptyBody": "Add media to your libraries to get started.",
+    "continueWatching": "Continue watching",
+    "featured": "Featured",
+    "play": "Play",
+    "resume": "Resume",
+    "details": "More info"
+  },
+  "badge": {
+    "watched": "Watched"
   },
   "search": {
     "title": "Search: “{{query}}”",
