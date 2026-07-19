@@ -13,12 +13,14 @@ import {
   itemsForLibrary,
   mockEpisodeDetail,
   mockEpisodes,
+  mockHistory,
   mockHome,
   mockLibraries,
   mockMovieDetail,
   mockSeasons,
   mockSeriesDetail,
   mockUser,
+  resetMockHistory,
 } from './data';
 
 // Match regardless of the configured base URL / host.
@@ -241,6 +243,37 @@ export const handlers = [
       updatedAt: new Date().toISOString(),
     } satisfies ProgressResponse),
   ),
+
+  http.get(`${base}/history`, ({ request }) => {
+    const url = new URL(request.url);
+    const page = Number(url.searchParams.get('page') ?? '1');
+    const pageSize = Number(url.searchParams.get('pageSize') ?? '50');
+    return HttpResponse.json(paged(mockHistory, page, pageSize));
+  }),
+
+  http.delete(`${base}/history`, () => {
+    const clearedCount = mockHistory.length;
+    mockHistory.length = 0;
+    return HttpResponse.json({ clearedCount });
+  }),
+
+  http.post(`${base}/history/import/plex`, async ({ request }) => {
+    const body = (await request.json()) as { baseUrl?: string; token?: string };
+    if (!body.baseUrl || !body.token) {
+      return HttpResponse.json(
+        { title: 'Validation failed', status: 400, detail: 'baseUrl and token required' },
+        { status: 400 },
+      );
+    }
+    resetMockHistory();
+    return HttpResponse.json({
+      scanned: 10,
+      matched: 3,
+      imported: 3,
+      skippedNewer: 0,
+      unmatched: 7,
+    });
+  }),
 
   // Artwork placeholder so the browser dev experience renders images.
   http.get(`${base}/items/:id/artwork/:kind`, ({ params }) =>

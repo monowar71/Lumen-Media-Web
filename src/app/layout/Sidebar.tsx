@@ -5,6 +5,7 @@ import {
   IconActivity,
   IconClose,
   IconDevices,
+  IconHistory,
   IconHome,
   IconLibrary,
   IconMovies,
@@ -97,6 +98,10 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
             <NavLink to="/search" className={({ isActive }) => navClass(isActive)} onClick={onClose}>
               <IconLibrary size={18} />
               {t('nav.search')}
+            </NavLink>
+            <NavLink to="/history" className={({ isActive }) => navClass(isActive)} onClick={onClose}>
+              <IconHistory size={18} />
+              {t('nav.history')}
             </NavLink>
           </div>
 

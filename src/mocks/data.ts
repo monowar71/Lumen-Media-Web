@@ -1,6 +1,7 @@
 import type {
   EpisodeDetail,
   EpisodeSummary,
+  HistoryEntry,
   HomeResponse,
   LibraryDto,
   MediaItemSummary,
@@ -447,4 +448,87 @@ export function decideForMedia(
     ],
     expiresAt: '2099-01-01T00:00:00Z',
   };
+}
+
+/** Mutable watch-history store for MSW (cleared/imported in tests). */
+export let mockHistory: HistoryEntry[] = [
+  {
+    itemId: 'movie-inception',
+    kind: 'Movie',
+    title: 'Inception',
+    year: 2010,
+    artwork: { poster: poster('movie-inception') },
+    watched: true,
+    positionMs: 0,
+    durationMs: 8880000,
+    updatedAt: '2026-07-15T18:00:00Z',
+  },
+  {
+    itemId: 'movie-matrix',
+    kind: 'Movie',
+    title: 'The Matrix',
+    year: 1999,
+    artwork: { poster: poster('movie-matrix') },
+    watched: false,
+    positionMs: 2400000,
+    durationMs: 8160000,
+    updatedAt: '2026-07-14T12:00:00Z',
+  },
+  {
+    itemId: 'ep-bb-s1e1',
+    kind: 'Episode',
+    title: 'Pilot',
+    seriesTitle: 'Breaking Bad',
+    seriesId: 'series-bb',
+    seasonNumber: 1,
+    episodeNumber: 1,
+    year: 2008,
+    artwork: { poster: poster('series-bb') },
+    watched: true,
+    positionMs: 0,
+    durationMs: 3480000,
+    updatedAt: '2026-07-13T21:00:00Z',
+  },
+];
+
+export function resetMockHistory() {
+  mockHistory = [
+    {
+      itemId: 'movie-inception',
+      kind: 'Movie',
+      title: 'Inception',
+      year: 2010,
+      artwork: { poster: poster('movie-inception') },
+      watched: true,
+      positionMs: 0,
+      durationMs: 8880000,
+      updatedAt: '2026-07-15T18:00:00Z',
+    },
+    {
+      itemId: 'movie-matrix',
+      kind: 'Movie',
+      title: 'The Matrix',
+      year: 1999,
+      artwork: { poster: poster('movie-matrix') },
+      watched: false,
+      positionMs: 2400000,
+      durationMs: 8160000,
+      updatedAt: '2026-07-14T12:00:00Z',
+    },
+    {
+      itemId: 'ep-bb-s1e1',
+      kind: 'Episode',
+      title: 'Pilot',
+      seriesTitle: 'Breaking Bad',
+      seriesId: 'series-bb',
+      seasonNumber: 1,
+      episodeNumber: 1,
+      year: 2008,
+      artwork: { poster: poster('series-bb') },
+      watched: true,
+      positionMs: 0,
+      durationMs: 3480000,
+      updatedAt: '2026-07-13T21:00:00Z',
+    },
+  ];
 }

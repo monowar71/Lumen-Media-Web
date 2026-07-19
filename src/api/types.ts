@@ -388,6 +388,39 @@ export type ProgressResponse = {
   updatedAt: string;
 };
 
+export type HistoryEntry = {
+  itemId: string;
+  kind: 'Movie' | 'Episode';
+  title: string;
+  seriesTitle?: string | null;
+  seriesId?: string | null;
+  seasonNumber?: number | null;
+  episodeNumber?: number | null;
+  year?: number | null;
+  artwork: ArtworkSet;
+  watched: boolean;
+  positionMs: number;
+  durationMs?: number | null;
+  updatedAt: string;
+};
+
+export type ClearHistoryResponse = {
+  clearedCount: number;
+};
+
+export type ImportPlexHistoryRequest = {
+  baseUrl: string;
+  token: string;
+};
+
+export type ImportPlexHistoryResponse = {
+  scanned: number;
+  matched: number;
+  imported: number;
+  skippedNewer: number;
+  unmatched: number;
+};
+
 export type ServerSettingsDto = S['ServerSettingsDto'];
 export type TranscodingSettingsDto = S['TranscodingSettingsDto'];
 export type MetadataSettingsDto = S['MetadataSettingsDto'];

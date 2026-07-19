@@ -34,6 +34,10 @@ import type {
   UserDto,
   MetadataMatchCandidateDto,
   UpdateItemMetadataRequest,
+  HistoryEntry,
+  ClearHistoryResponse,
+  ImportPlexHistoryRequest,
+  ImportPlexHistoryResponse,
 } from './types';
 
 const API = '/api/v1';
@@ -199,6 +203,21 @@ export function putProgress(itemId: string, body: ProgressRequest) {
 
 export function getProgress(itemId: string) {
   return http.get<ProgressResponse>(`${API}/progress/${itemId}`).then((r) => r.data);
+}
+
+// --- History ---
+export function getHistory(page = 1, pageSize = 50) {
+  return http
+    .get<PagedResult<HistoryEntry>>(`${API}/history`, { params: { page, pageSize } })
+    .then((r) => r.data);
+}
+
+export function clearHistory() {
+  return http.delete<ClearHistoryResponse>(`${API}/history`).then((r) => r.data);
+}
+
+export function importPlexHistory(body: ImportPlexHistoryRequest) {
+  return http.post<ImportPlexHistoryResponse>(`${API}/history/import/plex`, body).then((r) => r.data);
 }
 
 // --- Admin: users ---
