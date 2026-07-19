@@ -103,6 +103,15 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     {t('playFromStart')}
                   </Button>
                 )}
+                {movie.trailerUrl && (
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    onClick={() => window.open(movie.trailerUrl!, '_blank', 'noopener')}
+                  >
+                    {t('trailer')}
+                  </Button>
+                )}
               </div>
 
               {role === 'Admin' && (
