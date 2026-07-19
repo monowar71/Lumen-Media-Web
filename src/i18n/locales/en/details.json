@@ -1,0 +1,16 @@
+{
+  "play": "▶ Play",
+  "resume": "▶ Resume {{time}}",
+  "resumeShort": "▶ Resume",
+  "playFromStart": "Play from start",
+  "playNextEpisode": "Play next episode",
+  "refreshMetadata": "Refresh metadata",
+  "refreshing": "Refreshing…",
+  "cast": "Cast",
+  "seasonsCount": "{{count}} seasons",
+  "season": "Season {{number}}",
+  "episodes": "Episodes",
+  "selectSeason": "Select season",
+  "watched": "Watched",
+  "episodeN": "Episode {{number}}"
+}

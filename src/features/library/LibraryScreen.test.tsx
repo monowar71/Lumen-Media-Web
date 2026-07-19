@@ -19,7 +19,7 @@ describe('LibraryScreen', () => {
     expect(screen.getByText('Dune')).toBeInTheDocument();
 
     // Library header reflects the total from the paged envelope.
-    expect(screen.getByText(/3 items/i)).toBeInTheDocument();
+    expect(screen.getByText(/3 (items|шт\.)/i)).toBeInTheDocument();
   });
 
   it('filters items via the search box', async () => {
@@ -33,7 +33,7 @@ describe('LibraryScreen', () => {
 
     await waitFor(() => expect(screen.getByText('The Matrix')).toBeInTheDocument());
 
-    const input = getByLabelText(/filter items/i);
+    const input = getByLabelText(/filter items|фильтр элементов/i);
     const { default: userEvent } = await import('@testing-library/user-event');
     const user = userEvent.setup();
     await user.type(input, 'matrix');

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthActions } from './useAuthActions';
@@ -14,6 +15,7 @@ interface LocationState {
 }
 
 export function LoginScreen() {
+  const { t } = useTranslation(['auth', 'common']);
   const status = useAuthStore((s) => s.status);
   const baseUrl = useSettingsStore((s) => s.baseUrl);
   const setBaseUrl = useSettingsStore((s) => s.setBaseUrl);
@@ -59,7 +61,9 @@ export function LoginScreen() {
 
   if (status === 'restoring') {
     return (
-      <div className="flex min-h-screen items-center justify-center text-muted">Restoring session…</div>
+      <div className="flex min-h-screen items-center justify-center text-muted">
+        {t('common:state.restoringSession')}
+      </div>
     );
   }
 
@@ -84,7 +88,7 @@ export function LoginScreen() {
       const dest = (location.state as LocationState | null)?.from ?? '/';
       navigate(dest, { replace: true });
     } catch (err) {
-      setError(toErrorMessage(err, needsSetup ? 'Setup failed' : 'Login failed'));
+      setError(toErrorMessage(err, needsSetup ? t('setupFailed') : t('loginFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -98,16 +102,16 @@ export function LoginScreen() {
             ▶
           </span>
           <div>
-            <h1 className="text-xl font-bold">FreePlex</h1>
+            <h1 className="text-xl font-bold">{t('common:brand')}</h1>
             <p className="text-sm text-muted">
-              {needsSetup ? 'Create the first admin account' : 'Sign in to your server'}
+              {needsSetup ? t('subtitleSetup') : t('subtitleLogin')}
             </p>
           </div>
         </div>
 
         <form onSubmit={(e) => void onSubmit(e)} className="flex flex-col gap-4" noValidate>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Server URL</span>
+            <span className="text-muted">{t('serverUrl')}</span>
             <Input
               type="url"
               inputMode="url"
@@ -119,14 +123,11 @@ export function LoginScreen() {
               onChange={(e) => setServer(e.target.value)}
               required
             />
-            <span className="text-xs text-muted">
-              On other devices open the web UI at this PC&apos;s LAN address (port 5173). Server URL
-              is set automatically to port 8096 on the same host.
-            </span>
+            <span className="text-xs text-muted">{t('serverUrlHint')}</span>
           </label>
           {needsSetup && (
             <label className="flex flex-col gap-1 text-sm">
-              <span className="text-muted">Server name</span>
+              <span className="text-muted">{t('serverName')}</span>
               <Input
                 value={serverName}
                 onChange={(e) => setServerName(e.target.value)}
@@ -135,7 +136,7 @@ export function LoginScreen() {
             </label>
           )}
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Username</span>
+            <span className="text-muted">{t('username')}</span>
             <Input
               autoComplete="username"
               value={username}
@@ -144,7 +145,7 @@ export function LoginScreen() {
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Password</span>
+            <span className="text-muted">{t('password')}</span>
             <Input
               type="password"
               autoComplete={needsSetup ? 'new-password' : 'current-password'}
@@ -164,11 +165,11 @@ export function LoginScreen() {
           <Button type="submit" size="lg" disabled={submitting}>
             {submitting
               ? needsSetup
-                ? 'Setting up…'
-                : 'Signing in…'
+                ? t('settingUp')
+                : t('signingIn')
               : needsSetup
-                ? 'Create admin & sign in'
-                : 'Sign in'}
+                ? t('createAdmin')
+                : t('signIn')}
           </Button>
         </form>
       </div>

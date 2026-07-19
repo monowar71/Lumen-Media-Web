@@ -1,0 +1,89 @@
+{
+  "title": "Settings",
+  "saved": "Saved ✓",
+  "save": "Save settings",
+  "language": {
+    "title": "Interface language",
+    "description": "Language of the FreePlex web UI. Metadata language is configured separately under Server settings.",
+    "label": "Language",
+    "ru": "Русский",
+    "en": "English"
+  },
+  "server": {
+    "title": "Server",
+    "description": "The base URL of your FreePlex server.",
+    "url": "Server URL"
+  },
+  "streaming": {
+    "title": "Streaming quality",
+    "description": "Separate bitrate caps for local and external/mobile connections. The active cap is sent to the server as maxBitrateKbps. Use 0 for no limit.",
+    "lanCap": "Local network cap (kbps) — {{label}}",
+    "externalCap": "External/mobile cap (kbps) — {{label}}",
+    "noLimit": "No limit"
+  },
+  "player": {
+    "title": "Player",
+    "description": "Default quality mode when starting playback.",
+    "preferredMode": "Preferred mode",
+    "auto": "Auto (ABR)",
+    "manual": "Manual (Original)"
+  },
+  "libraries": {
+    "title": "Libraries",
+    "description": "Paths are inside the server container (e.g. /media/movies, /media/tv). Host folder: ./media.",
+    "empty": "No libraries yet.",
+    "noPaths": "no paths",
+    "items": "{{count}} items",
+    "scan": "Scan",
+    "delete": "Delete",
+    "confirmDelete": "Delete library “{{name}}”?",
+    "addTitle": "Add library",
+    "name": "Name",
+    "type": "Type",
+    "path": "Folder path (inside container)",
+    "createScan": "Create & scan",
+    "creating": "Creating…",
+    "namePathRequired": "Name and path are required",
+    "createdScanning": "Created “{{name}}”. Scanning…",
+    "createdScanned": "Created “{{name}}” and started a scan.",
+    "createFailed": "Could not create library",
+    "scanStarted": "Scan started for “{{name}}”.",
+    "scanFailed": "Scan failed",
+    "deleted": "Deleted “{{name}}”.",
+    "deleteFailed": "Delete failed"
+  },
+  "users": {
+    "title": "Users",
+    "description": "Create and manage accounts (admin only).",
+    "delete": "Delete",
+    "confirmDelete": "Delete user “{{name}}”?",
+    "deleted": "Deleted {{name}}",
+    "created": "User created",
+    "username": "Username",
+    "password": "Password",
+    "roleUser": "User",
+    "roleAdmin": "Admin",
+    "add": "Add user"
+  },
+  "serverAdmin": {
+    "title": "Server settings",
+    "description": "Transcoding limits, metadata language, and import watcher.",
+    "hardwareAccel": "Hardware accel",
+    "maxSessions": "Max concurrent sessions",
+    "remoteCap": "Default remote cap (kbps)",
+    "watchDownloads": "Watch downloads folder",
+    "metadataLanguage": "Metadata language",
+    "fallbackLanguage": "Fallback language",
+    "metadataHint": "Changing metadata language re-fetches titles and overviews for matched items.",
+    "save": "Save server settings",
+    "saved": "Server settings saved"
+  },
+  "jobs": {
+    "title": "Jobs",
+    "description": "Background scans and metadata tasks.",
+    "empty": "No jobs yet.",
+    "cancel": "Cancel",
+    "imports": "Imports",
+    "importsEmpty": "No pending imports."
+  }
+}

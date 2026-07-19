@@ -491,7 +491,7 @@ export function usePlayback({
         void flushRemoteSeek();
       }
     }
-  }, [attachDecision, selectedQualityId, clearStallWatch]);
+  }, [attachDecision, clearStallWatch]);
 
   const scheduleRemoteSeek = useCallback(
     (targetMs: number) => {

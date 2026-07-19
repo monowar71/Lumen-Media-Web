@@ -21,9 +21,9 @@ describe('LoginScreen', () => {
     const user = userEvent.setup();
     renderLogin();
 
-    await user.type(screen.getByLabelText(/username/i), 'alex');
-    await user.type(screen.getByLabelText(/password/i), 'secret');
-    await user.click(screen.getByRole('button', { name: /sign in/i }));
+    await user.type(screen.getByLabelText(/имя пользователя|username/i), 'alex');
+    await user.type(screen.getByLabelText(/пароль|password/i), 'secret');
+    await user.click(screen.getByRole('button', { name: /войти|sign in/i }));
 
     await waitFor(() => expect(screen.getByText('Home Page')).toBeInTheDocument());
 

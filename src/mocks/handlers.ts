@@ -109,7 +109,7 @@ export const handlers = [
   http.get(`${base}/settings`, () =>
     HttpResponse.json({
       transcoding: { hardwareAccel: 'auto', maxConcurrentSessions: 3, abrEnabled: true },
-      metadata: { providers: [], language: 'en-US' },
+      metadata: { providers: [], language: 'ru-RU', fallbackLanguage: 'en-US' },
       import: { watch: true, minFileSizeMb: 50, strategy: 'Hardlink' },
     }),
   ),

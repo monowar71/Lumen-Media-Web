@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   useCancelJob,
   useCreateUser,
@@ -15,6 +16,7 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 
 export function AdminUsersSection() {
+  const { t } = useTranslation(['settings', 'common']);
   const { data: users, isLoading } = useUsers();
   const create = useCreateUser();
   const remove = useDeleteUser();
@@ -26,9 +28,9 @@ export function AdminUsersSection() {
 
   return (
     <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-      <h2 className="mb-1 text-lg font-semibold">Users</h2>
-      <p className="mb-4 text-sm text-muted">Create and manage accounts (admin only).</p>
-      {isLoading && <p className="text-sm text-muted">Loading…</p>}
+      <h2 className="mb-1 text-lg font-semibold">{t('users.title')}</h2>
+      <p className="mb-4 text-sm text-muted">{t('users.description')}</p>
+      {isLoading && <p className="text-sm text-muted">{t('common:state.loading')}</p>}
       <ul className="mb-4 divide-y divide-border rounded-lg border border-border">
         {(users ?? []).map((u) => (
           <li key={u.id} className="flex items-center gap-3 px-4 py-3">
@@ -41,14 +43,14 @@ export function AdminUsersSection() {
               variant="ghost"
               disabled={remove.isPending || u.role === 'Admin'}
               onClick={() => {
-                if (!window.confirm(`Delete user “${u.username}”?`)) return;
+                if (!window.confirm(t('users.confirmDelete', { name: u.username }))) return;
                 remove.mutate(u.id, {
                   onError: (err) => setError(toErrorMessage(err)),
-                  onSuccess: () => setMessage(`Deleted ${u.username}`),
+                  onSuccess: () => setMessage(t('users.deleted', { name: u.username })),
                 });
               }}
             >
-              Delete
+              {t('users.delete')}
             </Button>
           </li>
         ))}
@@ -64,7 +66,7 @@ export function AdminUsersSection() {
               onSuccess: () => {
                 setUsername('');
                 setPassword('');
-                setMessage('User created');
+                setMessage(t('users.created'));
               },
               onError: (err) => setError(toErrorMessage(err)),
             },
@@ -72,14 +74,14 @@ export function AdminUsersSection() {
         }}
       >
         <Input
-          placeholder="Username"
+          placeholder={t('users.username')}
           value={username}
           onChange={(e) => setUsername(e.target.value)}
           required
         />
         <Input
           type="password"
-          placeholder="Password"
+          placeholder={t('users.password')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
@@ -90,11 +92,11 @@ export function AdminUsersSection() {
           value={role}
           onChange={(e) => setRole(e.target.value as UserRole)}
         >
-          <option value="User">User</option>
-          <option value="Admin">Admin</option>
+          <option value="User">{t('users.roleUser')}</option>
+          <option value="Admin">{t('users.roleAdmin')}</option>
         </select>
         <Button type="submit" disabled={create.isPending}>
-          Add user
+          {t('users.add')}
         </Button>
       </form>
       {message && <p className="mt-2 text-sm text-accent">{message}</p>}
@@ -108,6 +110,7 @@ export function AdminUsersSection() {
 }
 
 export function AdminServerSettingsSection() {
+  const { t } = useTranslation(['settings', 'common']);
   const { data, isLoading } = useServerSettings();
   const save = useSaveServerSettings();
   const [draft, setDraft] = useState<ServerSettingsDto | null>(null);
@@ -119,19 +122,19 @@ export function AdminServerSettingsSection() {
   if (isLoading || !settings) {
     return (
       <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-        <h2 className="text-lg font-semibold">Server settings</h2>
-        <p className="text-sm text-muted">Loading…</p>
+        <h2 className="text-lg font-semibold">{t('serverAdmin.title')}</h2>
+        <p className="text-sm text-muted">{t('common:state.loading')}</p>
       </section>
     );
   }
 
   return (
     <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-      <h2 className="mb-1 text-lg font-semibold">Server settings</h2>
-      <p className="mb-4 text-sm text-muted">Transcoding limits and import watcher.</p>
+      <h2 className="mb-1 text-lg font-semibold">{t('serverAdmin.title')}</h2>
+      <p className="mb-4 text-sm text-muted">{t('serverAdmin.description')}</p>
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">Hardware accel</span>
+          <span className="text-muted">{t('serverAdmin.hardwareAccel')}</span>
           <Input
             value={settings.transcoding?.hardwareAccel ?? 'auto'}
             onChange={(e) =>
@@ -143,7 +146,7 @@ export function AdminServerSettingsSection() {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">Max concurrent sessions</span>
+          <span className="text-muted">{t('serverAdmin.maxSessions')}</span>
           <Input
             type="number"
             min={1}
@@ -160,7 +163,7 @@ export function AdminServerSettingsSection() {
           />
         </label>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">Default remote cap (kbps)</span>
+          <span className="text-muted">{t('serverAdmin.remoteCap')}</span>
           <Input
             type="number"
             min={0}
@@ -187,9 +190,36 @@ export function AdminServerSettingsSection() {
               })
             }
           />
-          <span>Watch downloads folder</span>
+          <span>{t('serverAdmin.watchDownloads')}</span>
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{t('serverAdmin.metadataLanguage')}</span>
+          <Input
+            value={settings.metadata?.language ?? 'ru-RU'}
+            onChange={(e) =>
+              setDraft({
+                ...settings,
+                metadata: { ...settings.metadata, language: e.target.value },
+              })
+            }
+            placeholder="ru-RU"
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{t('serverAdmin.fallbackLanguage')}</span>
+          <Input
+            value={settings.metadata?.fallbackLanguage ?? 'en-US'}
+            onChange={(e) =>
+              setDraft({
+                ...settings,
+                metadata: { ...settings.metadata, fallbackLanguage: e.target.value },
+              })
+            }
+            placeholder="en-US"
+          />
         </label>
       </div>
+      <p className="mt-2 text-xs text-muted">{t('serverAdmin.metadataHint')}</p>
       <div className="mt-4 flex items-center gap-3">
         <Button
           onClick={() => {
@@ -197,14 +227,14 @@ export function AdminServerSettingsSection() {
             save.mutate(settings, {
               onSuccess: () => {
                 setDraft(null);
-                setMessage('Server settings saved');
+                setMessage(t('serverAdmin.saved'));
               },
               onError: (err) => setError(toErrorMessage(err)),
             });
           }}
           disabled={save.isPending}
         >
-          Save server settings
+          {t('serverAdmin.save')}
         </Button>
         {message && <span className="text-sm text-accent">{message}</span>}
         {error && <span className="text-sm text-red-400">{error}</span>}
@@ -214,18 +244,19 @@ export function AdminServerSettingsSection() {
 }
 
 export function AdminJobsSection() {
+  const { t } = useTranslation(['settings', 'common']);
   const { data: jobs, isLoading } = useJobs();
   const cancel = useCancelJob();
   const { data: imports } = useImports();
 
   return (
     <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-      <h2 className="mb-1 text-lg font-semibold">Jobs</h2>
-      <p className="mb-4 text-sm text-muted">Background scans and metadata tasks.</p>
-      {isLoading && <p className="text-sm text-muted">Loading…</p>}
+      <h2 className="mb-1 text-lg font-semibold">{t('jobs.title')}</h2>
+      <p className="mb-4 text-sm text-muted">{t('jobs.description')}</p>
+      {isLoading && <p className="text-sm text-muted">{t('common:state.loading')}</p>}
       <ul className="mb-6 divide-y divide-border rounded-lg border border-border">
         {(jobs?.items ?? []).length === 0 && !isLoading && (
-          <li className="px-4 py-3 text-sm text-muted">No jobs yet.</li>
+          <li className="px-4 py-3 text-sm text-muted">{t('jobs.empty')}</li>
         )}
         {(jobs?.items ?? []).map((job) => (
           <li key={job.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
@@ -240,17 +271,17 @@ export function AdminJobsSection() {
             </div>
             {(job.state === 'Queued' || job.state === 'Running') && (
               <Button size="sm" variant="secondary" onClick={() => cancel.mutate(job.id)}>
-                Cancel
+                {t('jobs.cancel')}
               </Button>
             )}
           </li>
         ))}
       </ul>
 
-      <h3 className="mb-2 text-sm font-semibold">Imports</h3>
+      <h3 className="mb-2 text-sm font-semibold">{t('jobs.imports')}</h3>
       <ul className="divide-y divide-border rounded-lg border border-border">
         {(imports?.items ?? []).length === 0 && (
-          <li className="px-4 py-3 text-sm text-muted">No pending imports.</li>
+          <li className="px-4 py-3 text-sm text-muted">{t('jobs.importsEmpty')}</li>
         )}
         {(imports?.items ?? []).map((imp) => (
           <li key={String(imp.id)} className="px-4 py-3 text-sm">

@@ -1,0 +1,41 @@
+{
+  "title": "Library",
+  "itemsCount": "{{count}} items",
+  "filterPlaceholder": "Filter…",
+  "filterAria": "Filter items",
+  "genre": "Genre",
+  "allGenres": "All genres",
+  "year": "Year",
+  "yearAria": "Filter by year",
+  "sortBy": "Sort by",
+  "sort": {
+    "title": "Title",
+    "year": "Year",
+    "added": "Date added",
+    "rating": "Rating",
+    "runtime": "Runtime"
+  },
+  "orderAsc": "↑ Asc",
+  "orderDesc": "↓ Desc",
+  "orderAriaAsc": "Order: ascending",
+  "orderAriaDesc": "Order: descending",
+  "watchedFilter": "Watched filter",
+  "all": "All",
+  "unwatched": "Unwatched",
+  "watched": "Watched",
+  "noMatch": "No items match your filters",
+  "genres": {
+    "Action": "Action",
+    "Adventure": "Adventure",
+    "Animation": "Animation",
+    "Comedy": "Comedy",
+    "Crime": "Crime",
+    "Documentary": "Documentary",
+    "Drama": "Drama",
+    "Fantasy": "Fantasy",
+    "Horror": "Horror",
+    "Romance": "Romance",
+    "Sci-Fi": "Sci-Fi",
+    "Thriller": "Thriller"
+  }
+}
