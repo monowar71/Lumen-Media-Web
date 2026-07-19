@@ -58,7 +58,8 @@
     "cancel": "Отмена",
     "importResult": "Просмотрено в Plex: {{scanned}}, совпало: {{matched}}, импортировано: {{imported}}, пропущено (новее локально): {{skipped}}, без матча: {{unmatched}}.",
     "loadMore": "Ещё",
-    "episodeLabel": "S{{season}}E{{episode}}"
+    "episodeLabel": "S{{season}}E{{episode}}",
+    "notInLibrary": "Нет в библиотеке"
   },
   "state": {
     "somethingWrong": "Что-то пошло не так",

@@ -282,6 +282,39 @@ export const handlers = [
     }),
   ),
 
+  // Tiny mock video payload — never touches real library files.
+  http.get(`${base}/items/:id/download`, ({ params }) => {
+    const id = String(params.id);
+    const body = new TextEncoder().encode(`MOCK_VIDEO_BYTES:${id}`);
+    return new HttpResponse(body, {
+      headers: {
+        'Content-Type': 'video/x-matroska',
+        'Content-Disposition': `attachment; filename="${id}.mkv"`,
+      },
+    });
+  }),
+
+  http.delete(`${base}/items/:id/file`, ({ params }) => {
+    const id = String(params.id);
+    // Only the disposable mock title may disappear from the in-memory store.
+    if (id === 'movie-mock-delete' && mockMovieDetail[id]) {
+      delete mockMovieDetail[id];
+      return HttpResponse.json({
+        deletedFiles: 1,
+        sourcesRemoved: 1,
+        mediaRemoved: true,
+      });
+    }
+    if (mockMovieDetail[id] || mockEpisodeDetail[id]) {
+      return HttpResponse.json({
+        deletedFiles: 1,
+        sourcesRemoved: 1,
+        mediaRemoved: false,
+      });
+    }
+    return new HttpResponse(null, { status: 404 });
+  }),
+
   // Subtitle stub.
   http.get(`${base}/items/:id/subtitles/:file`, () =>
     new HttpResponse('WEBVTT\n\n', { headers: { 'Content-Type': 'text/vtt' } }),

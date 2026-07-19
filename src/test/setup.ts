@@ -4,8 +4,11 @@ import { cleanup } from '@testing-library/react';
 import { server } from '@/mocks/server';
 import { initHttpBridge } from '@/api/session';
 import { useAuthStore } from '@/stores/authStore';
+import { useLibraryUiStore } from '@/stores/libraryUiStore';
 
 initHttpBridge();
+
+const LIBRARY_UI_DEFAULTS = { sort: 'title' as const, order: 'asc' as const };
 
 // --- jsdom polyfills ---
 class ResizeObserverMock {
@@ -61,11 +64,15 @@ afterEach(() => {
   server.resetHandlers();
   cleanup();
   useAuthStore.getState().clear();
+  useLibraryUiStore.setState(LIBRARY_UI_DEFAULTS);
   sessionStorage.clear();
+  localStorage.removeItem('lumenmedia.libraryUi');
 });
 afterAll(() => server.close());
 
 beforeEach(() => {
   useAuthStore.getState().clear();
+  useLibraryUiStore.setState(LIBRARY_UI_DEFAULTS);
   sessionStorage.clear();
+  localStorage.removeItem('lumenmedia.libraryUi');
 });

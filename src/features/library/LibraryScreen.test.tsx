@@ -3,6 +3,7 @@ import { screen, waitFor } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
 import { LibraryScreen } from './LibraryScreen';
 import { authenticate, renderWithProviders } from '@/test/utils';
+import { useLibraryUiStore } from '@/stores/libraryUiStore';
 
 describe('LibraryScreen', () => {
   it('renders a virtualized poster grid from the mocked API', async () => {
@@ -42,5 +43,40 @@ describe('LibraryScreen', () => {
 
     await waitFor(() => expect(screen.queryByText('Inception')).not.toBeInTheDocument());
     expect(screen.getByText('The Matrix')).toBeInTheDocument();
+  });
+
+  it('persists sort and order across remounts', async () => {
+    authenticate();
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+
+    const first = renderWithProviders(
+      <Routes>
+        <Route path="/library/:libraryId" element={<LibraryScreen />} />
+      </Routes>,
+      { route: '/library/lib-movies' },
+    );
+
+    await waitFor(() => expect(screen.getByText('The Matrix')).toBeInTheDocument());
+
+    await user.selectOptions(screen.getByLabelText(/sort by|сортировка/i), 'year');
+    await user.click(screen.getByRole('button', { name: /ascending|по возрастанию/i }));
+
+    expect(useLibraryUiStore.getState().sort).toBe('year');
+    expect(useLibraryUiStore.getState().order).toBe('desc');
+    expect(localStorage.getItem('lumenmedia.libraryUi')).toContain('"sort":"year"');
+
+    first.unmount();
+
+    renderWithProviders(
+      <Routes>
+        <Route path="/library/:libraryId" element={<LibraryScreen />} />
+      </Routes>,
+      { route: '/library/lib-movies' },
+    );
+
+    await waitFor(() => expect(screen.getByText('The Matrix')).toBeInTheDocument());
+    expect(screen.getByLabelText(/sort by|сортировка/i)).toHaveValue('year');
+    expect(screen.getByRole('button', { name: /descending|по убыванию/i })).toBeInTheDocument();
   });
 });

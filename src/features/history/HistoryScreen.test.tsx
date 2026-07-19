@@ -23,6 +23,10 @@ describe('HistoryScreen', () => {
     await waitFor(() => expect(screen.getByText('Inception')).toBeInTheDocument());
     expect(screen.getByText('The Matrix')).toBeInTheDocument();
     expect(screen.getByText('Pilot')).toBeInTheDocument();
+    expect(screen.getByText(/not in library|нет в библиотеке/i)).toBeInTheDocument();
+    expect(screen.getAllByText('Lost Plex Movie').length).toBeGreaterThan(0);
+    expect(document.querySelector('[aria-disabled="true"]')).toBeTruthy();
+    expect(document.querySelector('[aria-disabled="true"] a')).toBeNull();
   });
 
   it('clears history after confirmation', async () => {

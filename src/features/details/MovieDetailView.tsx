@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { formatRuntime } from '@/lib/format';
 import { playerPath, type PlaybackNavState } from './playbackNav';
 import { MetadataAdminPanel } from './MetadataAdminPanel';
+import { MediaFileActions } from './MediaFileActions';
 import { WatchedToggle } from './WatchedToggle';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {
@@ -121,6 +122,16 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                   </Button>
                 )}
               </div>
+
+              {movie.mediaSources.length > 0 && (
+                <div className="mt-3">
+                  <MediaFileActions
+                    mediaId={movie.id}
+                    fileName={`${movie.title}.${movie.mediaSources[0]?.container ?? 'mkv'}`}
+                    onRemovedNavigateTo={`/library/${movie.libraryId}`}
+                  />
+                </div>
+              )}
 
               {role === 'Admin' && (
                 <MetadataAdminPanel
