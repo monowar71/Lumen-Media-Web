@@ -316,6 +316,110 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    page?: number | string;
+                    pageSize?: number | string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["PagedResultOfHistoryEntryDto"];
+                        "application/json": components["schemas"]["PagedResultOfHistoryEntryDto"];
+                        "text/json": components["schemas"]["PagedResultOfHistoryEntryDto"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ClearHistoryResponse"];
+                        "application/json": components["schemas"]["ClearHistoryResponse"];
+                        "text/json": components["schemas"]["ClearHistoryResponse"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/history/import/plex": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["ImportPlexHistoryRequest"];
+                    "text/json": components["schemas"]["ImportPlexHistoryRequest"];
+                    "application/*+json": components["schemas"]["ImportPlexHistoryRequest"];
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ImportPlexHistoryResponse"];
+                        "application/json": components["schemas"]["ImportPlexHistoryResponse"];
+                        "text/json": components["schemas"]["ImportPlexHistoryResponse"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/home": {
         parameters: {
             query?: never;
@@ -1952,6 +2056,10 @@ export interface components {
             channels?: null | number | string;
             isDefault?: boolean;
         };
+        ClearHistoryResponse: {
+            /** Format: int32 */
+            clearedCount?: number | string;
+        };
         CreateLibraryRequest: {
             name: string;
             type: components["schemas"]["LibraryType"];
@@ -2012,6 +2120,7 @@ export interface components {
             /** Format: int32 */
             episodeNumber?: number | string;
             title?: null | string;
+            overview?: null | string;
             /** Format: date */
             airDate?: null | string;
             /** Format: int64 */
@@ -2033,6 +2142,29 @@ export interface components {
                 [key: string]: string;
             };
         };
+        HistoryEntryDto: {
+            /** Format: uuid */
+            itemId: string;
+            kind: components["schemas"]["MediaKind"];
+            title: string;
+            seriesTitle?: null | string;
+            /** Format: uuid */
+            seriesId?: null | string;
+            /** Format: int32 */
+            seasonNumber?: null | number | string;
+            /** Format: int32 */
+            episodeNumber?: null | number | string;
+            /** Format: int32 */
+            year?: null | number | string;
+            artwork?: components["schemas"]["ArtworkUrls"];
+            watched?: boolean;
+            /** Format: int64 */
+            positionMs?: number | string;
+            /** Format: int64 */
+            durationMs?: null | number | string;
+            /** Format: date-time */
+            updatedAt?: string;
+        };
         HomeResponse: {
             sections?: components["schemas"]["HomeSection"][];
         };
@@ -2050,6 +2182,22 @@ export interface components {
             candidates?: unknown;
             /** Format: date-time */
             createdAt?: string;
+        };
+        ImportPlexHistoryRequest: {
+            baseUrl: string;
+            token: string;
+        };
+        ImportPlexHistoryResponse: {
+            /** Format: int32 */
+            scanned?: number | string;
+            /** Format: int32 */
+            matched?: number | string;
+            /** Format: int32 */
+            imported?: number | string;
+            /** Format: int32 */
+            skippedNewer?: number | string;
+            /** Format: int32 */
+            unmatched?: number | string;
         };
         ImportSettingsDto: {
             watch?: boolean;
@@ -2222,6 +2370,18 @@ export interface components {
             totalPages?: number | string;
             nextCursor?: null | string;
         };
+        PagedResultOfHistoryEntryDto: {
+            items: components["schemas"]["HistoryEntryDto"][];
+            /** Format: int32 */
+            page: number | string;
+            /** Format: int32 */
+            pageSize: number | string;
+            /** Format: int32 */
+            total: number | string;
+            /** Format: int32 */
+            totalPages?: number | string;
+            nextCursor?: null | string;
+        };
         PagedResultOfImportJobDto: {
             items: components["schemas"]["ImportJobDto"][];
             /** Format: int32 */
@@ -2269,6 +2429,14 @@ export interface components {
             /** Format: int32 */
             totalPages?: number | string;
             nextCursor?: null | string;
+        };
+        PersonDto: {
+            name: string;
+            role?: null | string;
+            type: string;
+            /** Format: int32 */
+            order?: number | string;
+            thumb?: null | string;
         };
         PlaybackDecisionRequest: {
             /** Format: uuid */
@@ -2385,6 +2553,8 @@ export interface components {
             communityRating?: null | number | string;
             officialRating?: null | string;
             genres?: string[];
+            people?: components["schemas"]["PersonDto"][];
+            trailerUrl?: null | string;
             externalIds?: components["schemas"]["ExternalIds"];
             metadataLocked?: boolean;
             /** Format: int32 */

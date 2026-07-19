@@ -17,6 +17,9 @@ const ItemDetailScreen = lazy(() =>
 const SearchScreen = lazy(() =>
   import('@/features/search/SearchScreen').then((m) => ({ default: m.SearchScreen })),
 );
+const HistoryScreen = lazy(() =>
+  import('@/features/history/HistoryScreen').then((m) => ({ default: m.HistoryScreen })),
+);
 const SettingsScreen = lazy(() =>
   import('@/features/settings/SettingsScreen').then((m) => ({ default: m.SettingsScreen })),
 );
@@ -50,6 +53,7 @@ export const router = createBrowserRouter([
       { path: 'library/:libraryId', element: lazyElement(LibraryScreen) },
       { path: 'item/:id', element: lazyElement(ItemDetailScreen) },
       { path: 'search', element: lazyElement(SearchScreen) },
+      { path: 'history', element: lazyElement(HistoryScreen) },
       { path: 'settings', element: lazyElement(SettingsScreen) },
     ],
   },

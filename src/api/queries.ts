@@ -21,6 +21,7 @@ export const queryKeys = {
   episode: (id: string) => ['episode', id] as const,
   home: ['home'] as const,
   continueWatching: ['continueWatching'] as const,
+  history: ['history'] as const,
   progress: (itemId: string) => ['progress', itemId] as const,
   search: (q: string) => ['search', q] as const,
   users: ['users'] as const,
@@ -86,6 +87,46 @@ export function useHome() {
   return useQuery({ queryKey: queryKeys.home, queryFn: api.getHome });
 }
 
+const HISTORY_PAGE_SIZE = 40;
+
+export function useHistory() {
+  return useInfiniteQuery({
+    queryKey: queryKeys.history,
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) => api.getHistory(pageParam, HISTORY_PAGE_SIZE),
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+  });
+}
+
+export function useClearHistory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.clearHistory,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.history });
+      void qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: ['libraryItems'] });
+      void qc.invalidateQueries({ queryKey: ['item'] });
+    },
+  });
+}
+
+export function useImportPlexHistory() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.importPlexHistory,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.history });
+      void qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: ['libraryItems'] });
+      void qc.invalidateQueries({ queryKey: ['item'] });
+    },
+  });
+}
+
 export function useProgress(itemId: string | undefined) {
   return useQuery({
     queryKey: queryKeys.progress(itemId ?? ''),
@@ -111,6 +152,7 @@ export function useProgressMutation() {
     onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: queryKeys.progress(data.itemId) });
       qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      qc.invalidateQueries({ queryKey: queryKeys.history });
       qc.invalidateQueries({ queryKey: queryKeys.home });
     },
   });
@@ -130,6 +172,7 @@ export function useMarkWatchedMutation() {
       void qc.invalidateQueries({ queryKey: ['item'] });
       void qc.invalidateQueries({ queryKey: ['libraryItems'] });
       void qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      void qc.invalidateQueries({ queryKey: queryKeys.history });
       void qc.invalidateQueries({ queryKey: queryKeys.home });
     },
   });
