@@ -128,6 +128,15 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     {t('playNextEpisode')}
                   </Button>
                 )}
+                {series.trailerUrl && (
+                  <Button
+                    size="lg"
+                    variant="secondary"
+                    onClick={() => window.open(series.trailerUrl!, '_blank', 'noopener')}
+                  >
+                    {t('trailer')}
+                  </Button>
+                )}
               </div>
               {role === 'Admin' && (
                 <MetadataAdminPanel
@@ -147,6 +156,23 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
               )}
             </div>
           </div>
+
+          {series.people && series.people.length > 0 && (
+            <section className="mt-10">
+              <h2 className="text-display mb-3 text-lg font-bold">{t('cast')}</h2>
+              <div className="no-scrollbar flex gap-4 overflow-x-auto pb-2">
+                {series.people.slice(0, 20).map((p, i) => (
+                  <div key={`${p.name}-${i}`} className="w-28 shrink-0 text-center">
+                    <div className="mx-auto mb-2 h-28 w-28 overflow-hidden rounded-full ring-1 ring-white/10">
+                      <PosterImage path={p.thumb} alt={p.name} width={112} height={112} rounded />
+                    </div>
+                    <p className="truncate text-sm font-medium">{p.name}</p>
+                    {p.role && <p className="truncate text-xs text-muted">{p.role}</p>}
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
         </div>
       </div>
 

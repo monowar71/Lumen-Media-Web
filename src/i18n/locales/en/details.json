@@ -10,6 +10,7 @@
   "fixMatch": "Fix match",
   "metadataLockedHint": "Metadata is locked — automatic refresh will not overwrite it.",
   "cast": "Cast",
+  "trailer": "Trailer",
   "seasonsCount": "{{count}} seasons",
   "season": "Season {{number}}",
   "episodes": "Episodes",

@@ -146,7 +146,7 @@ export type MovieDetail = {
   people?: Person[];
   externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
   metadataLocked?: boolean;
-  trailers?: { site: string; key: string }[];
+  trailerUrl?: string | null;
   artwork: ArtworkSet;
   mediaSources: MediaSource[];
   userData: UserData;
@@ -170,6 +170,7 @@ export type SeriesDetail = {
   people?: Person[];
   externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
   metadataLocked?: boolean;
+  trailerUrl?: string | null;
   seasonCount: number;
   episodeCount: number;
   artwork: ArtworkSet;
