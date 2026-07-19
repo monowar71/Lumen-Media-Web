@@ -22,6 +22,6 @@ export const usePlayerStore = create<PlayerState>()(
       setMuted: (m) => set({ muted: m }),
       setPreferredMode: (m) => set({ preferredMode: m }),
     }),
-    { name: 'freeplex.player' },
+    { name: 'lumenmedia.player' },
   ),
 );

@@ -20,7 +20,7 @@ export function isLoopbackUrl(url: string): boolean {
 
 /**
  * Prefer `VITE_API_BASE_URL`, otherwise derive from the page host so phones/TVs on the
- * LAN hit the machine running FreePlex instead of their own localhost.
+ * LAN hit the machine running LumenMedia instead of their own localhost.
  */
 export function resolveDefaultApiBaseUrl(
   envUrl?: string | null,

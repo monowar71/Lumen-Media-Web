@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 /**
  * Smoke E2E against a live stack (API :8096 + Vite :5173).
  */
-test.describe('FreePlex smoke', () => {
+test.describe('LumenMedia smoke', () => {
   test('login → home → library → open item → player', async ({ page }) => {
     await page.goto('/login');
 

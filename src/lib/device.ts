@@ -1,6 +1,6 @@
 import { randomId } from './utils';
 
-const KEY = 'freeplex.deviceId';
+const KEY = 'lumenmedia.deviceId';
 
 /** Stable, non-sensitive device identifier used for login/session tracking. */
 export function getDeviceId(): string {
@@ -14,7 +14,7 @@ export function getDeviceId(): string {
 }
 
 export function getDeviceName(): string {
-  if (typeof navigator === 'undefined') return 'FreePlex Web';
+  if (typeof navigator === 'undefined') return 'LumenMedia Web';
   const ua = navigator.userAgent;
   const browser = /Firefox/.test(ua)
     ? 'Firefox'
@@ -25,5 +25,5 @@ export function getDeviceName(): string {
         : /Safari/.test(ua)
           ? 'Safari'
           : 'Browser';
-  return `FreePlex Web (${browser})`;
+  return `LumenMedia Web (${browser})`;
 }

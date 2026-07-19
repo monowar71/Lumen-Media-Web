@@ -1,6 +1,6 @@
 # AGENTS.md — client_web (Web)
 
-Веб-клиент FreePlex на TypeScript + React (Vite). Сначала прочитай корневой [../AGENTS.md](../AGENTS.md) и [../docs/clients.md](../docs/clients.md).
+Веб-клиент LumenMedia на TypeScript + React (Vite). Сначала прочитай корневой [../AGENTS.md](../AGENTS.md) и [../docs/clients.md](../docs/clients.md).
 
 ## Стек
 

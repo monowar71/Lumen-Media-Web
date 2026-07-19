@@ -1,6 +1,6 @@
-# FreePlex Web Client
+# LumenMedia Web Client
 
-Веб-клиент FreePlex на **React + TypeScript + Vite**. Тонкий клиент: вся бизнес-логика на
+Веб-клиент LumenMedia на **React + TypeScript + Vite**. Тонкий клиент: вся бизнес-логика на
 сервере, клиент отвечает за аутентификацию, навигацию по библиотекам, детали, воспроизведение
 (DirectPlay/HLS через `hls.js`), выбор качества/дорожек и синхронизацию прогресса.
 
@@ -26,12 +26,12 @@
 ## Требования
 
 Только **Docker** — ничего не ставится на хост. Все команды выполняются в образе `node:24`.
-Кэш npm вынесен в volume `freeplex-npm`, чтобы ускорить повторные установки.
+Кэш npm вынесен в volume `lumenmedia-npm`, чтобы ускорить повторные установки.
 
 Задайте переменную для краткости команд:
 
 ```bash
-DRUN='docker run --rm -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24'
+DRUN='docker run --rm -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24'
 ```
 
 (запускать из каталога `client_web/`)
@@ -40,30 +40,30 @@ DRUN='docker run --rm -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24'
 
 ```bash
 # Установка зависимостей
-docker run --rm -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24 npm install
+docker run --rm -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24 npm install
 
 # Продакшн-сборка (tsc -b && vite build)
-docker run --rm -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24 npm run build
+docker run --rm -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24 npm run build
 
 # Тесты (Vitest + React Testing Library + MSW)
-docker run --rm -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24 npm test
+docker run --rm -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24 npm test
 
 # Регенерация типов из OpenAPI сервера
 docker run --rm -v "$PWD":/app -v "$PWD/../server/openapi.json:/openapi.json:ro" -w /app \
-  -v freeplex-npm:/root/.npm node:24 npx openapi-typescript /openapi.json -o src/api/generated/schema.d.ts
+  -v lumenmedia-npm:/root/.npm node:24 npx openapi-typescript /openapi.json -o src/api/generated/schema.d.ts
 
 # Playwright E2E (нужны поднятые API :8096 и Vite :5173)
 docker run --rm --network host \
-  -v "$PWD":/app -v freeplex-pw:/ms-playwright -w /app \
+  -v "$PWD":/app -v lumenmedia-pw:/ms-playwright -w /app \
   -e PLAYWRIGHT_BROWSERS_PATH=/ms-playwright \
   -e PLAYWRIGHT_BASE_URL=http://localhost:5173 \
   mcr.microsoft.com/playwright:v1.52.0-noble npx playwright test
 
 # Линт (ESLint, warnings = ошибки в CI)
-docker run --rm -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24 npm run lint
+docker run --rm -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24 npm run lint
 
 # Dev-сервер (доступен на http://localhost:5173)
-docker run --rm -it -p 5173:5173 -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24 npm run dev
+docker run --rm -it -p 5173:5173 -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24 npm run dev
 ```
 
 > Если после установки npm сообщает `allow-scripts ... msw (install scripts)`, воркер MSW для
@@ -75,7 +75,7 @@ docker run --rm -it -p 5173:5173 -v "$PWD":/app -w /app -v freeplex-npm:/root/.n
 Базовый URL API конфигурируется тремя способами (по приоритету):
 
 1. **Экран настроек / логина** — поле «Server URL» (сохраняется в `localStorage`, ключ
-   `freeplex.settings`). Это основной способ в рантайме.
+   `lumenmedia.settings`). Это основной способ в рантайме.
 2. **Переменная окружения** `VITE_API_BASE_URL` (см. [`.env.example`](./.env.example)) — значение
    по умолчанию при первом запуске.
 3. Если ничего не задано — URL выводится из hostname страницы: на `localhost` →
@@ -106,7 +106,7 @@ API (`8096`) и Vite (`5173`) уже слушают `0.0.0.0`. С телефон
   ```bash
   docker run --rm -it -p 5173:5173 \
     -e VITE_ENABLE_MOCKS=true \
-    -v "$PWD":/app -w /app -v freeplex-npm:/root/.npm node:24 npm run dev
+    -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24 npm run dev
   ```
 
   Логиньтесь с любым непустым логином/паролем. Данные — из `src/mocks/data.ts`.

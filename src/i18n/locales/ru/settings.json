@@ -26,14 +26,14 @@
   },
   "language": {
     "title": "Язык интерфейса",
-    "description": "Язык веб-интерфейса FreePlex. Язык метаданных настраивается отдельно в настройках сервера.",
+    "description": "Язык веб-интерфейса LumenMedia. Язык метаданных настраивается отдельно в настройках сервера.",
     "label": "Язык",
     "ru": "Русский",
     "en": "English"
   },
   "server": {
     "title": "Сервер",
-    "description": "Базовый URL вашего сервера FreePlex.",
+    "description": "Базовый URL вашего сервера LumenMedia.",
     "url": "URL сервера"
   },
   "streaming": {

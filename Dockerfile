@@ -1,4 +1,4 @@
-# FreePlex web — multi-stage: Vite build → nginx static.
+# LumenMedia web — multi-stage: Vite build → nginx static.
 FROM node:24-alpine AS build
 WORKDIR /app
 COPY package.json package-lock.json ./

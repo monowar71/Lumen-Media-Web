@@ -13,6 +13,6 @@ export default defineConfig({
     trace: 'on-first-retry',
   },
   projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
-  // Expect Vite + API already running (docker freeplex-web / freeplex-api).
+  // Expect Vite + API already running (docker lumenmedia-web / lumenmedia-api).
   timeout: 60_000,
 });

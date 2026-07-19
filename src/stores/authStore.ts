@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import type { UserDto } from '@/api/types';
 
 /** Survives page reload within the tab; cleared on tab close / logout. */
-const REFRESH_STORAGE_KEY = 'freeplex.refreshToken';
+const REFRESH_STORAGE_KEY = 'lumenmedia.refreshToken';
 
 export type AuthStatus = 'restoring' | 'anonymous' | 'authenticated';
 

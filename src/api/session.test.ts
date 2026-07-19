@@ -9,7 +9,7 @@ describe('session restore', () => {
   });
 
   it('restores authenticated session from stored refresh token', async () => {
-    sessionStorage.setItem('freeplex.refreshToken', 'mock-refresh-token');
+    sessionStorage.setItem('lumenmedia.refreshToken', 'mock-refresh-token');
     useAuthStore.getState().beginRestore('mock-refresh-token');
 
     await restoreSession();
@@ -21,12 +21,12 @@ describe('session restore', () => {
   });
 
   it('clears session when refresh token is invalid', async () => {
-    sessionStorage.setItem('freeplex.refreshToken', 'bad-token');
+    sessionStorage.setItem('lumenmedia.refreshToken', 'bad-token');
     useAuthStore.getState().beginRestore('bad-token');
 
     await restoreSession();
 
     expect(useAuthStore.getState().status).toBe('anonymous');
-    expect(sessionStorage.getItem('freeplex.refreshToken')).toBeNull();
+    expect(sessionStorage.getItem('lumenmedia.refreshToken')).toBeNull();
   });
 });
