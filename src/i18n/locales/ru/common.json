@@ -1,0 +1,46 @@
+{
+  "brand": "FreePlex",
+  "nav": {
+    "home": "Главная",
+    "settings": "Настройки",
+    "signOut": "Выйти",
+    "search": "Поиск",
+    "searchPlaceholder": "Поиск…",
+    "openSearch": "Открыть поиск"
+  },
+  "home": {
+    "title": "Главная",
+    "emptyTitle": "Пока пусто",
+    "emptyBody": "Добавьте медиа в библиотеки, чтобы начать."
+  },
+  "search": {
+    "title": "Поиск: «{{query}}»",
+    "noResults": "Ничего не найдено",
+    "movies": "Фильмы",
+    "series": "Сериалы",
+    "episodes": "Эпизоды",
+    "episodeFallback": "Эпизод"
+  },
+  "state": {
+    "somethingWrong": "Что-то пошло не так",
+    "tryAgain": "Повторить",
+    "loading": "Загрузка…",
+    "restoringSession": "Восстановление сессии…"
+  },
+  "format": {
+    "runtimeHoursMinutes": "{{hours}} ч {{minutes}} мин",
+    "runtimeMinutes": "{{minutes}} мин"
+  },
+  "trackLanguage": {
+    "eng": "Английский",
+    "en": "Английский",
+    "rus": "Русский",
+    "ru": "Русский",
+    "und": "Неизвестный",
+    "unknown": "Неизвестный"
+  },
+  "mediaTypes": {
+    "Movies": "Фильмы",
+    "Series": "Сериалы"
+  }
+}

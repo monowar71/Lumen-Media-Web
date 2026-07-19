@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { EpisodeSummary, SeriesDetail } from '@/api/types';
 import { useEpisodes, useRefreshMetadata, useSeasons } from '@/api/queries';
 import { PosterImage } from '@/components/PosterImage';
@@ -11,6 +12,7 @@ import { playerPath, type PlaybackNavState } from './playbackNav';
 import { useAuthStore } from '@/stores/authStore';
 
 function RefreshMetadataButton({ itemId }: { itemId: string }) {
+  const { t } = useTranslation('details');
   const role = useAuthStore((s) => s.user?.role);
   const refresh = useRefreshMetadata();
   if (role !== 'Admin') return null;
@@ -21,12 +23,13 @@ function RefreshMetadataButton({ itemId }: { itemId: string }) {
       disabled={refresh.isPending}
       onClick={() => refresh.mutate(itemId)}
     >
-      {refresh.isPending ? 'Refreshing…' : 'Refresh metadata'}
+      {refresh.isPending ? t('refreshing') : t('refreshMetadata')}
     </Button>
   );
 }
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
+  const { t } = useTranslation('details');
   const navigate = useNavigate();
   const { data: seasonsData, isLoading: seasonsLoading } = useSeasons(series.id);
   const seasons = useMemo(() => seasonsData?.items ?? [], [seasonsData]);
@@ -82,7 +85,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                 </>
               )}
               <Dot />
-              <span>{series.seasonCount} seasons</span>
+              <span>{t('seasonsCount', { count: series.seasonCount })}</span>
             </MetaBadges>
           </div>
           {series.genres && series.genres.length > 0 && (
@@ -108,7 +111,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                   navigate(playerPath(next.id), { state });
                 }}
               >
-                Play next episode
+                {t('playNextEpisode')}
               </Button>
             )}
             <RefreshMetadataButton itemId={series.id} />
@@ -118,13 +121,13 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
 
       <section className="mt-10">
         <div className="mb-4 flex items-center gap-3">
-          <h2 className="text-lg font-semibold">Episodes</h2>
+          <h2 className="text-lg font-semibold">{t('episodes')}</h2>
           {seasons.length > 0 && (
             <select
               className="h-9 rounded-lg border border-border bg-surface px-2 text-sm focus:border-accent focus:outline-none"
               value={seasonId ?? ''}
               onChange={(e) => setSeasonId(e.target.value)}
-              aria-label="Select season"
+              aria-label={t('selectSeason')}
             >
               {seasons.map((s) => (
                 <option key={s.id} value={s.id}>
@@ -158,6 +161,7 @@ function EpisodeRow({
   episode: EpisodeSummary;
   seriesTitle: string;
 }) {
+  const { t } = useTranslation('details');
   const navigate = useNavigate();
   const resumeMs = episode.userData.playbackPositionMs ?? 0;
   const fraction = progressFraction(resumeMs, episode.runtimeMs);
@@ -198,9 +202,12 @@ function EpisodeRow({
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-center justify-between gap-2">
           <p className="truncate font-medium">
-            {episode.episodeNumber}. {episode.title?.trim() || `Episode ${episode.episodeNumber}`}
+            {episode.episodeNumber}.{' '}
+            {episode.title?.trim() || t('episodeN', { number: episode.episodeNumber })}
           </p>
-          {episode.userData.watched && <span className="text-xs text-accent">Watched</span>}
+          {episode.userData.watched && (
+            <span className="text-xs text-accent">{t('watched')}</span>
+          )}
         </div>
         {episode.runtimeMs && (
           <p className="text-xs text-muted">{formatRuntime(episode.runtimeMs)}</p>
@@ -210,7 +217,7 @@ function EpisodeRow({
         )}
         <div className="mt-auto pt-2">
           <Button size="sm" onClick={play}>
-            {canResume ? '▶ Resume' : '▶ Play'}
+            {canResume ? t('resumeShort') : t('play')}
           </Button>
         </div>
       </div>

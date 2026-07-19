@@ -1,0 +1,46 @@
+{
+  "brand": "FreePlex",
+  "nav": {
+    "home": "Home",
+    "settings": "Settings",
+    "signOut": "Sign out",
+    "search": "Search",
+    "searchPlaceholder": "Search…",
+    "openSearch": "Open search"
+  },
+  "home": {
+    "title": "Home",
+    "emptyTitle": "Nothing here yet",
+    "emptyBody": "Add media to your libraries to get started."
+  },
+  "search": {
+    "title": "Search: “{{query}}”",
+    "noResults": "No results",
+    "movies": "Movies",
+    "series": "Series",
+    "episodes": "Episodes",
+    "episodeFallback": "Episode"
+  },
+  "state": {
+    "somethingWrong": "Something went wrong",
+    "tryAgain": "Try again",
+    "loading": "Loading…",
+    "restoringSession": "Restoring session…"
+  },
+  "format": {
+    "runtimeHoursMinutes": "{{hours}}h {{minutes}}m",
+    "runtimeMinutes": "{{minutes}}m"
+  },
+  "trackLanguage": {
+    "eng": "English",
+    "en": "English",
+    "rus": "Russian",
+    "ru": "Russian",
+    "und": "Unknown",
+    "unknown": "Unknown"
+  },
+  "mediaTypes": {
+    "Movies": "Movies",
+    "Series": "Series"
+  }
+}

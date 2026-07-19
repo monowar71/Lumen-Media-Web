@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useLibrary, useLibraryItems } from '@/api/queries';
 import type { LibraryItemsQuery } from '@/api/endpoints';
 import { VirtualPosterGrid } from '@/components/VirtualPosterGrid';
@@ -10,16 +11,9 @@ import { Input } from '@/components/ui/Input';
 type SortKey = NonNullable<LibraryItemsQuery['sort']>;
 type OrderKey = NonNullable<LibraryItemsQuery['order']>;
 
-const SORTS: { value: SortKey; label: string }[] = [
-  { value: 'title', label: 'Title' },
-  { value: 'year', label: 'Year' },
-  { value: 'added', label: 'Date added' },
-  { value: 'rating', label: 'Rating' },
-  { value: 'runtime', label: 'Runtime' },
-];
+const SORT_KEYS: SortKey[] = ['title', 'year', 'added', 'rating', 'runtime'];
 
-const GENRES = [
-  '',
+const GENRE_KEYS = [
   'Action',
   'Adventure',
   'Animation',
@@ -32,9 +26,10 @@ const GENRES = [
   'Romance',
   'Sci-Fi',
   'Thriller',
-];
+] as const;
 
 export function LibraryScreen() {
+  const { t } = useTranslation('library');
   const { libraryId } = useParams<{ libraryId: string }>();
   const { data: library } = useLibrary(libraryId);
 
@@ -78,21 +73,21 @@ export function LibraryScreen() {
     <div>
       <div className="mb-5 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">{library?.name ?? 'Library'}</h1>
-          {!isLoading && <p className="text-sm text-muted">{total} items</p>}
+          <h1 className="text-2xl font-bold">{library?.name ?? t('title')}</h1>
+          {!isLoading && <p className="text-sm text-muted">{t('itemsCount', { count: total })}</p>}
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
           <Input
             type="search"
-            placeholder="Filter…"
+            placeholder={t('filterPlaceholder')}
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            aria-label="Filter items"
+            aria-label={t('filterAria')}
             className="w-40"
           />
           <label className="sr-only" htmlFor="genre">
-            Genre
+            {t('genre')}
           </label>
           <select
             id="genre"
@@ -100,30 +95,30 @@ export function LibraryScreen() {
             value={genre}
             onChange={(e) => setGenre(e.target.value)}
           >
-            <option value="">All genres</option>
-            {GENRES.filter(Boolean).map((g) => (
+            <option value="">{t('allGenres')}</option>
+            {GENRE_KEYS.map((g) => (
               <option key={g} value={g}>
-                {g}
+                {t(`genres.${g}`)}
               </option>
             ))}
           </select>
           <label className="sr-only" htmlFor="year">
-            Year
+            {t('year')}
           </label>
           <Input
             id="year"
             type="number"
             inputMode="numeric"
-            placeholder="Year"
+            placeholder={t('year')}
             value={year}
             onChange={(e) => setYear(e.target.value)}
-            aria-label="Filter by year"
+            aria-label={t('yearAria')}
             className="w-24"
             min={1900}
             max={2100}
           />
           <label className="sr-only" htmlFor="sort">
-            Sort by
+            {t('sortBy')}
           </label>
           <select
             id="sort"
@@ -131,9 +126,9 @@ export function LibraryScreen() {
             value={sort}
             onChange={(e) => setSort(e.target.value as SortKey)}
           >
-            {SORTS.map((s) => (
-              <option key={s.value} value={s.value}>
-                {s.label}
+            {SORT_KEYS.map((key) => (
+              <option key={key} value={key}>
+                {t(`sort.${key}`)}
               </option>
             ))}
           </select>
@@ -141,12 +136,12 @@ export function LibraryScreen() {
             type="button"
             className={selectClass}
             onClick={() => setOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
-            aria-label={`Order: ${order === 'asc' ? 'ascending' : 'descending'}`}
+            aria-label={order === 'asc' ? t('orderAriaAsc') : t('orderAriaDesc')}
           >
-            {order === 'asc' ? '↑ Asc' : '↓ Desc'}
+            {order === 'asc' ? t('orderAsc') : t('orderDesc')}
           </button>
           <label className="sr-only" htmlFor="watched">
-            Watched filter
+            {t('watchedFilter')}
           </label>
           <select
             id="watched"
@@ -154,9 +149,9 @@ export function LibraryScreen() {
             value={watched}
             onChange={(e) => setWatched(e.target.value as '' | 'true' | 'false')}
           >
-            <option value="">All</option>
-            <option value="false">Unwatched</option>
-            <option value="true">Watched</option>
+            <option value="">{t('all')}</option>
+            <option value="false">{t('unwatched')}</option>
+            <option value="true">{t('watched')}</option>
           </select>
         </div>
       </div>
@@ -166,7 +161,7 @@ export function LibraryScreen() {
       ) : isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
       ) : items.length === 0 ? (
-        <EmptyState title="No items match your filters" />
+        <EmptyState title={t('noMatch')} />
       ) : (
         <VirtualPosterGrid
           items={items}

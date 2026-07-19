@@ -1,0 +1,16 @@
+{
+  "play": "▶ Смотреть",
+  "resume": "▶ Продолжить {{time}}",
+  "resumeShort": "▶ Продолжить",
+  "playFromStart": "С начала",
+  "playNextEpisode": "Следующая серия",
+  "refreshMetadata": "Обновить метаданные",
+  "refreshing": "Обновление…",
+  "cast": "В ролях",
+  "seasonsCount": "{{count}} сез.",
+  "season": "Сезон {{number}}",
+  "episodes": "Эпизоды",
+  "selectSeason": "Выбрать сезон",
+  "watched": "Просмотрено",
+  "episodeN": "Эпизод {{number}}"
+}

@@ -1,4 +1,5 @@
 import { Link, useSearchParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useSearch } from '@/api/queries';
 import { MediaCard } from '@/components/MediaCard';
 import { FullPageSpinner } from '@/components/ui/Spinner';
@@ -6,6 +7,7 @@ import { EmptyState, ErrorState } from '@/components/StateViews';
 import { formatRuntime } from '@/lib/format';
 
 export function SearchScreen() {
+  const { t } = useTranslation('common');
   const [params] = useSearchParams();
   const q = params.get('q') ?? '';
   const { data, isLoading, isError, error, refetch } = useSearch(q);
@@ -17,18 +19,18 @@ export function SearchScreen() {
 
   return (
     <div>
-      <h1 className="mb-6 text-2xl font-bold">Search: “{q}”</h1>
+      <h1 className="mb-6 text-2xl font-bold">{t('search.title', { query: q })}</h1>
       {isLoading ? (
         <FullPageSpinner />
       ) : isError ? (
         <ErrorState error={error} onRetry={() => void refetch()} />
       ) : empty ? (
-        <EmptyState title="No results" />
+        <EmptyState title={t('search.noResults')} />
       ) : (
         <div className="flex flex-col gap-8">
           {movies.length > 0 && (
             <section>
-              <h2 className="mb-3 text-lg font-semibold">Movies</h2>
+              <h2 className="mb-3 text-lg font-semibold">{t('search.movies')}</h2>
               <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
                 {movies.map((item) => (
                   <MediaCard key={item.id} item={item} />
@@ -38,7 +40,7 @@ export function SearchScreen() {
           )}
           {series.length > 0 && (
             <section>
-              <h2 className="mb-3 text-lg font-semibold">Series</h2>
+              <h2 className="mb-3 text-lg font-semibold">{t('search.series')}</h2>
               <div className="grid grid-cols-3 gap-4 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
                 {series.map((item) => (
                   <MediaCard key={item.id} item={item} />
@@ -48,7 +50,7 @@ export function SearchScreen() {
           )}
           {episodes.length > 0 && (
             <section>
-              <h2 className="mb-3 text-lg font-semibold">Episodes</h2>
+              <h2 className="mb-3 text-lg font-semibold">{t('search.episodes')}</h2>
               <ul className="divide-y divide-border rounded-xl border border-border">
                 {episodes.map((ep) => (
                   <li key={ep.id}>
@@ -59,9 +61,13 @@ export function SearchScreen() {
                       <span className="w-16 shrink-0 text-sm text-muted">
                         S{ep.seasonNumber}E{ep.episodeNumber}
                       </span>
-                      <span className="flex-1 font-medium">{ep.title ?? 'Episode'}</span>
+                      <span className="flex-1 font-medium">
+                        {ep.title ?? t('search.episodeFallback')}
+                      </span>
                       {ep.runtimeMs != null && (
-                        <span className="text-xs text-muted">{formatRuntime(Number(ep.runtimeMs))}</span>
+                        <span className="text-xs text-muted">
+                          {formatRuntime(Number(ep.runtimeMs))}
+                        </span>
                       )}
                     </Link>
                   </li>

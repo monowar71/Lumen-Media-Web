@@ -23,6 +23,7 @@ client_web/
 │   ├── features/            # auth, library, details, player, settings
 │   ├── components/          # переиспользуемые UI-компоненты
 │   ├── stores/              # zustand-сторы
+│   ├── i18n/                # i18next: locales/en|ru + init
 │   └── lib/                 # утилиты, device profile
 ```
 
@@ -46,6 +47,7 @@ client_web/
 - ESLint + Prettier, строгий TS (`strict: true`), предупреждения = ошибки в CI.
 - Доступность (a11y): фокус, роли, клавиатурная навигация.
 - Отзывчивость: desktop и mobile-браузеры.
+- **i18n:** `i18next` + `react-i18next`. Каталоги в `src/i18n/locales/{ru,en}/*.json` (namespaces: `common`, `auth`, `library`, `details`, `player`, `settings`, `errors`). Дефолт UI — `ru`, fallback — `en`. Ключи стабильные dotted (`settings.save`), не сырой английский текст. Новые UI-строки — только через `t(...)`, без хардкода. Локаль пользователя в `settingsStore.locale` (persist). Язык метаданных на сервере — отдельно (admin Server settings).
 
 ## Контроль ресурсов (CPU/ОЗУ)
 

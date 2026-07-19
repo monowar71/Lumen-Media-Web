@@ -1,9 +1,11 @@
 import type { ReactElement, ReactNode } from 'react';
 import { render } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { I18nextProvider } from 'react-i18next';
 import { MemoryRouter } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
 import { mockUser } from '@/mocks/data';
+import i18n from '@/i18n';
 
 export function createTestQueryClient(): QueryClient {
   return new QueryClient({
@@ -25,29 +27,35 @@ export function authenticate(): void {
 interface WrapperOptions {
   route?: string;
   client?: QueryClient;
+  locale?: string;
 }
 
 export function TestProviders({
   children,
   route = '/',
   client,
+  locale = 'ru',
 }: {
   children: ReactNode;
   route?: string;
   client?: QueryClient;
+  locale?: string;
 }) {
   const qc = client ?? createTestQueryClient();
+  void i18n.changeLanguage(locale);
   return (
-    <QueryClientProvider client={qc}>
-      <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
-    </QueryClientProvider>
+    <I18nextProvider i18n={i18n}>
+      <QueryClientProvider client={qc}>
+        <MemoryRouter initialEntries={[route]}>{children}</MemoryRouter>
+      </QueryClientProvider>
+    </I18nextProvider>
   );
 }
 
 export function renderWithProviders(ui: ReactElement, options: WrapperOptions = {}) {
   const client = options.client ?? createTestQueryClient();
   return render(
-    <TestProviders route={options.route} client={client}>
+    <TestProviders route={options.route} client={client} locale={options.locale}>
       {ui}
     </TestProviders>,
   );
@@ -56,6 +64,10 @@ export function renderWithProviders(ui: ReactElement, options: WrapperOptions = 
 export function createQueryWrapper(client?: QueryClient) {
   const qc = client ?? createTestQueryClient();
   return function Wrapper({ children }: { children: ReactNode }) {
-    return <QueryClientProvider client={qc}>{children}</QueryClientProvider>;
+    return (
+      <I18nextProvider i18n={i18n}>
+        <QueryClientProvider client={qc}>{children}</QueryClientProvider>
+      </I18nextProvider>
+    );
   };
 }

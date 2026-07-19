@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { usePlayerStore } from '@/stores/playerStore';
@@ -19,16 +20,26 @@ import {
   AdminUsersSection,
 } from './AdminSections';
 import { rewriteLoopbackBaseUrlForPage } from '@/lib/apiBaseUrl';
+import type { AppLocale } from '@/i18n';
 
-function kbpsToMbpsLabel(kbps: number): string {
-  if (kbps <= 0) return 'No limit';
+function kbpsToMbpsLabel(kbps: number, noLimit: string): string {
+  if (kbps <= 0) return noLimit;
   return `${(kbps / 1000).toFixed(1)} Mbps`;
 }
 
 export function SettingsScreen() {
+  const { t } = useTranslation('settings');
   const user = useAuthStore((s) => s.user);
-  const { baseUrl, lanCapKbps, externalCapKbps, setBaseUrl, setLanCap, setExternalCap } =
-    useSettingsStore();
+  const {
+    baseUrl,
+    locale,
+    lanCapKbps,
+    externalCapKbps,
+    setBaseUrl,
+    setLocale,
+    setLanCap,
+    setExternalCap,
+  } = useSettingsStore();
 
   const [server, setServer] = useState(baseUrl);
   const [lan, setLan] = useState(String(lanCapKbps));
@@ -51,20 +62,36 @@ export function SettingsScreen() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <h1 className="mb-6 text-2xl font-bold">Settings</h1>
+      <h1 className="mb-6 text-2xl font-bold">{t('title')}</h1>
 
       {user?.role === 'Admin' && <LibrariesSection />}
       {user?.role === 'Admin' && <AdminUsersSection />}
       {user?.role === 'Admin' && <AdminServerSettingsSection />}
       {user?.role === 'Admin' && <AdminJobsSection />}
 
+      <section className="mb-8 rounded-xl border border-border bg-surface p-6">
+        <h2 className="mb-1 text-lg font-semibold">{t('language.title')}</h2>
+        <p className="mb-4 text-sm text-muted">{t('language.description')}</p>
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{t('language.label')}</span>
+          <select
+            className="h-10 w-full max-w-xs rounded-lg border border-border bg-surface px-3 text-sm"
+            value={locale}
+            onChange={(e) => setLocale(e.target.value as AppLocale)}
+          >
+            <option value="ru">{t('language.ru')}</option>
+            <option value="en">{t('language.en')}</option>
+          </select>
+        </label>
+      </section>
+
       <PlayerPrefsSection />
 
       <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-        <h2 className="mb-1 text-lg font-semibold">Server</h2>
-        <p className="mb-4 text-sm text-muted">The base URL of your FreePlex server.</p>
+        <h2 className="mb-1 text-lg font-semibold">{t('server.title')}</h2>
+        <p className="mb-4 text-sm text-muted">{t('server.description')}</p>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">Server URL</span>
+          <span className="text-muted">{t('server.url')}</span>
           <Input
             type="url"
             value={server}
@@ -75,14 +102,15 @@ export function SettingsScreen() {
       </section>
 
       <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-        <h2 className="mb-1 text-lg font-semibold">Streaming quality</h2>
-        <p className="mb-4 text-sm text-muted">
-          Separate bitrate caps for local and external/mobile connections. The active cap is sent to
-          the server as <code>maxBitrateKbps</code>. Use 0 for no limit.
-        </p>
+        <h2 className="mb-1 text-lg font-semibold">{t('streaming.title')}</h2>
+        <p className="mb-4 text-sm text-muted">{t('streaming.description')}</p>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Local network cap (kbps) — {kbpsToMbpsLabel(Number(lan) || 0)}</span>
+            <span className="text-muted">
+              {t('streaming.lanCap', {
+                label: kbpsToMbpsLabel(Number(lan) || 0, t('streaming.noLimit')),
+              })}
+            </span>
             <Input
               type="number"
               min={0}
@@ -93,7 +121,9 @@ export function SettingsScreen() {
           </label>
           <label className="flex flex-col gap-1 text-sm">
             <span className="text-muted">
-              External/mobile cap (kbps) — {kbpsToMbpsLabel(Number(external) || 0)}
+              {t('streaming.externalCap', {
+                label: kbpsToMbpsLabel(Number(external) || 0, t('streaming.noLimit')),
+              })}
             </span>
             <Input
               type="number"
@@ -107,30 +137,31 @@ export function SettingsScreen() {
       </section>
 
       <div className="flex items-center gap-3">
-        <Button onClick={save}>Save settings</Button>
-        {saved && <span className="text-sm text-accent">Saved ✓</span>}
+        <Button onClick={save}>{t('save')}</Button>
+        {saved && <span className="text-sm text-accent">{t('saved')}</span>}
       </div>
     </div>
   );
 }
 
 function PlayerPrefsSection() {
+  const { t } = useTranslation('settings');
   const preferredMode = usePlayerStore((s) => s.preferredMode);
   const setPreferredMode = usePlayerStore((s) => s.setPreferredMode);
 
   return (
     <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-      <h2 className="mb-1 text-lg font-semibold">Player</h2>
-      <p className="mb-4 text-sm text-muted">Default quality mode when starting playback.</p>
+      <h2 className="mb-1 text-lg font-semibold">{t('player.title')}</h2>
+      <p className="mb-4 text-sm text-muted">{t('player.description')}</p>
       <label className="flex flex-col gap-1 text-sm">
-        <span className="text-muted">Preferred mode</span>
+        <span className="text-muted">{t('player.preferredMode')}</span>
         <select
           className="h-10 w-full max-w-xs rounded-lg border border-border bg-surface px-3 text-sm"
           value={preferredMode}
           onChange={(e) => setPreferredMode(e.target.value as PlaybackMode)}
         >
-          <option value="auto">Auto (ABR)</option>
-          <option value="manual">Manual (Original)</option>
+          <option value="auto">{t('player.auto')}</option>
+          <option value="manual">{t('player.manual')}</option>
         </select>
       </label>
     </section>
@@ -138,6 +169,7 @@ function PlayerPrefsSection() {
 }
 
 function LibrariesSection() {
+  const { t, i18n } = useTranslation(['settings', 'common']);
   const { data: libraries, isLoading } = useLibraries();
   const create = useCreateLibrary();
   const scan = useScanLibrary();
@@ -156,7 +188,7 @@ function LibrariesSection() {
     const trimmedName = name.trim();
     const trimmedPath = path.trim();
     if (!trimmedName || !trimmedPath) {
-      setError('Name and path are required');
+      setError(t('libraries.namePathRequired'));
       return;
     }
     try {
@@ -165,28 +197,25 @@ function LibrariesSection() {
         type,
         paths: [trimmedPath],
       });
-      setMessage(`Created “${lib.name}”. Scanning…`);
+      setMessage(t('libraries.createdScanning', { name: lib.name }));
       setName('');
       await scan.mutateAsync(lib.id);
-      setMessage(`Created “${lib.name}” and started a scan.`);
+      setMessage(t('libraries.createdScanned', { name: lib.name }));
     } catch (err) {
-      setError(toErrorMessage(err, 'Could not create library'));
+      setError(toErrorMessage(err, t('libraries.createFailed')));
     }
   };
 
   return (
     <section className="mb-8 rounded-xl border border-border bg-surface p-6">
-      <h2 className="mb-1 text-lg font-semibold">Libraries</h2>
-      <p className="mb-4 text-sm text-muted">
-        Paths are inside the server container (e.g. <code>/media/movies</code>,{' '}
-        <code>/media/tv</code>). Host folder: <code>./media</code>.
-      </p>
+      <h2 className="mb-1 text-lg font-semibold">{t('libraries.title')}</h2>
+      <p className="mb-4 text-sm text-muted">{t('libraries.description')}</p>
 
-      {isLoading && <p className="mb-4 text-sm text-muted">Loading…</p>}
+      {isLoading && <p className="mb-4 text-sm text-muted">{t('common:state.loading')}</p>}
 
       <ul className="mb-6 divide-y divide-border rounded-lg border border-border">
         {(libraries ?? []).length === 0 && !isLoading && (
-          <li className="px-4 py-3 text-sm text-muted">No libraries yet.</li>
+          <li className="px-4 py-3 text-sm text-muted">{t('libraries.empty')}</li>
         )}
         {(libraries ?? []).map((lib) => (
           <li key={lib.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
@@ -195,7 +224,9 @@ function LibrariesSection() {
                 {lib.name}
               </Link>
               <p className="truncate text-xs text-muted">
-                {lib.type} · {(lib.paths ?? []).join(', ') || 'no paths'} · {lib.itemCount} items
+                {i18n.t(`common:mediaTypes.${lib.type}`, { defaultValue: lib.type })} ·{' '}
+                {(lib.paths ?? []).join(', ') || t('libraries.noPaths')} ·{' '}
+                {t('libraries.items', { count: lib.itemCount })}
               </p>
             </div>
             <Button
@@ -205,37 +236,37 @@ function LibrariesSection() {
               onClick={() => {
                 setError(null);
                 scan.mutate(lib.id, {
-                  onSuccess: () => setMessage(`Scan started for “${lib.name}”.`),
-                  onError: (err) => setError(toErrorMessage(err, 'Scan failed')),
+                  onSuccess: () => setMessage(t('libraries.scanStarted', { name: lib.name })),
+                  onError: (err) => setError(toErrorMessage(err, t('libraries.scanFailed'))),
                 });
               }}
             >
-              Scan
+              {t('libraries.scan')}
             </Button>
             <Button
               size="sm"
               variant="ghost"
               disabled={remove.isPending}
               onClick={() => {
-                if (!window.confirm(`Delete library “${lib.name}”?`)) return;
+                if (!window.confirm(t('libraries.confirmDelete', { name: lib.name }))) return;
                 setError(null);
                 remove.mutate(lib.id, {
-                  onSuccess: () => setMessage(`Deleted “${lib.name}”.`),
-                  onError: (err) => setError(toErrorMessage(err, 'Delete failed')),
+                  onSuccess: () => setMessage(t('libraries.deleted', { name: lib.name })),
+                  onError: (err) => setError(toErrorMessage(err, t('libraries.deleteFailed'))),
                 });
               }}
             >
-              Delete
+              {t('libraries.delete')}
             </Button>
           </li>
         ))}
       </ul>
 
       <form onSubmit={(e) => void onCreate(e)} className="grid gap-3">
-        <h3 className="text-sm font-semibold">Add library</h3>
+        <h3 className="text-sm font-semibold">{t('libraries.addTitle')}</h3>
         <div className="grid gap-3 sm:grid-cols-2">
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Name</span>
+            <span className="text-muted">{t('libraries.name')}</span>
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
@@ -244,7 +275,7 @@ function LibrariesSection() {
             />
           </label>
           <label className="flex flex-col gap-1 text-sm">
-            <span className="text-muted">Type</span>
+            <span className="text-muted">{t('libraries.type')}</span>
             <select
               className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text focus:border-accent focus:outline-none"
               value={type}
@@ -254,13 +285,13 @@ function LibrariesSection() {
                 setPath(next === 'Movies' ? '/media/movies' : '/media/tv');
               }}
             >
-              <option value="Movies">Movies</option>
-              <option value="Series">Series</option>
+              <option value="Movies">{t('common:mediaTypes.Movies')}</option>
+              <option value="Series">{t('common:mediaTypes.Series')}</option>
             </select>
           </label>
         </div>
         <label className="flex flex-col gap-1 text-sm">
-          <span className="text-muted">Folder path (inside container)</span>
+          <span className="text-muted">{t('libraries.path')}</span>
           <Input
             value={path}
             onChange={(e) => setPath(e.target.value)}
@@ -270,7 +301,7 @@ function LibrariesSection() {
         </label>
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={create.isPending || scan.isPending}>
-            {create.isPending ? 'Creating…' : 'Create & scan'}
+            {create.isPending ? t('libraries.creating') : t('libraries.createScan')}
           </Button>
           {message && <span className="text-sm text-accent">{message}</span>}
           {error && <span className="text-sm text-red-400">{error}</span>}

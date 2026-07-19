@@ -1,12 +1,28 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import * as Slider from '@radix-ui/react-slider';
 import { usePlayback } from './usePlayback';
 import { TrackMenu, type TrackOption } from './TrackMenu';
+import {
+  IconAudio,
+  IconBack,
+  IconFullscreen,
+  IconFullscreenExit,
+  IconPause,
+  IconPlay,
+  IconQuality,
+  IconSkipBack,
+  IconSkipForward,
+  IconSubtitles,
+  IconVolume,
+  IconVolumeMute,
+} from './PlayerIcons';
 import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
-import { formatTime } from '@/lib/format';
+import { formatTime, formatTrackLanguage } from '@/lib/format';
 import { absoluteUrl } from '@/lib/artwork';
+import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePlayerStore } from '@/stores/playerStore';
@@ -20,7 +36,58 @@ function subtitleTrackUrl(baseUrl: string, url: string, token: string | null): s
   return u.toString();
 }
 
+function isDocumentFullscreen(): boolean {
+  const doc = document as Document & { webkitFullscreenElement?: Element | null };
+  return Boolean(document.fullscreenElement ?? doc.webkitFullscreenElement);
+}
+
+async function requestFullscreen(el: HTMLElement): Promise<void> {
+  const anyEl = el as HTMLElement & {
+    webkitRequestFullscreen?: () => void;
+  };
+  if (el.requestFullscreen) await el.requestFullscreen();
+  else anyEl.webkitRequestFullscreen?.();
+}
+
+async function exitFullscreen(): Promise<void> {
+  const doc = document as Document & { webkitExitFullscreen?: () => void };
+  if (document.exitFullscreen) await document.exitFullscreen();
+  else doc.webkitExitFullscreen?.();
+}
+
+function ControlButton({
+  label,
+  onClick,
+  children,
+  className,
+  large,
+}: {
+  label: string;
+  onClick: () => void;
+  children: ReactNode;
+  className?: string;
+  large?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={label}
+      className={cn(
+        'inline-flex items-center justify-center rounded-full text-white transition',
+        'hover:bg-white/12 active:scale-95',
+        'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+        large ? 'h-14 w-14 bg-white/10 ring-1 ring-white/15 backdrop-blur-md' : 'h-10 w-10',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function PlayerScreen() {
+  const { t } = useTranslation('player');
   const { itemId } = useParams<{ itemId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -41,15 +108,37 @@ export function PlayerScreen() {
 
   const [controlsVisible, setControlsVisible] = useState(true);
   const [scrubMs, setScrubMs] = useState<number | null>(null);
+  const [scrubbing, setScrubbing] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const rootRef = useRef<HTMLDivElement>(null);
   const displayTimeMs = scrubMs ?? player.currentTimeMs;
 
   useEffect(() => {
-    if (!player.playing || !controlsVisible) return;
-    const id = setTimeout(() => setControlsVisible(false), 3500);
-    return () => clearTimeout(id);
-  }, [player.playing, controlsVisible, player.currentTimeMs]);
+    const sync = () => setIsFullscreen(isDocumentFullscreen());
+    document.addEventListener('fullscreenchange', sync);
+    document.addEventListener('webkitfullscreenchange', sync);
+    return () => {
+      document.removeEventListener('fullscreenchange', sync);
+      document.removeEventListener('webkitfullscreenchange', sync);
+    };
+  }, []);
 
-  // Keyboard shortcuts: Space play/pause, arrows seek, M mute, Esc back.
+  const toggleFullscreen = useCallback(async () => {
+    setControlsVisible(true);
+    try {
+      if (isDocumentFullscreen()) await exitFullscreen();
+      else if (rootRef.current) await requestFullscreen(rootRef.current);
+    } catch {
+      // Browser may deny fullscreen without a user gesture or policy.
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!player.playing || !controlsVisible || scrubbing) return;
+    const id = setTimeout(() => setControlsVisible(false), 3200);
+    return () => clearTimeout(id);
+  }, [player.playing, controlsVisible, player.currentTimeMs, scrubbing]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const tag = (e.target as HTMLElement | null)?.tagName;
@@ -78,7 +167,16 @@ export function PlayerScreen() {
           setMuted(!muted);
           setControlsVisible(true);
           break;
+        case 'f':
+          e.preventDefault();
+          void toggleFullscreen();
+          break;
         case 'Escape':
+          if (isDocumentFullscreen()) {
+            // Browser exits fullscreen itself; don't navigate away.
+            setControlsVisible(true);
+            break;
+          }
           e.preventDefault();
           navigate(-1);
           break;
@@ -88,7 +186,7 @@ export function PlayerScreen() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [player, muted, setMuted, navigate]);
+  }, [player, muted, setMuted, navigate, toggleFullscreen]);
 
   const qualityOptions: TrackOption[] = useMemo(
     () =>
@@ -103,35 +201,66 @@ export function PlayerScreen() {
     () =>
       player.decision?.audioStreams.map((a) => ({
         id: a.id,
-        label: a.language?.toUpperCase() ?? 'Audio',
-        sublabel: [a.codec, a.channels ? `${a.channels}ch` : null].filter(Boolean).join(' '),
+        label: formatTrackLanguage(a.language) || t('audioFallback'),
+        sublabel: [a.codec, a.channels ? t('channels', { count: a.channels }) : null]
+          .filter(Boolean)
+          .join(' '),
       })) ?? [],
-    [player.decision],
+    [player.decision, t],
   );
 
   const subtitleOptions: TrackOption[] = useMemo(() => {
     const subs =
       player.decision?.subtitleStreams.map((s) => ({
         id: s.id,
-        label: s.language?.toUpperCase() ?? 'Subtitle',
+        label: formatTrackLanguage(s.language) || t('subtitleFallback'),
         sublabel: s.format,
       })) ?? [];
-    return [{ id: 'off', label: 'Off' }, ...subs];
-  }, [player.decision]);
+    return [{ id: 'off', label: t('off') }, ...subs];
+  }, [player.decision, t]);
 
-  const title = state?.title ?? 'Now Playing';
+  const title = state?.title ?? t('nowPlaying');
+  const methodLabel = useMemo(() => {
+    const method = player.decision?.method;
+    if (method === 'DirectPlay') return t('modeDirect');
+    if (method === 'DirectStream') return t('modeStream');
+    if (method === 'Transcode') return t('modeTranscode');
+    return null;
+  }, [player.decision?.method, t]);
+
+  const qualityLabel =
+    qualityOptions.find((q) => q.id === player.selectedQualityId)?.label ?? null;
+
+  const progressPct =
+    player.durationMs > 0
+      ? Math.min(100, Math.max(0, (displayTimeMs / player.durationMs) * 100))
+      : 0;
+
+  const skipBack = () => {
+    void player.seekTo(Math.max(0, player.currentTimeMs - 10_000));
+    setControlsVisible(true);
+  };
+  const skipForward = () => {
+    void player.seekTo(player.currentTimeMs + 10_000);
+    setControlsVisible(true);
+  };
 
   return (
     <div
-      className="relative h-screen w-screen bg-black"
+      ref={rootRef}
+      className={cn(
+        'relative h-screen w-screen overflow-hidden bg-black select-none',
+        controlsVisible ? 'cursor-default' : 'cursor-none',
+      )}
       onMouseMove={() => setControlsVisible(true)}
+      onDoubleClick={() => void toggleFullscreen()}
       onClick={() => setControlsVisible((v) => !v)}
       role="application"
-      aria-label={`Video player: ${title}`}
+      aria-label={t('ariaPlayer', { title })}
     >
       <video
         ref={player.videoRef}
-        className="h-full w-full bg-black"
+        className="h-full w-full bg-black object-contain"
         playsInline
         crossOrigin="anonymous"
       >
@@ -141,139 +270,259 @@ export function PlayerScreen() {
             id={s.id}
             kind="subtitles"
             srcLang={s.language ?? 'und'}
-            label={s.language?.toUpperCase() ?? 'Subtitle'}
+            label={formatTrackLanguage(s.language) || t('subtitleFallback')}
             src={subtitleTrackUrl(baseUrl, s.deliveryUrl, token)}
           />
         ))}
       </video>
 
-      {(player.loading || player.buffering) && (
+      {/* Soft vignette always present for readable overlays */}
+      <div
+        className={cn(
+          'pointer-events-none absolute inset-0 transition-opacity duration-500',
+          controlsVisible || !player.playing ? 'opacity-100' : 'opacity-0',
+          'bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.35)_100%)]',
+        )}
+        aria-hidden
+      />
+
+      {(player.loading || player.buffering) && !player.error && (
         <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <Spinner className="h-12 w-12" />
+          <div className="flex flex-col items-center gap-3 rounded-2xl bg-black/45 px-6 py-5 ring-1 ring-white/10 backdrop-blur-md">
+            <Spinner className="h-10 w-10 border-white/20 border-t-accent" />
+            <p className="text-sm text-white/80">{t('buffering')}</p>
+          </div>
         </div>
       )}
 
       {player.error && (
-        <div className="absolute inset-0 grid place-items-center bg-black/80 p-6 text-center">
-          <div className="flex flex-col items-center gap-4">
+        <div className="absolute inset-0 grid place-items-center bg-black/75 p-6 text-center backdrop-blur-sm">
+          <div className="flex max-w-md flex-col items-center gap-5 rounded-3xl border border-white/10 bg-surface/90 p-8 shadow-2xl">
             <p className="text-lg font-semibold text-white">{player.error}</p>
             <div className="flex gap-3">
-              <Button onClick={player.retry}>Retry</Button>
+              <Button onClick={player.retry}>{t('retry')}</Button>
               <Button variant="secondary" onClick={() => navigate(-1)}>
-                Go back
+                {t('goBack')}
               </Button>
             </div>
           </div>
         </div>
       )}
 
+      {/* Center transport when paused / controls shown */}
+      {!player.error && !player.loading && (controlsVisible || !player.playing) && (
+        <div
+          className={cn(
+            'pointer-events-none absolute inset-0 grid place-items-center transition-opacity duration-300',
+            controlsVisible || !player.playing ? 'opacity-100' : 'opacity-0',
+          )}
+        >
+          <div
+            className="pointer-events-auto flex items-center gap-5"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <ControlButton label={t('skipBack')} onClick={skipBack} large>
+              <IconSkipBack size={26} />
+            </ControlButton>
+            <ControlButton
+              label={player.playing ? t('pause') : t('play')}
+              onClick={() => {
+                player.togglePlay();
+                setControlsVisible(true);
+              }}
+              className="h-18 w-18 !h-[4.5rem] !w-[4.5rem] bg-accent text-black shadow-lg shadow-accent/30 ring-0 hover:bg-accent-hover"
+            >
+              {player.playing ? <IconPause size={30} /> : <IconPlay size={30} className="ml-0.5" />}
+            </ControlButton>
+            <ControlButton label={t('skipForward')} onClick={skipForward} large>
+              <IconSkipForward size={26} />
+            </ControlButton>
+          </div>
+        </div>
+      )}
+
       <div
-        className={`absolute inset-0 flex flex-col justify-between bg-gradient-to-t from-black/80 via-transparent to-black/60 transition-opacity ${
-          controlsVisible ? 'opacity-100' : 'pointer-events-none opacity-0'
-        }`}
-        onClick={(e) => e.stopPropagation()}
+        className={cn(
+          'pointer-events-none absolute inset-0 flex flex-col justify-between transition-opacity duration-300',
+          controlsVisible ? 'opacity-100' : 'opacity-0',
+        )}
       >
-        <div className="flex items-center gap-3 p-4">
-          <Button variant="ghost" size="sm" onClick={() => navigate(-1)} aria-label="Back">
-            ← Back
-          </Button>
-          <h1 className="truncate text-lg font-semibold text-white">{title}</h1>
+        {/* Top bar */}
+        <div
+          className={cn(
+            'bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 pb-10 pt-4 sm:px-6 sm:pt-5',
+            controlsVisible ? 'pointer-events-auto' : 'pointer-events-none',
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="mx-auto flex max-w-7xl items-center gap-3">
+            <ControlButton label={t('backAria')} onClick={() => navigate(-1)}>
+              <IconBack size={22} />
+            </ControlButton>
+            <div className="min-w-0 flex-1">
+              <h1 className="truncate text-base font-semibold tracking-tight text-white sm:text-lg">
+                {title}
+              </h1>
+              {(methodLabel || qualityLabel) && (
+                <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/65">
+                  {methodLabel && (
+                    <span className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10">
+                      {methodLabel}
+                    </span>
+                  )}
+                  {qualityLabel && <span>{qualityLabel}</span>}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="flex flex-col gap-2 p-4">
-          <Slider.Root
-            className="relative flex h-5 w-full touch-none select-none items-center"
-            min={0}
-            max={Math.max(player.durationMs, 1)}
-            step={1000}
-            value={[Math.min(displayTimeMs, player.durationMs || displayTimeMs)]}
-            onValueChange={([v]) => setScrubMs(v)}
-            onValueCommit={([v]) => {
-              setScrubMs(null);
-              void player.seekTo(v);
-            }}
-            aria-label="Seek"
-          >
-            <Slider.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-white/20">
-              {player.durationMs > 0 &&
-                player.bufferedRanges.map((range, i) => {
-                  const left = (range.startMs / player.durationMs) * 100;
-                  const width = ((range.endMs - range.startMs) / player.durationMs) * 100;
-                  return (
-                    <div
-                      key={`${range.startMs}-${range.endMs}-${i}`}
-                      className="absolute inset-y-0 rounded-full bg-white/45"
-                      style={{ left: `${left}%`, width: `${Math.max(width, 0)}%` }}
-                      aria-hidden
-                    />
-                  );
-                })}
-              <Slider.Range className="absolute h-full rounded-full bg-accent" />
-            </Slider.Track>
-            <Slider.Thumb className="block h-4 w-4 rounded-full bg-accent shadow focus:outline-none" />
-          </Slider.Root>
+        {/* Bottom chrome */}
+        <div
+          className={cn(
+            'bg-gradient-to-t from-black/90 via-black/55 to-transparent px-4 pb-5 pt-16 sm:px-6 sm:pb-7',
+            controlsVisible ? 'pointer-events-auto' : 'pointer-events-none',
+          )}
+          onClick={(e) => e.stopPropagation()}
+        >          <div className="mx-auto flex max-w-7xl flex-col gap-3">
+            {/* Seek bar */}
+            <div className="group relative">
+              {scrubbing && (
+                <div
+                  className="pointer-events-none absolute -top-9 -translate-x-1/2 rounded-lg bg-black/80 px-2 py-1 text-xs font-medium tabular-nums text-white ring-1 ring-white/15"
+                  style={{ left: `${progressPct}%` }}
+                >
+                  {formatTime(displayTimeMs)}
+                </div>
+              )}
+              <Slider.Root
+                className="relative flex h-6 w-full touch-none select-none items-center"
+                min={0}
+                max={Math.max(player.durationMs, 1)}
+                step={500}
+                value={[Math.min(displayTimeMs, player.durationMs || displayTimeMs)]}
+                onValueChange={([v]) => {
+                  setScrubbing(true);
+                  setScrubMs(v);
+                  setControlsVisible(true);
+                }}
+                onValueCommit={([v]) => {
+                  setScrubbing(false);
+                  setScrubMs(null);
+                  void player.seekTo(v);
+                }}
+                aria-label={t('seek')}
+              >
+                <Slider.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-white/20 transition-[height] group-hover:h-2.5">
+                  {player.durationMs > 0 &&
+                    player.bufferedRanges.map((range, i) => {
+                      const left = (range.startMs / player.durationMs) * 100;
+                      const width = ((range.endMs - range.startMs) / player.durationMs) * 100;
+                      return (
+                        <div
+                          key={`${range.startMs}-${range.endMs}-${i}`}
+                          className="absolute inset-y-0 rounded-full bg-white/35"
+                          style={{ left: `${left}%`, width: `${Math.max(width, 0)}%` }}
+                          aria-hidden
+                        />
+                      );
+                    })}
+                  <Slider.Range className="absolute h-full rounded-full bg-accent" />
+                </Slider.Track>
+                <Slider.Thumb
+                  className={cn(
+                    'block h-4 w-4 rounded-full bg-accent shadow-md shadow-black/40',
+                    'opacity-0 transition-opacity group-hover:opacity-100 focus:opacity-100',
+                    'focus:outline-none focus:ring-2 focus:ring-accent/60',
+                    scrubbing && 'opacity-100',
+                  )}
+                />
+              </Slider.Root>
+            </div>
 
-          <div className="flex items-center gap-3 text-white">
-            <button
-              type="button"
-              onClick={player.togglePlay}
-              aria-label={player.playing ? 'Pause' : 'Play'}
-              className="rounded-md px-3 py-1.5 text-lg hover:bg-white/10"
-            >
-              {player.playing ? '❚❚' : '▶'}
-            </button>
-            <span className="text-sm tabular-nums text-white/90">
-              {formatTime(displayTimeMs)} / {formatTime(player.durationMs)}
-            </span>
+            <div className="flex flex-wrap items-center gap-2 text-white sm:gap-3">
+              <div className="flex items-center gap-1">
+                <ControlButton
+                  label={player.playing ? t('pause') : t('play')}
+                  onClick={() => player.togglePlay()}
+                >
+                  {player.playing ? <IconPause size={20} /> : <IconPlay size={20} className="ml-0.5" />}
+                </ControlButton>
+                <ControlButton label={t('skipBack')} onClick={skipBack} className="hidden sm:inline-flex">
+                  <IconSkipBack size={18} />
+                </ControlButton>
+                <ControlButton
+                  label={t('skipForward')}
+                  onClick={skipForward}
+                  className="hidden sm:inline-flex"
+                >
+                  <IconSkipForward size={18} />
+                </ControlButton>
+              </div>
 
-            <button
-              type="button"
-              onClick={() => setMuted(!muted)}
-              aria-label={muted ? 'Unmute' : 'Mute'}
-              className="rounded-md px-2 py-1 text-sm hover:bg-white/10"
-            >
-              {muted || volume === 0 ? '🔇' : '🔊'}
-            </button>
-            <Slider.Root
-              className="relative flex h-5 w-24 touch-none select-none items-center"
-              min={0}
-              max={1}
-              step={0.05}
-              value={[muted ? 0 : volume]}
-              onValueChange={([v]) => {
-                setVolume(v);
-                if (v > 0 && muted) setMuted(false);
-              }}
-              aria-label="Volume"
-            >
-              <Slider.Track className="relative h-1.5 w-full grow rounded-full bg-white/25">
-                <Slider.Range className="absolute h-full rounded-full bg-white" />
-              </Slider.Track>
-              <Slider.Thumb className="block h-3 w-3 rounded-full bg-white shadow focus:outline-none" />
-            </Slider.Root>
+              <span className="min-w-[7.5rem] text-sm tabular-nums text-white/85">
+                <span className="text-white">{formatTime(displayTimeMs)}</span>
+                <span className="text-white/45"> / {formatTime(player.durationMs)}</span>
+              </span>
 
-            <div className="ml-auto flex items-center gap-1">
-              <TrackMenu
-                label="Audio"
-                triggerLabel="Audio"
-                options={audioOptions}
-                selectedId={player.selectedAudioId}
-                onSelect={(id) => player.changeAudio(id)}
-              />
-              <TrackMenu
-                label="Subtitles"
-                triggerLabel="Subtitles"
-                options={subtitleOptions}
-                selectedId={player.selectedSubtitleId ?? 'off'}
-                onSelect={(id) => void player.changeSubtitle(id === 'off' ? null : id)}
-              />
-              <TrackMenu
-                label="Quality"
-                triggerLabel="Quality"
-                options={qualityOptions}
-                selectedId={player.selectedQualityId}
-                onSelect={(id) => player.changeQuality(id)}
-              />
+              <div className="flex items-center gap-1">
+                <ControlButton
+                  label={muted ? t('unmute') : t('mute')}
+                  onClick={() => setMuted(!muted)}
+                >
+                  {muted || volume === 0 ? <IconVolumeMute size={20} /> : <IconVolume size={20} />}
+                </ControlButton>
+                <Slider.Root
+                  className="relative hidden h-8 w-24 touch-none select-none items-center sm:flex"
+                  min={0}
+                  max={1}
+                  step={0.05}
+                  value={[muted ? 0 : volume]}
+                  onValueChange={([v]) => {
+                    setVolume(v);
+                    if (v > 0 && muted) setMuted(false);
+                  }}
+                  aria-label={t('volume')}
+                >
+                  <Slider.Track className="relative h-1 w-full grow rounded-full bg-white/25">
+                    <Slider.Range className="absolute h-full rounded-full bg-white" />
+                  </Slider.Track>
+                  <Slider.Thumb className="block h-3.5 w-3.5 rounded-full bg-white shadow focus:outline-none focus:ring-2 focus:ring-accent/50" />
+                </Slider.Root>
+              </div>
+
+              <div className="ml-auto flex flex-wrap items-center justify-end gap-1.5">
+                <TrackMenu
+                  label={t('audio')}
+                  triggerLabel={t('audio')}
+                  icon={<IconAudio size={16} />}
+                  options={audioOptions}
+                  selectedId={player.selectedAudioId}
+                  onSelect={(id) => player.changeAudio(id)}
+                />
+                <TrackMenu
+                  label={t('subtitles')}
+                  triggerLabel={t('subtitles')}
+                  icon={<IconSubtitles size={16} />}
+                  options={subtitleOptions}
+                  selectedId={player.selectedSubtitleId ?? 'off'}
+                  onSelect={(id) => void player.changeSubtitle(id === 'off' ? null : id)}
+                />
+                <TrackMenu
+                  label={t('quality')}
+                  triggerLabel={t('quality')}
+                  icon={<IconQuality size={16} />}
+                  options={qualityOptions}
+                  selectedId={player.selectedQualityId}
+                  onSelect={(id) => player.changeQuality(id)}
+                />
+                <ControlButton
+                  label={isFullscreen ? t('fullscreenExit') : t('fullscreen')}
+                  onClick={() => void toggleFullscreen()}
+                >
+                  {isFullscreen ? <IconFullscreenExit size={20} /> : <IconFullscreen size={20} />}
+                </ControlButton>
+              </div>
             </div>
           </div>
         </div>

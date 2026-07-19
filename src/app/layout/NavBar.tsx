@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useLibraries } from '@/api/queries';
 import { useAuthActions } from '@/features/auth/useAuthActions';
@@ -8,6 +9,7 @@ import { Button } from '@/components/ui/Button';
 import { cn } from '@/lib/utils';
 
 export function NavBar() {
+  const { t } = useTranslation('common');
   const user = useAuthStore((s) => s.user);
   const { data: libraries } = useLibraries();
   const { logout } = useAuthActions();
@@ -35,12 +37,12 @@ export function NavBar() {
       <div className="mx-auto flex h-14 max-w-7xl items-center gap-4 px-4">
         <Link to="/" className="flex items-center gap-2 font-bold">
           <span className="grid h-7 w-7 place-items-center rounded-md bg-accent text-black">▶</span>
-          <span className="hidden sm:inline">FreePlex</span>
+          <span className="hidden sm:inline">{t('brand')}</span>
         </Link>
 
         <nav className="flex items-center gap-1 overflow-x-auto">
           <NavLink to="/" end className={linkClass}>
-            Home
+            {t('nav.home')}
           </NavLink>
           {libraries?.map((lib) => (
             <NavLink key={lib.id} to={`/library/${lib.id}`} className={linkClass}>
@@ -52,10 +54,10 @@ export function NavBar() {
         <form onSubmit={onSearch} className="ml-auto hidden w-56 md:block">
           <Input
             type="search"
-            placeholder="Search…"
+            placeholder={t('nav.searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search"
+            aria-label={t('nav.search')}
           />
         </form>
 
@@ -64,18 +66,18 @@ export function NavBar() {
             size="sm"
             variant="ghost"
             className="md:hidden"
-            aria-label="Open search"
+            aria-label={t('nav.openSearch')}
             aria-expanded={mobileSearchOpen}
             onClick={() => setMobileSearchOpen((v) => !v)}
           >
             🔍
           </Button>
           <NavLink to="/settings" className={linkClass}>
-            Settings
+            {t('nav.settings')}
           </NavLink>
           <span className="hidden text-sm text-muted lg:inline">{user?.username}</span>
           <Button size="sm" variant="secondary" onClick={() => void logout()}>
-            Sign out
+            {t('nav.signOut')}
           </Button>
         </div>
       </div>
@@ -84,10 +86,10 @@ export function NavBar() {
         <form onSubmit={onSearch} className="border-t border-border px-4 py-2 md:hidden">
           <Input
             type="search"
-            placeholder="Search…"
+            placeholder={t('nav.searchPlaceholder')}
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            aria-label="Search"
+            aria-label={t('nav.search')}
             autoFocus
           />
         </form>

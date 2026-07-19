@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import type { MovieDetail } from '@/api/types';
 import { PosterImage } from '@/components/PosterImage';
 import { Button } from '@/components/ui/Button';
@@ -11,6 +12,7 @@ import { formatRuntime } from '@/lib/format';
 import { playerPath, type PlaybackNavState } from './playbackNav';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {
+  const { t } = useTranslation('details');
   const navigate = useNavigate();
   const baseUrl = useSettingsStore((s) => s.baseUrl);
   const token = useAuthStore((s) => s.accessToken);
@@ -93,11 +95,13 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
 
               <div className="mt-5 flex flex-wrap gap-3">
                 <Button size="lg" onClick={() => play(!canResume)}>
-                  {canResume ? `▶ Resume ${formatRuntime(resumeMs)}` : '▶ Play'}
+                  {canResume
+                    ? t('resume', { time: formatRuntime(resumeMs) })
+                    : t('play')}
                 </Button>
                 {canResume && (
                   <Button size="lg" variant="secondary" onClick={() => play(true)}>
-                    Play from start
+                    {t('playFromStart')}
                   </Button>
                 )}
                 {role === 'Admin' && (
@@ -107,7 +111,7 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     disabled={refreshMeta.isPending}
                     onClick={() => refreshMeta.mutate(movie.id)}
                   >
-                    {refreshMeta.isPending ? 'Refreshing…' : 'Refresh metadata'}
+                    {refreshMeta.isPending ? t('refreshing') : t('refreshMetadata')}
                   </Button>
                 )}
               </div>
@@ -118,7 +122,7 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
 
           {movie.people && movie.people.length > 0 && (
             <section className="mt-10">
-              <h2 className="mb-3 text-lg font-semibold">Cast</h2>
+              <h2 className="mb-3 text-lg font-semibold">{t('cast')}</h2>
               <div className="no-scrollbar flex gap-4 overflow-x-auto pb-2">
                 {movie.people.slice(0, 20).map((p, i) => (
                   <div key={`${p.name}-${i}`} className="w-28 shrink-0 text-center">
