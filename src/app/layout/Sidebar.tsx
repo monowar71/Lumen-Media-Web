@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLibraries } from '@/api/queries';
 import {
@@ -17,17 +17,25 @@ import type { LibraryType } from '@/api/types';
 const linkBase =
   'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors';
 
-function navClass({ isActive }: { isActive: boolean }) {
+function navClass(active: boolean) {
   return cn(
     linkBase,
-    isActive
-      ? 'bg-accent-soft text-accent'
-      : 'text-muted hover:bg-surface-2 hover:text-text',
+    active ? 'bg-accent-soft text-accent' : 'text-muted hover:bg-surface-2 hover:text-text',
   );
 }
 
 function LibraryIcon({ type }: { type: LibraryType }) {
   return type === 'Series' ? <IconTv size={18} /> : <IconMovies size={18} />;
+}
+
+/** Settings tabs share pathname `/settings`; only the matching `tab` query is active. */
+function settingsTabActive(searchParams: URLSearchParams, tab: string | null): boolean {
+  const current = searchParams.get('tab');
+  if (tab === null) {
+    // Default "Settings" — active for general settings tabs, not activity/devices/libraries.
+    return current === null || current === 'general' || current === 'playback' || current === 'admin';
+  }
+  return current === tab;
 }
 
 interface SidebarProps {
@@ -39,10 +47,10 @@ interface SidebarProps {
 export function Sidebar({ open, onClose, className }: SidebarProps) {
   const { t } = useTranslation('common');
   const { data: libraries } = useLibraries();
+  const [searchParams] = useSearchParams();
 
   return (
     <>
-      {/* Mobile overlay */}
       <div
         className={cn(
           'fixed inset-0 z-40 bg-black/60 backdrop-blur-sm transition-opacity lg:hidden',
@@ -82,11 +90,11 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
             {t('nav.browse')}
           </p>
           <div className="flex flex-col gap-0.5">
-            <NavLink to="/" end className={navClass} onClick={onClose}>
+            <NavLink to="/" end className={({ isActive }) => navClass(isActive)} onClick={onClose}>
               <IconHome size={18} />
               {t('nav.home')}
             </NavLink>
-            <NavLink to="/search" className={navClass} onClick={onClose}>
+            <NavLink to="/search" className={({ isActive }) => navClass(isActive)} onClick={onClose}>
               <IconLibrary size={18} />
               {t('nav.search')}
             </NavLink>
@@ -103,7 +111,7 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
               <NavLink
                 key={lib.id}
                 to={`/library/${lib.id}`}
-                className={navClass}
+                className={({ isActive }) => navClass(isActive)}
                 onClick={onClose}
               >
                 <LibraryIcon type={lib.type} />
@@ -117,15 +125,28 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
             {t('nav.manage')}
           </p>
           <div className="flex flex-col gap-0.5">
-            <NavLink to="/settings?tab=activity" className={navClass} onClick={onClose}>
+            <NavLink
+              to="/settings?tab=activity"
+              className={() => navClass(settingsTabActive(searchParams, 'activity'))}
+              onClick={onClose}
+            >
               <IconActivity size={18} />
               {t('nav.activity')}
             </NavLink>
-            <NavLink to="/settings?tab=devices" className={navClass} onClick={onClose}>
+            <NavLink
+              to="/settings?tab=devices"
+              className={() => navClass(settingsTabActive(searchParams, 'devices'))}
+              onClick={onClose}
+            >
               <IconDevices size={18} />
               {t('nav.devices')}
             </NavLink>
-            <NavLink to="/settings" end className={navClass} onClick={onClose}>
+            <NavLink
+              to="/settings"
+              end
+              className={() => navClass(settingsTabActive(searchParams, null))}
+              onClick={onClose}
+            >
               <IconSettings size={18} />
               {t('nav.settings')}
             </NavLink>

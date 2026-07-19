@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { EpisodeSummary, SeriesDetail } from '@/api/types';
-import { useEpisodes, useRefreshMetadata, useSeasons } from '@/api/queries';
+import { useEpisodes, useSeasons } from '@/api/queries';
 import { PosterImage } from '@/components/PosterImage';
 import { Button } from '@/components/ui/Button';
 import { Badge, Dot, MetaBadges } from '@/components/MetaBadges';
@@ -14,27 +14,12 @@ import { playerPath, type PlaybackNavState } from './playbackNav';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
-
-function RefreshMetadataButton({ itemId }: { itemId: string }) {
-  const { t } = useTranslation('details');
-  const role = useAuthStore((s) => s.user?.role);
-  const refresh = useRefreshMetadata();
-  if (role !== 'Admin') return null;
-  return (
-    <Button
-      variant="secondary"
-      size="sm"
-      disabled={refresh.isPending}
-      onClick={() => refresh.mutate(itemId)}
-    >
-      {refresh.isPending ? t('refreshing') : t('refreshMetadata')}
-    </Button>
-  );
-}
+import { MetadataAdminPanel } from './MetadataAdminPanel';
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const { t } = useTranslation('details');
   const navigate = useNavigate();
+  const role = useAuthStore((s) => s.user?.role);
   const baseUrl = useSettingsStore((s) => s.baseUrl);
   const token = useAuthStore((s) => s.accessToken);
   const backdrop = artworkUrl(
@@ -143,8 +128,23 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     {t('playNextEpisode')}
                   </Button>
                 )}
-                <RefreshMetadataButton itemId={series.id} />
               </div>
+              {role === 'Admin' && (
+                <MetadataAdminPanel
+                  item={{
+                    id: series.id,
+                    kind: 'Series',
+                    title: series.title,
+                    originalTitle: series.originalTitle,
+                    year: series.year,
+                    overview: series.overview,
+                    communityRating: series.communityRating,
+                    officialRating: series.officialRating,
+                    metadataLocked: series.metadataLocked,
+                    externalIds: series.externalIds,
+                  }}
+                />
+              )}
             </div>
           </div>
         </div>

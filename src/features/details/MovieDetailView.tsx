@@ -7,9 +7,9 @@ import { Badge, Dot, MetaBadges } from '@/components/MetaBadges';
 import { artworkUrl } from '@/lib/artwork';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
-import { useRefreshMetadata } from '@/api/queries';
 import { formatRuntime } from '@/lib/format';
 import { playerPath, type PlaybackNavState } from './playbackNav';
+import { MetadataAdminPanel } from './MetadataAdminPanel';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {
   const { t } = useTranslation('details');
@@ -17,7 +17,6 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
   const baseUrl = useSettingsStore((s) => s.baseUrl);
   const token = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.user?.role);
-  const refreshMeta = useRefreshMetadata();
   const backdrop = artworkUrl(baseUrl, movie.artwork.backdrop, { w: 1280, h: 720, quality: 70 }, token);
 
   const resumeMs = movie.userData.playbackPositionMs ?? 0;
@@ -104,17 +103,25 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     {t('playFromStart')}
                   </Button>
                 )}
-                {role === 'Admin' && (
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    disabled={refreshMeta.isPending}
-                    onClick={() => refreshMeta.mutate(movie.id)}
-                  >
-                    {refreshMeta.isPending ? t('refreshing') : t('refreshMetadata')}
-                  </Button>
-                )}
               </div>
+
+              {role === 'Admin' && (
+                <MetadataAdminPanel
+                  item={{
+                    id: movie.id,
+                    kind: 'Movie',
+                    title: movie.title,
+                    originalTitle: movie.originalTitle,
+                    year: movie.year,
+                    overview: movie.overview,
+                    tagline: movie.tagline,
+                    communityRating: movie.communityRating,
+                    officialRating: movie.officialRating,
+                    metadataLocked: movie.metadataLocked,
+                    externalIds: movie.externalIds,
+                  }}
+                />
+              )}
 
               {movie.overview && (
                 <p className="mt-5 max-w-3xl text-sm leading-6 text-muted sm:text-base sm:text-text/90">

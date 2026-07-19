@@ -6,7 +6,7 @@ import {
 } from '@tanstack/react-query';
 import * as api from './endpoints';
 import type { LibraryItemsQuery } from './endpoints';
-import type { ProgressRequest } from './types';
+import type { ProgressRequest, UpdateItemMetadataRequest } from './types';
 
 export const queryKeys = {
   serverInfo: ['serverInfo'] as const,
@@ -28,6 +28,8 @@ export const queryKeys = {
   jobs: ['jobs'] as const,
   job: (id: string) => ['job', id] as const,
   imports: ['imports'] as const,
+  matchCandidates: (id: string, q: string, year?: number) =>
+    ['matchCandidates', id, q, year ?? null] as const,
 };
 
 export function useLibraries() {
@@ -211,6 +213,56 @@ export function useRefreshMetadata() {
     onSuccess: (_job, itemId) => {
       void qc.invalidateQueries({ queryKey: queryKeys.item(itemId) });
       void qc.invalidateQueries({ queryKey: queryKeys.jobs });
+    },
+  });
+}
+
+export function useMatchCandidates(
+  itemId: string | undefined,
+  q: string,
+  year: number | undefined,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: queryKeys.matchCandidates(itemId ?? '', q, year),
+    queryFn: () => api.getMatchCandidates(itemId!, q, year),
+    enabled: Boolean(itemId) && enabled && q.trim().length > 0,
+  });
+}
+
+export function useMatchItem() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      provider,
+      providerId,
+    }: {
+      itemId: string;
+      provider: string;
+      providerId: string;
+    }) => api.matchItem(itemId, { provider, providerId }),
+    onSuccess: (_job, { itemId }) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.item(itemId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.jobs });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      // Job applies asynchronously — refresh again shortly.
+      window.setTimeout(() => {
+        void qc.invalidateQueries({ queryKey: queryKeys.item(itemId) });
+      }, 2500);
+    },
+  });
+}
+
+export function useUpdateItemMetadata() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, body }: { itemId: string; body: UpdateItemMetadataRequest }) =>
+      api.updateItemMetadata(itemId, body),
+    onSuccess: (_data, { itemId }) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.item(itemId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: ['libraryItems'] });
     },
   });
 }
