@@ -1,0 +1,216 @@
+import {
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
+import * as api from './endpoints';
+import type { LibraryItemsQuery } from './endpoints';
+import type { ProgressRequest } from './types';
+
+export const queryKeys = {
+  serverInfo: ['serverInfo'] as const,
+  me: ['me'] as const,
+  libraries: ['libraries'] as const,
+  library: (id: string) => ['library', id] as const,
+  libraryItems: (id: string, query: Omit<LibraryItemsQuery, 'page' | 'cursor'>) =>
+    ['libraryItems', id, query] as const,
+  item: (id: string) => ['item', id] as const,
+  seasons: (seriesId: string) => ['seasons', seriesId] as const,
+  episodes: (seasonId: string) => ['episodes', seasonId] as const,
+  episode: (id: string) => ['episode', id] as const,
+  home: ['home'] as const,
+  continueWatching: ['continueWatching'] as const,
+  progress: (itemId: string) => ['progress', itemId] as const,
+  search: (q: string) => ['search', q] as const,
+  users: ['users'] as const,
+  serverSettings: ['serverSettings'] as const,
+  jobs: ['jobs'] as const,
+  job: (id: string) => ['job', id] as const,
+  imports: ['imports'] as const,
+};
+
+export function useLibraries() {
+  return useQuery({ queryKey: queryKeys.libraries, queryFn: api.getLibraries });
+}
+
+export function useLibrary(id: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.library(id ?? ''),
+    queryFn: () => api.getLibrary(id!),
+    enabled: Boolean(id),
+  });
+}
+
+const PAGE_SIZE = 40;
+
+export function useLibraryItems(id: string | undefined, query: Omit<LibraryItemsQuery, 'page'>) {
+  return useInfiniteQuery({
+    queryKey: queryKeys.libraryItems(id ?? '', query),
+    enabled: Boolean(id),
+    initialPageParam: 1,
+    queryFn: ({ pageParam }) =>
+      api.getLibraryItems(id!, { ...query, page: pageParam, pageSize: PAGE_SIZE }),
+    getNextPageParam: (lastPage) =>
+      lastPage.page < lastPage.totalPages ? lastPage.page + 1 : undefined,
+  });
+}
+
+export function useItem(id: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.item(id ?? ''),
+    queryFn: () => api.getItem(id!),
+    enabled: Boolean(id),
+  });
+}
+
+export function useSeasons(seriesId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.seasons(seriesId ?? ''),
+    queryFn: () => api.getSeasons(seriesId!),
+    enabled: Boolean(seriesId),
+  });
+}
+
+export function useEpisodes(seasonId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.episodes(seasonId ?? ''),
+    queryFn: () => api.getEpisodes(seasonId!),
+    enabled: Boolean(seasonId),
+  });
+}
+
+export function useHome() {
+  return useQuery({ queryKey: queryKeys.home, queryFn: api.getHome });
+}
+
+export function useProgress(itemId: string | undefined) {
+  return useQuery({
+    queryKey: queryKeys.progress(itemId ?? ''),
+    queryFn: () => api.getProgress(itemId!),
+    enabled: Boolean(itemId),
+  });
+}
+
+export function useSearch(q: string) {
+  return useQuery({
+    queryKey: queryKeys.search(q),
+    queryFn: () => api.search(q),
+    enabled: q.trim().length > 1,
+    staleTime: 30_000,
+  });
+}
+
+export function useProgressMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, body }: { itemId: string; body: ProgressRequest }) =>
+      api.putProgress(itemId, body),
+    onSuccess: (data) => {
+      qc.invalidateQueries({ queryKey: queryKeys.progress(data.itemId) });
+      qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      qc.invalidateQueries({ queryKey: queryKeys.home });
+    },
+  });
+}
+
+export function useCreateLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.createLibrary,
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.libraries });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+    },
+  });
+}
+
+export function useScanLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.scanLibrary(id),
+    onSuccess: (_data, id) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.libraries });
+      void qc.invalidateQueries({ queryKey: queryKeys.library(id) });
+      void qc.invalidateQueries({ queryKey: ['libraryItems', id] });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+    },
+  });
+}
+
+export function useDeleteLibrary() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteLibrary(id),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: queryKeys.libraries });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+    },
+  });
+}
+
+export function useUsers() {
+  return useQuery({ queryKey: queryKeys.users, queryFn: api.getUsers });
+}
+
+export function useCreateUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.createUser,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.users }),
+  });
+}
+
+export function useDeleteUser() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteUser(id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.users }),
+  });
+}
+
+export function useServerSettings() {
+  return useQuery({ queryKey: queryKeys.serverSettings, queryFn: api.getServerSettings });
+}
+
+export function useSaveServerSettings() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: api.putServerSettings,
+    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.serverSettings }),
+  });
+}
+
+export function useJobs() {
+  return useQuery({
+    queryKey: queryKeys.jobs,
+    queryFn: () => api.getJobs(),
+    refetchInterval: 15_000,
+  });
+}
+
+export function useCancelJob() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.cancelJob(id),
+    onSuccess: () => void qc.invalidateQueries({ queryKey: queryKeys.jobs }),
+  });
+}
+
+export function useImports() {
+  return useQuery({
+    queryKey: queryKeys.imports,
+    queryFn: () => api.getImports(),
+  });
+}
+
+export function useRefreshMetadata() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (itemId: string) => api.refreshMetadata(itemId),
+    onSuccess: (_job, itemId) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.item(itemId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.jobs });
+    },
+  });
+}
