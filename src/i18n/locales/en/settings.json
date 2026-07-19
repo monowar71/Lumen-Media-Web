@@ -30,7 +30,7 @@
   },
   "libraries": {
     "title": "Libraries",
-    "description": "Paths are inside the server container (e.g. /media/movies, /media/tv). Host folder: ./media.",
+    "description": "Paths are inside the server container. Use separate folders (e.g. /media/movies and /media/tv) or one shared folder (/media) for both library types — files stay in place; scan classifies by filename (S01E02 → series).",
     "empty": "No libraries yet.",
     "noPaths": "no paths",
     "items": "{{count}} items",
@@ -41,6 +41,7 @@
     "name": "Name",
     "type": "Type",
     "path": "Folder path (inside container)",
+    "pathHint": "Same path on Movies and Series is fine. Episode names need SxxExx (or 1x02). Already-imported files keep their library until removed and re-scanned.",
     "createScan": "Create & scan",
     "creating": "Creating…",
     "namePathRequired": "Name and path are required",

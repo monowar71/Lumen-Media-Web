@@ -177,7 +177,7 @@ function LibrariesSection() {
 
   const [name, setName] = useState('');
   const [type, setType] = useState<LibraryType>('Movies');
-  const [path, setPath] = useState('/media/movies');
+  const [path, setPath] = useState('/media');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -280,9 +280,7 @@ function LibrariesSection() {
               className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text focus:border-accent focus:outline-none"
               value={type}
               onChange={(e) => {
-                const next = e.target.value as LibraryType;
-                setType(next);
-                setPath(next === 'Movies' ? '/media/movies' : '/media/tv');
+                setType(e.target.value as LibraryType);
               }}
             >
               <option value="Movies">{t('common:mediaTypes.Movies')}</option>
@@ -295,9 +293,10 @@ function LibrariesSection() {
           <Input
             value={path}
             onChange={(e) => setPath(e.target.value)}
-            placeholder="/media/movies"
+            placeholder="/media"
             required
           />
+          <span className="text-xs text-muted">{t('libraries.pathHint')}</span>
         </label>
         <div className="flex flex-wrap items-center gap-3">
           <Button type="submit" disabled={create.isPending || scan.isPending}>
