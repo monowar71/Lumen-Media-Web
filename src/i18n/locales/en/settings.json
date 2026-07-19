@@ -26,14 +26,14 @@
   },
   "language": {
     "title": "Interface language",
-    "description": "Language of the FreePlex web UI. Metadata language is configured separately under Server settings.",
+    "description": "Language of the LumenMedia web UI. Metadata language is configured separately under Server settings.",
     "label": "Language",
     "ru": "Русский",
     "en": "English"
   },
   "server": {
     "title": "Server",
-    "description": "The base URL of your FreePlex server.",
+    "description": "The base URL of your LumenMedia server.",
     "url": "Server URL"
   },
   "streaming": {

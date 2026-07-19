@@ -60,7 +60,7 @@ export const useSettingsStore = create<SettingsState>()(
       },
     }),
     {
-      name: 'freeplex.settings',
+      name: 'lumenmedia.settings',
       partialize: (s) => ({
         baseUrl: s.baseUrl,
         locale: s.locale,

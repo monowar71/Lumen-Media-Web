@@ -53,7 +53,7 @@ const artworkSvg = (label: string) =>
 export const handlers = [
   http.get('*/api/v1/server/info', () =>
     HttpResponse.json({
-      name: 'FreePlex (mock)',
+      name: 'LumenMedia (mock)',
       version: '0.1.0',
       setupCompleted: true,
       features: { abr: true },

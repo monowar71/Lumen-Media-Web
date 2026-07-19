@@ -28,7 +28,7 @@ export function LoginScreen() {
   );
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [serverName, setServerName] = useState('FreePlex');
+  const [serverName, setServerName] = useState('LumenMedia');
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [needsSetup, setNeedsSetup] = useState<boolean | null>(null);
@@ -79,7 +79,7 @@ export function LoginScreen() {
     try {
       if (needsSetup) {
         await api.setup(
-          { username, password, serverName: serverName.trim() || 'FreePlex' },
+          { username, password, serverName: serverName.trim() || 'LumenMedia' },
           server,
         );
         setNeedsSetup(false);
@@ -138,7 +138,7 @@ export function LoginScreen() {
               <Input
                 value={serverName}
                 onChange={(e) => setServerName(e.target.value)}
-                placeholder="FreePlex"
+                placeholder="LumenMedia"
               />
             </label>
           )}
