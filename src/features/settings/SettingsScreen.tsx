@@ -8,10 +8,11 @@ import {
   useCreateLibrary,
   useDeleteLibrary,
   useLibraries,
+  useRefreshLibraryMetadata,
   useScanLibrary,
 } from '@/api/queries';
 import { toErrorMessage } from '@/api/http';
-import type { LibraryType, PlaybackMode } from '@/api/types';
+import type { LibraryType, MetadataRefreshMode, PlaybackMode } from '@/api/types';
 import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import {
@@ -284,6 +285,7 @@ function LibrariesSection() {
   const { data: libraries, isLoading } = useLibraries();
   const create = useCreateLibrary();
   const scan = useScanLibrary();
+  const refreshMeta = useRefreshLibraryMetadata();
   const remove = useDeleteLibrary();
 
   const [name, setName] = useState('');
@@ -291,6 +293,8 @@ function LibrariesSection() {
   const [path, setPath] = useState('/media');
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [enrichMode, setEnrichMode] = useState<MetadataRefreshMode>('Missing');
+  const [enrichLanguageByLib, setEnrichLanguageByLib] = useState<Record<string, string>>({});
 
   const onCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -321,53 +325,116 @@ function LibrariesSection() {
     <SectionCard title={t('libraries.title')} description={t('libraries.description')}>
       {isLoading && <p className="mb-4 text-sm text-muted">{t('common:state.loading')}</p>}
 
+      <div className="mb-4 grid gap-3 rounded-xl border border-border bg-surface-2/40 p-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{t('libraries.enrichMode')}</span>
+          <select
+            className="h-10 w-full rounded-lg border border-border bg-surface px-3 text-sm text-text focus:border-accent focus:outline-none"
+            value={enrichMode}
+            onChange={(e) => setEnrichMode(e.target.value as MetadataRefreshMode)}
+          >
+            <option value="Missing">{t('libraries.enrichModeMissing')}</option>
+            <option value="Matched">{t('libraries.enrichModeMatched')}</option>
+            <option value="All">{t('libraries.enrichModeAll')}</option>
+          </select>
+        </label>
+        <p className="self-end text-xs text-muted">{t('libraries.enrichHint')}</p>
+      </div>
+
       <ul className="mb-6 divide-y divide-border rounded-xl border border-border">
         {(libraries ?? []).length === 0 && !isLoading && (
           <li className="px-4 py-3 text-sm text-muted">{t('libraries.empty')}</li>
         )}
-        {(libraries ?? []).map((lib) => (
-          <li key={lib.id} className="flex flex-wrap items-center gap-3 px-4 py-3">
-            <div className="min-w-0 flex-1">
-              <Link to={`/library/${lib.id}`} className="font-medium hover:text-accent">
-                {lib.name}
-              </Link>
-              <p className="truncate text-xs text-muted">
-                {i18n.t(`common:mediaTypes.${lib.type}`, { defaultValue: lib.type })} ·{' '}
-                {(lib.paths ?? []).join(', ') || t('libraries.noPaths')} ·{' '}
-                {t('libraries.items', { count: lib.itemCount })}
-              </p>
-            </div>
-            <Button
-              size="sm"
-              variant="secondary"
-              disabled={scan.isPending}
-              onClick={() => {
-                setError(null);
-                scan.mutate(lib.id, {
-                  onSuccess: () => setMessage(t('libraries.scanStarted', { name: lib.name })),
-                  onError: (err) => setError(toErrorMessage(err, t('libraries.scanFailed'))),
-                });
-              }}
-            >
-              {t('libraries.scan')}
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
-              disabled={remove.isPending}
-              onClick={() => {
-                if (!window.confirm(t('libraries.confirmDelete', { name: lib.name }))) return;
-                setError(null);
-                remove.mutate(lib.id, {
-                  onSuccess: () => setMessage(t('libraries.deleted', { name: lib.name })),
-                  onError: (err) => setError(toErrorMessage(err, t('libraries.deleteFailed'))),
-                });
-              }}
-            >
-              {t('libraries.delete')}
-            </Button>
-          </li>
-        ))}
+        {(libraries ?? []).map((lib) => {
+          const currentLang =
+            enrichLanguageByLib[lib.id] ?? lib.settings?.preferredLanguage ?? 'ru-RU';
+          return (
+            <li key={lib.id} className="flex flex-col gap-3 px-4 py-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="min-w-0 flex-1">
+                  <Link to={`/library/${lib.id}`} className="font-medium hover:text-accent">
+                    {lib.name}
+                  </Link>
+                  <p className="truncate text-xs text-muted">
+                    {i18n.t(`common:mediaTypes.${lib.type}`, { defaultValue: lib.type })} ·{' '}
+                    {(lib.paths ?? []).join(', ') || t('libraries.noPaths')} ·{' '}
+                    {t('libraries.items', { count: lib.itemCount })}
+                  </p>
+                </div>
+                <Button
+                  size="sm"
+                  variant="secondary"
+                  disabled={scan.isPending}
+                  onClick={() => {
+                    setError(null);
+                    scan.mutate(lib.id, {
+                      onSuccess: () => setMessage(t('libraries.scanStarted', { name: lib.name })),
+                      onError: (err) => setError(toErrorMessage(err, t('libraries.scanFailed'))),
+                    });
+                  }}
+                >
+                  {t('libraries.scan')}
+                </Button>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={remove.isPending}
+                  onClick={() => {
+                    if (!window.confirm(t('libraries.confirmDelete', { name: lib.name }))) return;
+                    setError(null);
+                    remove.mutate(lib.id, {
+                      onSuccess: () => setMessage(t('libraries.deleted', { name: lib.name })),
+                      onError: (err) => setError(toErrorMessage(err, t('libraries.deleteFailed'))),
+                    });
+                  }}
+                >
+                  {t('libraries.delete')}
+                </Button>
+              </div>
+              <div className="flex flex-wrap items-end gap-3">
+                <label className="flex min-w-[10rem] flex-1 flex-col gap-1 text-sm">
+                  <span className="text-muted">{t('libraries.preferredLanguage')}</span>
+                  <Input
+                    value={currentLang}
+                    onChange={(e) =>
+                      setEnrichLanguageByLib((prev) => ({ ...prev, [lib.id]: e.target.value }))
+                    }
+                    placeholder="ru-RU"
+                  />
+                </label>
+                <Button
+                  size="sm"
+                  disabled={refreshMeta.isPending}
+                  onClick={() => {
+                    setError(null);
+                    refreshMeta.mutate(
+                      {
+                        id: lib.id,
+                        body: {
+                          mode: enrichMode,
+                          preferredLanguage: currentLang.trim() || undefined,
+                        },
+                      },
+                      {
+                        onSuccess: (res) =>
+                          setMessage(
+                            t('libraries.enrichStarted', {
+                              name: lib.name,
+                              count: res.enqueuedCount,
+                            }),
+                          ),
+                        onError: (err) =>
+                          setError(toErrorMessage(err, t('libraries.enrichFailed'))),
+                      },
+                    );
+                  }}
+                >
+                  {refreshMeta.isPending ? t('libraries.enriching') : t('libraries.enrich')}
+                </Button>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       <form onSubmit={(e) => void onCreate(e)} className="grid gap-3">

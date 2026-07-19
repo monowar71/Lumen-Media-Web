@@ -140,6 +140,26 @@ export function useScanLibrary() {
   });
 }
 
+export function useRefreshLibraryMetadata() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      body,
+    }: {
+      id: string;
+      body?: Parameters<typeof api.refreshLibraryMetadata>[1];
+    }) => api.refreshLibraryMetadata(id, body),
+    onSuccess: (_data, { id }) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.libraries });
+      void qc.invalidateQueries({ queryKey: queryKeys.library(id) });
+      void qc.invalidateQueries({ queryKey: ['libraryItems', id] });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: queryKeys.jobs });
+    },
+  });
+}
+
 export function useDeleteLibrary() {
   const qc = useQueryClient();
   return useMutation({

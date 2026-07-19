@@ -6,7 +6,10 @@ import type {
   ItemDetail,
   CreateLibraryRequest,
   LibraryDto,
+  LibraryMetadataRefreshAccepted,
   LoginRequest,
+  RefreshLibraryMetadataRequest,
+  UpdateLibraryRequest,
   LoginResponse,
   ScanJobAccepted,
   MediaItemSummary,
@@ -91,6 +94,16 @@ export function deleteLibrary(id: string) {
 
 export function scanLibrary(id: string) {
   return http.post<ScanJobAccepted>(`${API}/libraries/${id}/scan`).then((r) => r.data);
+}
+
+export function updateLibrary(id: string, body: UpdateLibraryRequest) {
+  return http.patch<LibraryDto>(`${API}/libraries/${id}`, body).then((r) => r.data);
+}
+
+export function refreshLibraryMetadata(id: string, body: RefreshLibraryMetadataRequest = {}) {
+  return http
+    .post<LibraryMetadataRefreshAccepted>(`${API}/libraries/${id}/refresh-metadata`, body)
+    .then((r) => r.data);
 }
 
 export interface LibraryItemsQuery {

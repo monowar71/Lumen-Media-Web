@@ -227,13 +227,19 @@ export type EpisodeDetail = EpisodeSummary & {
   mediaSources: MediaSource[];
 };
 
+export type LibrarySettingsDto = {
+  preferredLanguage?: string;
+  metadataProviders?: string[];
+  autoScan?: boolean;
+};
+
 export type LibraryDto = {
   id: string;
   name: string;
   type: LibraryType;
   paths?: string[];
   itemCount: number;
-  settings?: Record<string, unknown>;
+  settings?: LibrarySettingsDto;
   lastScanAt?: string;
 };
 
@@ -241,6 +247,28 @@ export type CreateLibraryRequest = {
   name: string;
   type: LibraryType;
   paths: string[];
+  settings?: LibrarySettingsDto;
+};
+
+export type UpdateLibraryRequest = {
+  name?: string;
+  paths?: string[];
+  settings?: LibrarySettingsDto;
+};
+
+/** Scope for library-wide metadata enrichment. */
+export type MetadataRefreshMode = 'Missing' | 'Matched' | 'All';
+
+export type RefreshLibraryMetadataRequest = {
+  mode?: MetadataRefreshMode;
+  preferredLanguage?: string;
+};
+
+export type LibraryMetadataRefreshAccepted = {
+  libraryId: string;
+  mode: MetadataRefreshMode;
+  enqueuedCount: number;
+  preferredLanguage?: string | null;
 };
 
 export type JobDto = {
