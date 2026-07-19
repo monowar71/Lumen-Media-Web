@@ -58,7 +58,8 @@
     "cancel": "Cancel",
     "importResult": "Plex scanned: {{scanned}}, matched: {{matched}}, imported: {{imported}}, skipped (newer locally): {{skipped}}, unmatched: {{unmatched}}.",
     "loadMore": "Load more",
-    "episodeLabel": "S{{season}}E{{episode}}"
+    "episodeLabel": "S{{season}}E{{episode}}",
+    "notInLibrary": "Not in library"
   },
   "state": {
     "somethingWrong": "Something went wrong",

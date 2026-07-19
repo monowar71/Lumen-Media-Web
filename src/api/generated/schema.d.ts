@@ -1870,6 +1870,50 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/items/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["DeleteMediaFileResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/items/{id}/subtitles/{streamId}.vtt": {
         parameters: {
             query?: never;
@@ -2060,6 +2104,13 @@ export interface components {
             /** Format: int32 */
             clearedCount?: number | string;
         };
+        DeleteMediaFileResponse: {
+            /** Format: int32 */
+            deletedFiles?: number | string;
+            /** Format: int32 */
+            sourcesRemoved?: number | string;
+            mediaRemoved?: boolean;
+        };
         CreateLibraryRequest: {
             name: string;
             type: components["schemas"]["LibraryType"];
@@ -2143,8 +2194,11 @@ export interface components {
             };
         };
         HistoryEntryDto: {
-            /** Format: uuid */
-            itemId: string;
+            /**
+             * Format: uuid
+             * @description Local media/episode id when matched; null for unmatched external rows.
+             */
+            itemId?: null | string;
             kind: components["schemas"]["MediaKind"];
             title: string;
             seriesTitle?: null | string;
@@ -2164,6 +2218,10 @@ export interface components {
             durationMs?: null | number | string;
             /** Format: date-time */
             updatedAt?: string;
+            /** @description True when the row came from an external import and is not in the local library. */
+            isExternal?: boolean;
+            /** @description Stable key for unmatched external rows. */
+            externalKey?: null | string;
         };
         HomeResponse: {
             sections?: components["schemas"]["HomeSection"][];

@@ -151,7 +151,14 @@ export function HistoryScreen() {
         <>
           <ul className="flex flex-col gap-2">
             {items.map((entry) => (
-              <HistoryRow key={`${entry.itemId}-${entry.updatedAt}`} entry={entry} />
+              <HistoryRow
+                key={
+                  entry.isExternal
+                    ? `ext:${entry.externalKey ?? entry.title}:${entry.updatedAt}`
+                    : `${entry.itemId}-${entry.updatedAt}`
+                }
+                entry={entry}
+              />
             ))}
           </ul>
           {hasNextPage && (
@@ -174,8 +181,13 @@ export function HistoryScreen() {
 
 function HistoryRow({ entry }: { entry: HistoryEntry }) {
   const { t } = useTranslation('common');
+  const external = Boolean(entry.isExternal);
   const href =
-    entry.kind === 'Episode' && entry.seriesId ? `/item/${entry.seriesId}` : `/item/${entry.itemId}`;
+    !external && entry.itemId
+      ? entry.kind === 'Episode' && entry.seriesId
+        ? `/item/${entry.seriesId}`
+        : `/item/${entry.itemId}`
+      : null;
   const fraction = progressFraction(entry.positionMs, entry.durationMs);
   const when = new Date(entry.updatedAt).toLocaleString(intlLocale(), {
     dateStyle: 'medium',
@@ -196,40 +208,54 @@ function HistoryRow({ entry }: { entry: HistoryEntry }) {
   } else if (entry.year) {
     subtitleParts.push(String(entry.year));
   }
-  if (entry.watched) subtitleParts.push(t('badge.watched'));
+  if (external) subtitleParts.push(t('history.notInLibrary'));
+  else if (entry.watched) subtitleParts.push(t('badge.watched'));
   else if (fraction > 0) subtitleParts.push(formatRuntime(entry.positionMs));
+
+  const body = (
+    <>
+      <div className="relative h-[90px] w-[60px] shrink-0 overflow-hidden rounded-lg bg-surface-2">
+        <PosterImage
+          path={entry.artwork.poster ?? entry.artwork.thumb}
+          alt={entry.title}
+          width={60}
+          height={90}
+          className="h-full"
+        />
+        {fraction > 0 && !entry.watched && (
+          <div className="absolute inset-x-0 bottom-0 h-1 bg-black/60">
+            <div className="h-full bg-accent" style={{ width: `${fraction * 100}%` }} />
+          </div>
+        )}
+      </div>
+      <div className="min-w-0 flex-1 py-0.5">
+        <p className="truncate font-semibold text-text">{entry.title}</p>
+        {subtitleParts.length > 0 && (
+          <p className="mt-0.5 truncate text-sm text-muted">{subtitleParts.join(' · ')}</p>
+        )}
+        <p className="mt-1 text-xs text-muted/80">{when}</p>
+      </div>
+    </>
+  );
+
+  const rowClass = cn(
+    'flex gap-3 rounded-xl border border-border bg-surface/60 p-2.5 transition-colors',
+    external
+      ? 'cursor-default opacity-55 grayscale'
+      : 'hover:border-accent/50 hover:bg-surface-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+  );
 
   return (
     <li>
-      <Link
-        to={href}
-        className={cn(
-          'flex gap-3 rounded-xl border border-border bg-surface/60 p-2.5 transition-colors',
-          'hover:border-accent/50 hover:bg-surface-2 focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-        )}
-      >
-        <div className="relative h-[90px] w-[60px] shrink-0 overflow-hidden rounded-lg bg-surface-2">
-          <PosterImage
-            path={entry.artwork.poster ?? entry.artwork.thumb}
-            alt={entry.title}
-            width={60}
-            height={90}
-            className="h-full"
-          />
-          {fraction > 0 && !entry.watched && (
-            <div className="absolute inset-x-0 bottom-0 h-1 bg-black/60">
-              <div className="h-full bg-accent" style={{ width: `${fraction * 100}%` }} />
-            </div>
-          )}
+      {href ? (
+        <Link to={href} className={rowClass}>
+          {body}
+        </Link>
+      ) : (
+        <div className={rowClass} aria-disabled="true">
+          {body}
         </div>
-        <div className="min-w-0 flex-1 py-0.5">
-          <p className="truncate font-semibold text-text">{entry.title}</p>
-          {subtitleParts.length > 0 && (
-            <p className="mt-0.5 truncate text-sm text-muted">{subtitleParts.join(' · ')}</p>
-          )}
-          <p className="mt-1 text-xs text-muted/80">{when}</p>
-        </div>
-      </Link>
+      )}
     </li>
   );
 }

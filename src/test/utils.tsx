@@ -16,9 +16,9 @@ export function createTestQueryClient(): QueryClient {
   });
 }
 
-export function authenticate(): void {
+export function authenticate(overrides?: { role?: 'Admin' | 'User' }): void {
   useAuthStore.getState().setSession({
-    user: mockUser,
+    user: { ...mockUser, role: overrides?.role ?? mockUser.role },
     accessToken: 'test-access',
     refreshToken: 'test-refresh',
   });

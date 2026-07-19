@@ -389,7 +389,7 @@ export type ProgressResponse = {
 };
 
 export type HistoryEntry = {
-  itemId: string;
+  itemId?: string | null;
   kind: 'Movie' | 'Episode';
   title: string;
   seriesTitle?: string | null;
@@ -402,10 +402,18 @@ export type HistoryEntry = {
   positionMs: number;
   durationMs?: number | null;
   updatedAt: string;
+  isExternal?: boolean;
+  externalKey?: string | null;
 };
 
 export type ClearHistoryResponse = {
   clearedCount: number;
+};
+
+export type DeleteMediaFileResponse = {
+  deletedFiles: number;
+  sourcesRemoved: number;
+  mediaRemoved: boolean;
 };
 
 export type ImportPlexHistoryRequest = {

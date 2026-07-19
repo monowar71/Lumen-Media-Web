@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { MetadataAdminPanel } from './MetadataAdminPanel';
+import { MediaFileActions } from './MediaFileActions';
 import { WatchedToggle } from './WatchedToggle';
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
@@ -230,7 +231,12 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
         ) : (
           <ul className="flex flex-col gap-2 pb-8">
             {episodes.map((ep) => (
-              <EpisodeRow key={ep.id} episode={ep} seriesTitle={series.title} />
+              <EpisodeRow
+                key={ep.id}
+                episode={ep}
+                seriesTitle={series.title}
+                seriesId={series.id}
+              />
             ))}
           </ul>
         )}
@@ -242,9 +248,11 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
 function EpisodeRow({
   episode,
   seriesTitle,
+  seriesId,
 }: {
   episode: EpisodeSummary;
   seriesTitle: string;
+  seriesId: string;
 }) {
   const { t } = useTranslation('details');
   const navigate = useNavigate();
@@ -309,7 +317,7 @@ function EpisodeRow({
         {episode.overview && (
           <p className="mt-1 line-clamp-2 text-sm text-muted">{episode.overview}</p>
         )}
-        <div className="mt-auto flex flex-wrap gap-2 pt-2">
+        <div className="mt-auto flex flex-wrap items-center gap-2 pt-2">
           <Button size="sm" variant="secondary" onClick={play}>
             {canResume ? t('resumeShort') : t('play')}
           </Button>
@@ -317,6 +325,12 @@ function EpisodeRow({
             itemId={episode.id}
             watched={Boolean(episode.userData.watched)}
             size="sm"
+          />
+          <MediaFileActions
+            mediaId={episode.id}
+            size="sm"
+            fileName={`${seriesTitle}-S${episode.seasonNumber}E${episode.episodeNumber}.mkv`}
+            onRemovedNavigateTo={`/item/${seriesId}`}
           />
         </div>
       </div>

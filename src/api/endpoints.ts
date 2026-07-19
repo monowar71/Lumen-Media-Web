@@ -36,6 +36,7 @@ import type {
   UpdateItemMetadataRequest,
   HistoryEntry,
   ClearHistoryResponse,
+  DeleteMediaFileResponse,
   ImportPlexHistoryRequest,
   ImportPlexHistoryResponse,
 } from './types';
@@ -133,6 +134,11 @@ export function getLibraryItems(id: string, query: LibraryItemsQuery) {
 // --- Items / details ---
 export function getItem(id: string) {
   return http.get<ItemDetail>(`${API}/items/${id}`).then((r) => r.data);
+}
+
+/** Admin: delete on-disk video file(s) for a movie or episode. */
+export function deleteMediaFile(id: string) {
+  return http.delete<DeleteMediaFileResponse>(`${API}/items/${id}/file`).then((r) => r.data);
 }
 
 export function getSeasons(seriesId: string) {

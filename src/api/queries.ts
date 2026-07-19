@@ -178,6 +178,24 @@ export function useMarkWatchedMutation() {
   });
 }
 
+/** Admin: delete the video file for a movie/episode from the server. */
+export function useDeleteMediaFile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (mediaId: string) => api.deleteMediaFile(mediaId),
+    onSuccess: (_data, mediaId) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.item(mediaId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.episode(mediaId) });
+      void qc.invalidateQueries({ queryKey: ['episodes'] });
+      void qc.invalidateQueries({ queryKey: ['item'] });
+      void qc.invalidateQueries({ queryKey: ['libraryItems'] });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      void qc.invalidateQueries({ queryKey: queryKeys.history });
+    },
+  });
+}
+
 export function useCreateLibrary() {
   const qc = useQueryClient();
   return useMutation({

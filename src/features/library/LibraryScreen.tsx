@@ -10,11 +10,12 @@ import { Input } from '@/components/ui/Input';
 import { Button } from '@/components/ui/Button';
 import { IconFilter } from '@/components/AppIcons';
 import { cn } from '@/lib/utils';
+import {
+  useLibraryUiStore,
+  type LibrarySortKey,
+} from '@/stores/libraryUiStore';
 
-type SortKey = NonNullable<LibraryItemsQuery['sort']>;
-type OrderKey = NonNullable<LibraryItemsQuery['order']>;
-
-const SORT_KEYS: SortKey[] = ['title', 'year', 'added', 'rating', 'runtime'];
+const SORT_KEYS: LibrarySortKey[] = ['title', 'year', 'added', 'rating', 'runtime'];
 
 const GENRE_KEYS = [
   'Action',
@@ -36,8 +37,10 @@ export function LibraryScreen() {
   const { libraryId } = useParams<{ libraryId: string }>();
   const { data: library } = useLibrary(libraryId);
 
-  const [sort, setSort] = useState<SortKey>('title');
-  const [order, setOrder] = useState<OrderKey>('asc');
+  const sort = useLibraryUiStore((s) => s.sort);
+  const order = useLibraryUiStore((s) => s.order);
+  const setSort = useLibraryUiStore((s) => s.setSort);
+  const toggleOrder = useLibraryUiStore((s) => s.toggleOrder);
   const [watched, setWatched] = useState<'' | 'true' | 'false'>('');
   const [search, setSearch] = useState('');
   const [genre, setGenre] = useState('');
@@ -89,7 +92,7 @@ export function LibraryScreen() {
           <select
             className={cn(selectClass, 'w-auto min-w-[8rem]')}
             value={sort}
-            onChange={(e) => setSort(e.target.value as SortKey)}
+            onChange={(e) => setSort(e.target.value as LibrarySortKey)}
             aria-label={t('sortBy')}
           >
             {SORT_KEYS.map((key) => (
@@ -101,7 +104,7 @@ export function LibraryScreen() {
           <button
             type="button"
             className={cn(selectClass, 'w-auto px-3')}
-            onClick={() => setOrder((o) => (o === 'asc' ? 'desc' : 'asc'))}
+            onClick={toggleOrder}
             aria-label={order === 'asc' ? t('orderAriaAsc') : t('orderAriaDesc')}
           >
             {order === 'asc' ? t('orderAsc') : t('orderDesc')}
