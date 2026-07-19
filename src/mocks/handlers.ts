@@ -105,6 +105,22 @@ export const handlers = [
     }),
   ),
 
+  http.post(`${base}/libraries/:id/refresh-metadata`, async ({ params, request }) => {
+    const body = (await request.json().catch(() => ({}))) as {
+      mode?: string;
+      preferredLanguage?: string;
+    };
+    return HttpResponse.json(
+      {
+        libraryId: params.id,
+        mode: body.mode ?? 'Missing',
+        enqueuedCount: 3,
+        preferredLanguage: body.preferredLanguage ?? 'ru-RU',
+      },
+      { status: 202 },
+    );
+  }),
+
   http.get(`${base}/users`, () => HttpResponse.json([mockUser])),
   http.get(`${base}/settings`, () =>
     HttpResponse.json({

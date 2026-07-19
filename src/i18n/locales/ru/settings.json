@@ -73,7 +73,17 @@
     "scanStarted": "Сканирование «{{name}}» запущено.",
     "scanFailed": "Сканирование не удалось",
     "deleted": "Удалена «{{name}}».",
-    "deleteFailed": "Не удалось удалить"
+    "deleteFailed": "Не удалось удалить",
+    "enrichMode": "Режим обогащения метаданных",
+    "enrichModeMissing": "Только без метаданных",
+    "enrichModeMatched": "Уже сопоставленные (обновить)",
+    "enrichModeAll": "Вся библиотека",
+    "enrichHint": "Язык влияет на названия/описания из TMDB. Для английских имён файлов лучше en-US.",
+    "preferredLanguage": "Язык метаданных библиотеки",
+    "enrich": "Обогатить",
+    "enriching": "Очередь…",
+    "enrichStarted": "«{{name}}»: в очередь поставлено {{count}} элементов.",
+    "enrichFailed": "Не удалось запустить обогащение"
   },
   "users": {
     "title": "Пользователи",

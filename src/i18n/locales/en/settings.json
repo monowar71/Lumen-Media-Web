@@ -73,7 +73,17 @@
     "scanStarted": "Scan started for “{{name}}”.",
     "scanFailed": "Scan failed",
     "deleted": "Deleted “{{name}}”.",
-    "deleteFailed": "Delete failed"
+    "deleteFailed": "Delete failed",
+    "enrichMode": "Metadata enrichment mode",
+    "enrichModeMissing": "Missing metadata only",
+    "enrichModeMatched": "Already matched (refresh)",
+    "enrichModeAll": "Entire library",
+    "enrichHint": "Language affects TMDB titles/overviews. For English filenames, en-US usually matches better.",
+    "preferredLanguage": "Library metadata language",
+    "enrich": "Enrich",
+    "enriching": "Queuing…",
+    "enrichStarted": "“{{name}}”: queued {{count}} items.",
+    "enrichFailed": "Could not start enrichment"
   },
   "users": {
     "title": "Users",

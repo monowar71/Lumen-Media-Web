@@ -742,6 +742,51 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/libraries/{id}/refresh-metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["RefreshLibraryMetadataRequest"];
+                    "text/json": null | components["schemas"]["RefreshLibraryMetadataRequest"];
+                    "application/*+json": null | components["schemas"]["RefreshLibraryMetadataRequest"];
+                };
+            };
+            responses: {
+                /** @description Accepted */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["LibraryMetadataRefreshAccepted"];
+                        "application/json": components["schemas"]["LibraryMetadataRefreshAccepted"];
+                        "text/json": components["schemas"]["LibraryMetadataRefreshAccepted"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/libraries/{id}/items": {
         parameters: {
             query?: never;
@@ -1037,6 +1082,48 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/items/{id}/match-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    year?: number | string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["MetadataMatchCandidateDto"][];
+                        "application/json": components["schemas"]["MetadataMatchCandidateDto"][];
+                        "text/json": components["schemas"]["MetadataMatchCandidateDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/items/{id}/match": {
         parameters: {
             query?: never;
@@ -1119,6 +1206,47 @@ export interface paths {
         options?: never;
         head?: never;
         patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{id}/metadata": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["UpdateItemMetadataRequest"];
+                    "text/json": components["schemas"]["UpdateItemMetadataRequest"];
+                    "application/*+json": components["schemas"]["UpdateItemMetadataRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
         trace?: never;
     };
     "/api/v1/playback/decision": {
@@ -1970,6 +2098,14 @@ export interface components {
             /** Format: date-time */
             lastScanAt?: null | string;
         };
+        LibraryMetadataRefreshAccepted: {
+            /** Format: uuid */
+            libraryId: string;
+            mode: components["schemas"]["MetadataRefreshMode"];
+            /** Format: int32 */
+            enqueuedCount: number | string;
+            preferredLanguage?: null | string;
+        };
         LibrarySettingsDto: {
             preferredLanguage?: string;
             metadataProviders?: string[];
@@ -2052,6 +2188,17 @@ export interface components {
             isExternal?: boolean;
             format?: null | string;
         };
+        MetadataMatchCandidateDto: {
+            provider: string;
+            providerId: string;
+            title: string;
+            /** Format: int32 */
+            year?: null | number | string;
+            /** Format: double */
+            score?: number | string;
+        };
+        /** @enum {string} */
+        MetadataRefreshMode: "Missing" | "Matched" | "All";
         MetadataSettingsDto: {
             providers?: string[];
             language?: string;
@@ -2059,11 +2206,8 @@ export interface components {
             tmdbConfigured?: boolean;
             tvdbConfigured?: boolean;
             tvMazeConfigured?: boolean;
-            /** Write-only. Set a new TMDB API key; omitted = unchanged; never returned on GET. */
             tmdbApiKey?: null | string;
-            /** Write-only. Set a new TVDB API key; omitted = unchanged; never returned on GET. */
             tvdbApiKey?: null | string;
-            /** Write-only. TVDB subscriber PIN; omitted = unchanged; never returned on GET. */
             tvdbPin?: null | string;
         };
         PagedResultOfEpisodeSummary: {
@@ -2191,6 +2335,10 @@ export interface components {
             /** Format: int32 */
             bitrateKbps?: null | number | string;
         };
+        RefreshLibraryMetadataRequest: {
+            mode?: components["schemas"]["MetadataRefreshMode"];
+            preferredLanguage?: null | string;
+        };
         RefreshRequest: {
             refreshToken: string;
         };
@@ -2226,6 +2374,7 @@ export interface components {
             id: string;
             kind?: components["schemas"]["MediaKind"];
             title: string;
+            originalTitle?: null | string;
             /** Format: int32 */
             year?: null | number | string;
             /** Format: int32 */
@@ -2237,6 +2386,7 @@ export interface components {
             officialRating?: null | string;
             genres?: string[];
             externalIds?: components["schemas"]["ExternalIds"];
+            metadataLocked?: boolean;
             /** Format: int32 */
             seasonCount?: number | string;
             /** Format: int32 */
@@ -2315,6 +2465,18 @@ export interface components {
             ladder?: components["schemas"]["LadderRungDto"][];
             /** Format: int32 */
             defaultRemoteCapKbps?: number | string;
+        };
+        UpdateItemMetadataRequest: {
+            title?: null | string;
+            originalTitle?: null | string;
+            /** Format: int32 */
+            year?: null | number | string;
+            overview?: null | string;
+            tagline?: null | string;
+            /** Format: double */
+            communityRating?: null | number | string;
+            officialRating?: null | string;
+            metadataLocked?: null | boolean;
         };
         UpdateLibraryRequest: {
             name?: null | string;
