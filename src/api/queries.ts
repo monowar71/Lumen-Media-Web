@@ -116,6 +116,25 @@ export function useProgressMutation() {
   });
 }
 
+/** Mark movie / episode / season / series watched or unwatched. */
+export function useMarkWatchedMutation() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ itemId, watched }: { itemId: string; watched: boolean }) =>
+      api.putProgress(itemId, { watched }),
+    onSuccess: (_data, vars) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.progress(vars.itemId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.item(vars.itemId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.episodes(vars.itemId) });
+      void qc.invalidateQueries({ queryKey: ['episodes'] });
+      void qc.invalidateQueries({ queryKey: ['item'] });
+      void qc.invalidateQueries({ queryKey: ['libraryItems'] });
+      void qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+    },
+  });
+}
+
 export function useCreateLibrary() {
   const qc = useQueryClient();
   return useMutation({

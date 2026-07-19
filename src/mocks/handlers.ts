@@ -219,11 +219,15 @@ export const handlers = [
 
   http.put(`${base}/progress/:itemId`, async ({ params, request }) => {
     const body = (await request.json()) as ProgressRequest;
+    const watchedExplicit = typeof body.watched === 'boolean' ? body.watched : undefined;
     const watched =
-      body.state === 'stopped' && body.durationMs > 0 && body.positionMs / body.durationMs >= 0.9;
+      watchedExplicit ??
+      (body.state === 'stopped' &&
+        (body.durationMs ?? 0) > 0 &&
+        (body.positionMs ?? 0) / (body.durationMs ?? 1) >= 0.9);
     const res: ProgressResponse = {
       itemId: String(params.itemId),
-      positionMs: watched ? 0 : body.positionMs,
+      positionMs: watched ? 0 : (body.positionMs ?? 0),
       watched,
       updatedAt: new Date().toISOString(),
     };

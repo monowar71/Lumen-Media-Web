@@ -16,6 +16,10 @@
   "episodes": "Эпизоды",
   "selectSeason": "Выбрать сезон",
   "watched": "Просмотрено",
+  "markWatched": "Пометить как просмотренное",
+  "markUnwatched": "Пометить как непросмотренное",
+  "markSeasonWatched": "Сезон просмотрен",
+  "markSeasonUnwatched": "Сезон непросмотрен",
   "episodeN": "Эпизод {{number}}",
   "fields": {
     "title": "Название",

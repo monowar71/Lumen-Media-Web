@@ -2485,11 +2485,12 @@ export interface components {
         };
         UpdateProgressRequest: {
             /** Format: int64 */
-            positionMs: number | string;
+            positionMs?: number | string;
             /** Format: int64 */
             durationMs?: null | number | string;
             sessionId?: null | string;
             state?: string;
+            watched?: null | boolean;
         };
         UpdateUserRequest: {
             role?: null | components["schemas"]["UserRole"];

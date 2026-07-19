@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { EpisodeSummary, SeriesDetail } from '@/api/types';
-import { useEpisodes, useSeasons } from '@/api/queries';
+import { useEpisodes, useMarkWatchedMutation, useSeasons } from '@/api/queries';
 import { PosterImage } from '@/components/PosterImage';
 import { Button } from '@/components/ui/Button';
 import { Badge, Dot, MetaBadges } from '@/components/MetaBadges';
@@ -15,6 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { MetadataAdminPanel } from './MetadataAdminPanel';
+import { WatchedToggle } from './WatchedToggle';
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const { t } = useTranslation('details');
@@ -39,6 +40,9 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
 
   const { data: episodesData, isLoading: episodesLoading } = useEpisodes(seasonId);
   const episodes = episodesData?.items ?? [];
+  const seriesWatched = (series.userData.unwatchedEpisodeCount ?? 0) === 0 && series.episodeCount > 0;
+  const seasonWatched = episodes.length > 0 && episodes.every((e) => e.userData.watched);
+  const markSeason = useMarkWatchedMutation();
 
   return (
     <div>
@@ -93,6 +97,12 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                   )}
                   <Dot />
                   <span>{t('seasonsCount', { count: series.seasonCount })}</span>
+                  {seriesWatched && (
+                    <>
+                      <Dot />
+                      <span className="text-accent">{t('watched')}</span>
+                    </>
+                  )}
                 </MetaBadges>
               </div>
               {series.genres && series.genres.length > 0 && (
@@ -128,6 +138,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     {t('playNextEpisode')}
                   </Button>
                 )}
+                <WatchedToggle itemId={series.id} watched={seriesWatched} />
                 {series.trailerUrl && (
                   <Button
                     size="lg"
@@ -179,25 +190,37 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
       <section className="px-4 sm:px-6 lg:px-8">
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-display text-lg font-bold">{t('episodes')}</h2>
-          {seasons.length > 0 && (
-            <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
-              {seasons.map((s) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  onClick={() => setSeasonId(s.id)}
-                  className={cn(
-                    'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
-                    seasonId === s.id
-                      ? 'bg-accent text-black'
-                      : 'bg-surface-2 text-muted hover:text-text',
-                  )}
-                >
-                  {s.name}
-                </button>
-              ))}
-            </div>
-          )}
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+            {seasons.length > 0 && (
+              <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
+                {seasons.map((s) => (
+                  <button
+                    key={s.id}
+                    type="button"
+                    onClick={() => setSeasonId(s.id)}
+                    className={cn(
+                      'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
+                      seasonId === s.id
+                        ? 'bg-accent text-black'
+                        : 'bg-surface-2 text-muted hover:text-text',
+                    )}
+                  >
+                    {s.name}
+                  </button>
+                ))}
+              </div>
+            )}
+            {seasonId && episodes.length > 0 && (
+              <Button
+                size="sm"
+                variant="secondary"
+                disabled={markSeason.isPending}
+                onClick={() => markSeason.mutate({ itemId: seasonId, watched: !seasonWatched })}
+              >
+                {seasonWatched ? t('markSeasonUnwatched') : t('markSeasonWatched')}
+              </Button>
+            )}
+          </div>
         </div>
 
         {seasonsLoading || episodesLoading ? (
@@ -286,10 +309,15 @@ function EpisodeRow({
         {episode.overview && (
           <p className="mt-1 line-clamp-2 text-sm text-muted">{episode.overview}</p>
         )}
-        <div className="mt-auto pt-2">
+        <div className="mt-auto flex flex-wrap gap-2 pt-2">
           <Button size="sm" variant="secondary" onClick={play}>
             {canResume ? t('resumeShort') : t('play')}
           </Button>
+          <WatchedToggle
+            itemId={episode.id}
+            watched={Boolean(episode.userData.watched)}
+            size="sm"
+          />
         </div>
       </div>
     </li>
