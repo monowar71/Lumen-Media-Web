@@ -16,6 +16,10 @@
   "episodes": "Episodes",
   "selectSeason": "Select season",
   "watched": "Watched",
+  "markWatched": "Mark as watched",
+  "markUnwatched": "Mark as unwatched",
+  "markSeasonWatched": "Mark season watched",
+  "markSeasonUnwatched": "Mark season unwatched",
   "episodeN": "Episode {{number}}",
   "fields": {
     "title": "Title",

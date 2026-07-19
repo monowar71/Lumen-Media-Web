@@ -10,6 +10,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { formatRuntime } from '@/lib/format';
 import { playerPath, type PlaybackNavState } from './playbackNav';
 import { MetadataAdminPanel } from './MetadataAdminPanel';
+import { WatchedToggle } from './WatchedToggle';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {
   const { t } = useTranslation('details');
@@ -81,6 +82,12 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                       <span>★ {movie.communityRating.toFixed(1)}</span>
                     </>
                   )}
+                  {movie.userData.watched && (
+                    <>
+                      <Dot />
+                      <span className="text-accent">{t('watched')}</span>
+                    </>
+                  )}
                 </MetaBadges>
               </div>
 
@@ -103,6 +110,7 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     {t('playFromStart')}
                   </Button>
                 )}
+                <WatchedToggle itemId={movie.id} watched={Boolean(movie.userData.watched)} />
                 {movie.trailerUrl && (
                   <Button
                     size="lg"

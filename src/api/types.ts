@@ -373,10 +373,12 @@ export type SetQualityRequest = {
 };
 
 export type ProgressRequest = {
-  positionMs: number;
-  durationMs: number;
+  positionMs?: number;
+  durationMs?: number;
   sessionId?: string;
-  state: ProgressState;
+  state?: ProgressState;
+  /** When set, explicitly marks watched/unwatched (cascades for series/season). */
+  watched?: boolean;
 };
 
 export type ProgressResponse = {
