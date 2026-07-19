@@ -144,7 +144,8 @@ export type MovieDetail = {
   genres?: string[];
   studios?: string[];
   people?: Person[];
-  externalIds?: Record<string, string | null>;
+  externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
+  metadataLocked?: boolean;
   trailers?: { site: string; key: string }[];
   artwork: ArtworkSet;
   mediaSources: MediaSource[];
@@ -158,6 +159,7 @@ export type SeriesDetail = {
   id: string;
   kind: 'Series';
   title: string;
+  originalTitle?: string;
   year?: number;
   endYear?: number;
   status?: string;
@@ -166,13 +168,33 @@ export type SeriesDetail = {
   officialRating?: string;
   genres?: string[];
   people?: Person[];
-  externalIds?: Record<string, string | null>;
+  externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
+  metadataLocked?: boolean;
   seasonCount: number;
   episodeCount: number;
   artwork: ArtworkSet;
   userData: UserData;
   libraryId: string;
   addedAt: string;
+};
+
+export type UpdateItemMetadataRequest = {
+  title?: string | null;
+  originalTitle?: string | null;
+  year?: number | null;
+  overview?: string | null;
+  tagline?: string | null;
+  communityRating?: number | null;
+  officialRating?: string | null;
+  metadataLocked?: boolean | null;
+};
+
+export type MetadataMatchCandidateDto = {
+  provider: string;
+  providerId: string;
+  title: string;
+  year?: number | null;
+  score: number;
 };
 
 export type ItemDetail = MovieDetail | SeriesDetail;

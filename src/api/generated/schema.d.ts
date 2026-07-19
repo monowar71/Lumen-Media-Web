@@ -2056,6 +2056,15 @@ export interface components {
             providers?: string[];
             language?: string;
             fallbackLanguage?: string;
+            tmdbConfigured?: boolean;
+            tvdbConfigured?: boolean;
+            tvMazeConfigured?: boolean;
+            /** Write-only. Set a new TMDB API key; omitted = unchanged; never returned on GET. */
+            tmdbApiKey?: null | string;
+            /** Write-only. Set a new TVDB API key; omitted = unchanged; never returned on GET. */
+            tvdbApiKey?: null | string;
+            /** Write-only. TVDB subscriber PIN; omitted = unchanged; never returned on GET. */
+            tvdbPin?: null | string;
         };
         PagedResultOfEpisodeSummary: {
             items: components["schemas"]["EpisodeSummary"][];

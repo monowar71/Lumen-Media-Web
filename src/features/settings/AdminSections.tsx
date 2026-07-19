@@ -220,11 +220,120 @@ export function AdminServerSettingsSection() {
         </label>
       </div>
       <p className="mt-2 text-xs text-muted">{t('serverAdmin.metadataHint')}</p>
+
+      <h3 className="mb-2 mt-6 text-sm font-semibold">{t('serverAdmin.providersTitle')}</h3>
+      <p className="mb-3 text-xs text-muted">{t('serverAdmin.providersHint')}</p>
+      <div className="mb-3 flex flex-wrap gap-2 text-xs">
+        <ProviderBadge
+          label="TMDB"
+          configured={Boolean(settings.metadata?.tmdbConfigured)}
+          configuredLabel={t('serverAdmin.configured')}
+          missingLabel={t('serverAdmin.notConfigured')}
+        />
+        <ProviderBadge
+          label="TVMaze"
+          configured
+          free
+          configuredLabel={t('serverAdmin.configured')}
+          missingLabel={t('serverAdmin.notConfigured')}
+          freeLabel={t('serverAdmin.freeNoKey')}
+        />
+        <ProviderBadge
+          label="TVDB"
+          configured={Boolean(settings.metadata?.tvdbConfigured)}
+          configuredLabel={t('serverAdmin.configured')}
+          missingLabel={t('serverAdmin.notConfigured')}
+        />
+      </div>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm sm:col-span-2">
+          <span className="text-muted">{t('serverAdmin.tmdbApiKey')}</span>
+          <Input
+            type="password"
+            autoComplete="off"
+            placeholder={
+              settings.metadata?.tmdbConfigured
+                ? t('serverAdmin.keyConfiguredPlaceholder')
+                : t('serverAdmin.tmdbApiKeyPlaceholder')
+            }
+            value={settings.metadata?.tmdbApiKey ?? ''}
+            onChange={(e) =>
+              setDraft({
+                ...settings,
+                metadata: { ...settings.metadata, tmdbApiKey: e.target.value },
+              })
+            }
+          />
+          <a
+            className="text-xs text-accent hover:underline"
+            href="https://www.themoviedb.org/settings/api"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t('serverAdmin.tmdbKeyHelp')}
+          </a>
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{t('serverAdmin.tvdbApiKey')}</span>
+          <Input
+            type="password"
+            autoComplete="off"
+            placeholder={
+              settings.metadata?.tvdbConfigured
+                ? t('serverAdmin.keyConfiguredPlaceholder')
+                : t('serverAdmin.tvdbApiKeyPlaceholder')
+            }
+            value={settings.metadata?.tvdbApiKey ?? ''}
+            onChange={(e) =>
+              setDraft({
+                ...settings,
+                metadata: { ...settings.metadata, tvdbApiKey: e.target.value },
+              })
+            }
+          />
+        </label>
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{t('serverAdmin.tvdbPin')}</span>
+          <Input
+            type="password"
+            autoComplete="off"
+            placeholder={t('serverAdmin.tvdbPinPlaceholder')}
+            value={settings.metadata?.tvdbPin ?? ''}
+            onChange={(e) =>
+              setDraft({
+                ...settings,
+                metadata: { ...settings.metadata, tvdbPin: e.target.value },
+              })
+            }
+          />
+          <a
+            className="text-xs text-accent hover:underline"
+            href="https://thetvdb.com/api-information"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t('serverAdmin.tvdbKeyHelp')}
+          </a>
+        </label>
+      </div>
+      <p className="mt-2 text-xs text-muted">{t('serverAdmin.keysHint')}</p>
+
       <div className="mt-4 flex items-center gap-3">
         <Button
           onClick={() => {
             setError(null);
-            save.mutate(settings, {
+            // Only send key fields when the admin typed something (avoid wiping via empty draft).
+            const meta = settings.metadata ?? {};
+            const payload: ServerSettingsDto = {
+              ...settings,
+              metadata: {
+                ...meta,
+                tmdbApiKey: meta.tmdbApiKey?.trim() ? meta.tmdbApiKey : undefined,
+                tvdbApiKey: meta.tvdbApiKey?.trim() ? meta.tvdbApiKey : undefined,
+                tvdbPin: meta.tvdbPin?.trim() ? meta.tvdbPin : undefined,
+              },
+            };
+            save.mutate(payload, {
               onSuccess: () => {
                 setDraft(null);
                 setMessage(t('serverAdmin.saved'));
@@ -240,6 +349,30 @@ export function AdminServerSettingsSection() {
         {error && <span className="text-sm text-red-400">{error}</span>}
       </div>
     </section>
+  );
+}
+
+function ProviderBadge({
+  label,
+  configured,
+  free,
+  configuredLabel,
+  missingLabel,
+  freeLabel,
+}: {
+  label: string;
+  configured: boolean;
+  free?: boolean;
+  configuredLabel: string;
+  missingLabel: string;
+  freeLabel?: string;
+}) {
+  const status = free ? (freeLabel ?? configuredLabel) : configured ? configuredLabel : missingLabel;
+  const tone = free || configured ? 'bg-accent/15 text-accent' : 'bg-surface-2 text-muted';
+  return (
+    <span className={`rounded-full px-2.5 py-1 font-medium ${tone}`}>
+      {label}: {status}
+    </span>
   );
 }
 

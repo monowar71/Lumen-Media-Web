@@ -29,6 +29,8 @@ import type {
   JobDto,
   ImportJobDto,
   UserDto,
+  MetadataMatchCandidateDto,
+  UpdateItemMetadataRequest,
 } from './types';
 
 const API = '/api/v1';
@@ -238,4 +240,16 @@ export function refreshMetadata(itemId: string) {
 
 export function matchItem(itemId: string, body: { provider: string; providerId: string }) {
   return http.post<JobDto>(`${API}/items/${itemId}/match`, body).then((r) => r.data);
+}
+
+export function getMatchCandidates(itemId: string, q?: string, year?: number) {
+  return http
+    .get<MetadataMatchCandidateDto[]>(`${API}/items/${itemId}/match-candidates`, {
+      params: { q: q || undefined, year: year || undefined },
+    })
+    .then((r) => r.data);
+}
+
+export function updateItemMetadata(itemId: string, body: UpdateItemMetadataRequest) {
+  return http.patch<void>(`${API}/items/${itemId}/metadata`, body).then((r) => r.data);
 }
