@@ -12,13 +12,10 @@ import {
   IconPause,
   IconPlay,
   IconQuality,
-  IconSkipBack,
-  IconSkipForward,
   IconSubtitles,
   IconVolume,
   IconVolumeMute,
 } from './PlayerIcons';
-import { Spinner } from '@/components/ui/Spinner';
 import { Button } from '@/components/ui/Button';
 import { formatTime, formatTrackLanguage } from '@/lib/format';
 import { absoluteUrl } from '@/lib/artwork';
@@ -108,13 +105,11 @@ function ControlButton({
   onClick,
   children,
   className,
-  large,
 }: {
   label: string;
   onClick: () => void;
   children: ReactNode;
   className?: string;
-  large?: boolean;
 }) {
   return (
     <button
@@ -122,10 +117,9 @@ function ControlButton({
       onClick={onClick}
       aria-label={label}
       className={cn(
-        'inline-flex items-center justify-center rounded-full text-white transition',
+        'inline-flex h-10 w-10 items-center justify-center rounded-full text-white transition',
         'hover:bg-white/12 active:scale-95',
         'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
-        large ? 'h-14 w-14 bg-white/10 ring-1 ring-white/15 backdrop-blur-md' : 'h-10 w-10',
         className,
       )}
     >
@@ -302,14 +296,8 @@ export function PlayerScreen() {
       ? Math.min(100, Math.max(0, (displayTimeMs / player.durationMs) * 100))
       : 0;
 
-  const skipBack = () => {
-    void player.seekTo(Math.max(0, player.currentTimeMs - 10_000));
-    setControlsVisible(true);
-  };
-  const skipForward = () => {
-    void player.seekTo(player.currentTimeMs + 10_000);
-    setControlsVisible(true);
-  };
+  const isBuffering = (player.loading || player.buffering) && !player.error;
+  const showCenterTransport = !player.error && (isBuffering || controlsVisible || !player.playing);
 
   return (
     <div
@@ -352,15 +340,6 @@ export function PlayerScreen() {
         aria-hidden
       />
 
-      {(player.loading || player.buffering) && !player.error && (
-        <div className="pointer-events-none absolute inset-0 grid place-items-center">
-          <div className="flex flex-col items-center gap-3 rounded-2xl bg-black/45 px-6 py-5 ring-1 ring-white/10 backdrop-blur-md">
-            <Spinner className="h-10 w-10 border-white/20 border-t-accent" />
-            <p className="text-sm text-white/80">{t('buffering')}</p>
-          </div>
-        </div>
-      )}
-
       {player.error && (
         <div className="absolute inset-0 grid place-items-center bg-black/75 p-6 text-center backdrop-blur-sm">
           <div className="flex max-w-md flex-col items-center gap-5 rounded-3xl border border-white/10 bg-surface/90 p-8 shadow-2xl">
@@ -375,33 +354,37 @@ export function PlayerScreen() {
         </div>
       )}
 
-      {/* Center transport when paused / controls shown */}
-      {!player.error && !player.loading && (controlsVisible || !player.playing) && (
-        <div
-          className={cn(
-            'pointer-events-none absolute inset-0 grid place-items-center transition-opacity duration-300',
-            controlsVisible || !player.playing ? 'opacity-100' : 'opacity-0',
-          )}
-        >
+      {/* Center play/pause; buffering = animated ring around the button */}
+      {showCenterTransport && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center transition-opacity duration-300">
           <div
-            className="pointer-events-auto flex items-center gap-5"
+            className="pointer-events-auto relative"
             onClick={(e) => e.stopPropagation()}
           >
-            <ControlButton label={t('skipBack')} onClick={skipBack} large>
-              <IconSkipBack size={26} />
-            </ControlButton>
+            {isBuffering && (
+              <>
+                <span
+                  className="pointer-events-none absolute -inset-2 rounded-full border-2 border-white/15"
+                  aria-hidden
+                />
+                <span
+                  className="pointer-events-none absolute -inset-2 animate-spin rounded-full border-2 border-transparent border-t-accent border-r-accent/50"
+                  aria-hidden
+                />
+                <span className="sr-only" role="status">
+                  {t('buffering')}
+                </span>
+              </>
+            )}
             <ControlButton
               label={player.playing ? t('pause') : t('play')}
               onClick={() => {
                 player.togglePlay();
                 setControlsVisible(true);
               }}
-              className="h-18 w-18 !h-[4.5rem] !w-[4.5rem] bg-accent text-on-accent shadow-lg shadow-accent/30 ring-0 hover:bg-accent-hover"
+              className="!h-[4.5rem] !w-[4.5rem] bg-accent text-on-accent shadow-lg shadow-accent/30 ring-0 hover:bg-accent-hover"
             >
               {player.playing ? <IconPause size={30} /> : <IconPlay size={30} className="ml-0.5" />}
-            </ControlButton>
-            <ControlButton label={t('skipForward')} onClick={skipForward} large>
-              <IconSkipForward size={26} />
             </ControlButton>
           </div>
         </div>
@@ -513,16 +496,6 @@ export function PlayerScreen() {
                   onClick={() => player.togglePlay()}
                 >
                   {player.playing ? <IconPause size={20} /> : <IconPlay size={20} className="ml-0.5" />}
-                </ControlButton>
-                <ControlButton label={t('skipBack')} onClick={skipBack} className="hidden sm:inline-flex">
-                  <IconSkipBack size={18} />
-                </ControlButton>
-                <ControlButton
-                  label={t('skipForward')}
-                  onClick={skipForward}
-                  className="hidden sm:inline-flex"
-                >
-                  <IconSkipForward size={18} />
                 </ControlButton>
               </div>
 

@@ -48,24 +48,6 @@ export function IconPause(props: IconProps) {
   );
 }
 
-export function IconSkipBack(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M11 7l-7 5 7 5V7z" fill="currentColor" stroke="none" />
-      <path d="M18 7l-7 5 7 5V7z" fill="currentColor" stroke="none" />
-    </Icon>
-  );
-}
-
-export function IconSkipForward(props: IconProps) {
-  return (
-    <Icon {...props}>
-      <path d="M6 7l7 5-7 5V7z" fill="currentColor" stroke="none" />
-      <path d="M13 7l7 5-7 5V7z" fill="currentColor" stroke="none" />
-    </Icon>
-  );
-}
-
 export function IconVolume(props: IconProps) {
   return (
     <Icon {...props}>
