@@ -8,6 +8,7 @@ import { artworkUrl } from '@/lib/artwork';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { formatRuntime } from '@/lib/format';
+import { IconPlay } from '@/components/AppIcons';
 import { playerPath, type PlaybackNavState } from './playbackNav';
 import { fileNameFromPath } from '@/lib/mediaFile';
 import { MediaFileActions } from './MediaFileActions';
@@ -120,6 +121,7 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
 
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 <Button size="lg" onClick={() => play(!canResume)}>
+                  <IconPlay size={18} />
                   {canResume
                     ? t('resume', { time: formatRuntime(resumeMs) })
                     : t('play')}

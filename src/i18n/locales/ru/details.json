@@ -1,7 +1,7 @@
 {
-  "play": "▶ Смотреть",
-  "resume": "▶ Продолжить {{time}}",
-  "resumeShort": "▶ Продолжить",
+  "play": "Смотреть",
+  "resume": "Продолжить {{time}}",
+  "resumeShort": "Продолжить",
   "playFromStart": "С начала",
   "playNextEpisode": "Следующая серия",
   "refreshMetadata": "Обновить метаданные",
