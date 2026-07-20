@@ -9,7 +9,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { formatRuntime } from '@/lib/format';
 import { playerPath, type PlaybackNavState } from './playbackNav';
-import { MediaFileActions, fileNameFromPath } from './MediaFileActions';
+import { fileNameFromPath } from '@/lib/mediaFile';
+import { MediaFileActions } from './MediaFileActions';
 import { MetadataAdminHints, type EditableMetadata } from './MetadataAdminPanel';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {

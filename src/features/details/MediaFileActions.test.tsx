@@ -1,9 +1,10 @@
 import { describe, expect, it, vi } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/react';
 import { Route, Routes } from 'react-router-dom';
-import { MediaFileActions, fileNameFromPath } from './MediaFileActions';
+import { fileNameFromPath } from '@/lib/mediaFile';
 import { authenticate, renderWithProviders } from '@/test/utils';
 import { mockMovieDetail } from '@/mocks/data';
+import { MediaFileActions } from './MediaFileActions';
 
 describe('fileNameFromPath', () => {
   it('returns the basename of a media path', () => {
