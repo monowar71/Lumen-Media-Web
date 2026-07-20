@@ -44,6 +44,9 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const seriesWatched = (series.userData.unwatchedEpisodeCount ?? 0) === 0 && series.episodeCount > 0;
   const seasonWatched = episodes.length > 0 && episodes.every((e) => e.userData.watched);
   const markSeason = useMarkWatchedMutation();
+  const nextUp = series.userData.nextUp;
+  const nextResumeMs = nextUp?.userData?.playbackPositionMs ?? 0;
+  const nextCanResume = nextResumeMs > 0 && !nextUp?.userData?.watched;
 
   const metadataAdmin: EditableMetadata | undefined =
     role === 'Admin'
@@ -136,24 +139,25 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                 </p>
               )}
               <div className="mt-5 flex flex-wrap items-center gap-3">
-                {series.userData.nextUp && (
+                {nextUp && (
                   <Button
                     size="lg"
                     onClick={() => {
-                      const next = series.userData.nextUp!;
                       const state: PlaybackNavState = {
                         title:
-                          next.title?.trim() ||
-                          `${series.title} — S${next.seasonNumber}E${next.episodeNumber}`,
-                        resumeMs: next.userData?.playbackPositionMs ?? 0,
+                          nextUp.title?.trim() ||
+                          `${series.title} — S${nextUp.seasonNumber}E${nextUp.episodeNumber}`,
+                        resumeMs: nextCanResume ? nextResumeMs : 0,
                         isEpisode: true,
                         backdrop: series.artwork.backdrop,
                       };
-                      navigate(playerPath(next.id), { state });
+                      navigate(playerPath(nextUp.id), { state });
                     }}
                   >
                     <IconPlay size={18} />
-                    {t('playNextEpisode')}
+                    {nextCanResume
+                      ? t('resume', { time: formatRuntime(nextResumeMs) })
+                      : t('play')}
                   </Button>
                 )}
                 <MediaFileActions
