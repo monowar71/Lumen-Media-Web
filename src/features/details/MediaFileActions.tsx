@@ -189,11 +189,3 @@ export function MediaFileActions({
     </div>
   );
 }
-
-/** Basename of a server media path for download filenames. */
-export function fileNameFromPath(path: string | undefined | null, fallback: string): string {
-  if (!path) return fallback;
-  const normalized = path.replace(/\\/g, '/');
-  const base = normalized.slice(normalized.lastIndexOf('/') + 1).trim();
-  return base || fallback;
-}

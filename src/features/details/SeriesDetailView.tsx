@@ -14,7 +14,8 @@ import { playerPath, type PlaybackNavState } from './playbackNav';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
-import { MediaFileActions, fileNameFromPath } from './MediaFileActions';
+import { fileNameFromPath } from '@/lib/mediaFile';
+import { MediaFileActions } from './MediaFileActions';
 import { MetadataAdminHints, type EditableMetadata } from './MetadataAdminPanel';
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
