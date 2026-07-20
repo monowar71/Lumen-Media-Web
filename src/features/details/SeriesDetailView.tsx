@@ -14,9 +14,8 @@ import { playerPath, type PlaybackNavState } from './playbackNav';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
+import { MediaFileActions, fileNameFromPath } from './MediaFileActions';
 import { MetadataAdminPanel } from './MetadataAdminPanel';
-import { MediaFileActions } from './MediaFileActions';
-import { WatchedToggle } from './WatchedToggle';
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const { t } = useTranslation('details');
@@ -118,7 +117,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                   {series.overview}
                 </p>
               )}
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap items-center gap-3">
                 {series.userData.nextUp && (
                   <Button
                     size="lg"
@@ -139,16 +138,12 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     {t('playNextEpisode')}
                   </Button>
                 )}
-                <WatchedToggle itemId={series.id} watched={seriesWatched} />
-                {series.trailerUrl && (
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    onClick={() => window.open(series.trailerUrl!, '_blank', 'noopener')}
-                  >
-                    {t('trailer')}
-                  </Button>
-                )}
+                <MediaFileActions
+                  mediaId={series.id}
+                  showDownload={false}
+                  watched={seriesWatched}
+                  trailerUrl={series.trailerUrl}
+                />
               </div>
               {role === 'Admin' && (
                 <MetadataAdminPanel
@@ -163,6 +158,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     officialRating: series.officialRating,
                     metadataLocked: series.metadataLocked,
                     externalIds: series.externalIds,
+                    artwork: series.artwork,
                   }}
                 />
               )}
@@ -202,7 +198,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     className={cn(
                       'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
                       seasonId === s.id
-                        ? 'bg-accent text-black'
+                        ? 'bg-accent text-on-accent'
                         : 'bg-surface-2 text-muted hover:text-text',
                     )}
                   >
@@ -291,7 +287,7 @@ function EpisodeRow({
           />
         </div>
         <span className="absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/40 group-hover:opacity-100">
-          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-black">
+          <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-on-accent">
             <IconPlay size={18} />
           </span>
         </span>
@@ -321,15 +317,14 @@ function EpisodeRow({
           <Button size="sm" variant="secondary" onClick={play}>
             {canResume ? t('resumeShort') : t('play')}
           </Button>
-          <WatchedToggle
-            itemId={episode.id}
-            watched={Boolean(episode.userData.watched)}
-            size="sm"
-          />
           <MediaFileActions
             mediaId={episode.id}
             size="sm"
-            fileName={`${seriesTitle}-S${episode.seasonNumber}E${episode.episodeNumber}.mkv`}
+            fileName={fileNameFromPath(
+              undefined,
+              `${seriesTitle}-S${episode.seasonNumber}E${episode.episodeNumber}.mkv`,
+            )}
+            watched={Boolean(episode.userData.watched)}
             onRemovedNavigateTo={`/item/${seriesId}`}
           />
         </div>

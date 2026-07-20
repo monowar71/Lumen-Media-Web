@@ -6,7 +6,12 @@ import {
 } from '@tanstack/react-query';
 import * as api from './endpoints';
 import type { LibraryItemsQuery } from './endpoints';
-import type { ProgressRequest, UpdateItemMetadataRequest } from './types';
+import type {
+  ArtworkKindParam,
+  ProgressRequest,
+  SetItemArtworkRequest,
+  UpdateItemMetadataRequest,
+} from './types';
 
 export const queryKeys = {
   serverInfo: ['serverInfo'] as const,
@@ -31,6 +36,7 @@ export const queryKeys = {
   imports: ['imports'] as const,
   matchCandidates: (id: string, q: string, year?: number) =>
     ['matchCandidates', id, q, year ?? null] as const,
+  artworkCandidates: (id: string, kind: string) => ['artworkCandidates', id, kind] as const,
 };
 
 export function useLibraries() {
@@ -359,6 +365,39 @@ export function useUpdateItemMetadata() {
   return useMutation({
     mutationFn: ({ itemId, body }: { itemId: string; body: UpdateItemMetadataRequest }) =>
       api.updateItemMetadata(itemId, body),
+    onSuccess: (_data, { itemId }) => {
+      void qc.invalidateQueries({ queryKey: queryKeys.item(itemId) });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: ['libraryItems'] });
+    },
+  });
+}
+
+export function useArtworkCandidates(
+  itemId: string | undefined,
+  kind: ArtworkKindParam,
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: queryKeys.artworkCandidates(itemId ?? '', kind),
+    queryFn: () => api.getArtworkCandidates(itemId!, kind),
+    enabled: Boolean(itemId) && enabled,
+    staleTime: 60_000,
+  });
+}
+
+export function useSetItemArtwork() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      itemId,
+      kind,
+      body,
+    }: {
+      itemId: string;
+      kind: ArtworkKindParam;
+      body: SetItemArtworkRequest;
+    }) => api.setItemArtwork(itemId, kind, body),
     onSuccess: (_data, { itemId }) => {
       void qc.invalidateQueries({ queryKey: queryKeys.item(itemId) });
       void qc.invalidateQueries({ queryKey: queryKeys.home });

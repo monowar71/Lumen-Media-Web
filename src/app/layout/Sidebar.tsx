@@ -1,7 +1,8 @@
-import { NavLink, useSearchParams } from 'react-router-dom';
+import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useLibraries } from '@/api/queries';
 import {
+  BrandMark,
   IconActivity,
   IconClose,
   IconDevices,
@@ -29,8 +30,13 @@ function LibraryIcon({ type }: { type: LibraryType }) {
   return type === 'Series' ? <IconTv size={18} /> : <IconMovies size={18} />;
 }
 
-/** Settings tabs share pathname `/settings`; only the matching `tab` query is active. */
-function settingsTabActive(searchParams: URLSearchParams, tab: string | null): boolean {
+/** Settings tabs share pathname `/settings`; only active while on that route. */
+function settingsTabActive(
+  pathname: string,
+  searchParams: URLSearchParams,
+  tab: string | null,
+): boolean {
+  if (!pathname.startsWith('/settings')) return false;
   const current = searchParams.get('tab');
   if (tab === null) {
     // Default "Settings" — active for general settings tabs, not activity/devices/libraries.
@@ -48,6 +54,7 @@ interface SidebarProps {
 export function Sidebar({ open, onClose, className }: SidebarProps) {
   const { t } = useTranslation('common');
   const { data: libraries } = useLibraries();
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
 
   return (
@@ -71,9 +78,7 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
       >
         <div className="flex h-14 items-center justify-between gap-2 border-b border-border px-4 lg:h-16">
           <div className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-lg bg-accent text-sm font-black text-black shadow-[0_0_24px_var(--color-accent-soft)]">
-              ▶
-            </span>
+            <BrandMark size={32} className="shadow-[0_0_24px_var(--color-accent-soft)]" />
             <span className="text-display text-lg font-extrabold tracking-tight">{t('brand')}</span>
           </div>
           <button
@@ -132,7 +137,7 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
           <div className="flex flex-col gap-0.5">
             <NavLink
               to="/settings?tab=activity"
-              className={() => navClass(settingsTabActive(searchParams, 'activity'))}
+              className={() => navClass(settingsTabActive(pathname, searchParams, 'activity'))}
               onClick={onClose}
             >
               <IconActivity size={18} />
@@ -140,7 +145,7 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
             </NavLink>
             <NavLink
               to="/settings?tab=devices"
-              className={() => navClass(settingsTabActive(searchParams, 'devices'))}
+              className={() => navClass(settingsTabActive(pathname, searchParams, 'devices'))}
               onClick={onClose}
             >
               <IconDevices size={18} />
@@ -149,7 +154,7 @@ export function Sidebar({ open, onClose, className }: SidebarProps) {
             <NavLink
               to="/settings"
               end
-              className={() => navClass(settingsTabActive(searchParams, null))}
+              className={() => navClass(settingsTabActive(pathname, searchParams, null))}
               onClick={onClose}
             >
               <IconSettings size={18} />

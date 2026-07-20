@@ -1,5 +1,4 @@
-import { describe, expect, it } from 'vitest';
-import { downloadMediaUrl } from './mediaFile';
+import { downloadMediaUrl, sanitizeDownloadFileName } from './mediaFile';
 
 describe('downloadMediaUrl', () => {
   it('builds download URL with access token', () => {
@@ -9,8 +8,15 @@ describe('downloadMediaUrl', () => {
     );
   });
 
-  it('includes optional sourceId', () => {
+  it('includes sourceId when provided', () => {
     const url = downloadMediaUrl('http://nas:8096/', 'abc', 'tok', 'src-1');
     expect(url).toContain('sourceId=src-1');
+  });
+});
+
+describe('sanitizeDownloadFileName', () => {
+  it('strips path separators and reserved characters', () => {
+    expect(sanitizeDownloadFileName('a/b:c?.mkv')).toBe('a_b_c_.mkv');
+    expect(sanitizeDownloadFileName('   ')).toBe('video');
   });
 });

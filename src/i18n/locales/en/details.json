@@ -15,6 +15,7 @@
   "deleteFile": "Delete file",
   "deleting": "Deleting…",
   "deleteFileConfirm": "Delete this video file from the server? This cannot be undone.",
+  "moreActions": "More actions",
   "seasonsCount": "{{count}} seasons",
   "season": "Season {{number}}",
   "episodes": "Episodes",
@@ -46,5 +47,16 @@
   "noCandidates": "No matches found. Try a different title or year.",
   "applyMatch": "Select",
   "matchQueued": "Match to “{{title}}” ({{provider}}) queued…",
-  "fixMatchHint": "After you select a match, metadata and posters update in the background. Movies need a TMDB key."
+  "fixMatchHint": "After you select a match, metadata and posters update in the background. Movies need a TMDB key.",
+  "changeCover": "Cover",
+  "changeCoverHint": "Pick an alternative poster or backdrop from TMDB.",
+  "coverPoster": "Poster",
+  "coverBackdrop": "Backdrop",
+  "coverNeedsMatch": "Match the title to TMDB first to load alternative covers.",
+  "loadingCovers": "Loading covers…",
+  "noCovers": "No alternative covers found.",
+  "currentCover": "Current",
+  "selectCover": "Select cover ({{lang}})",
+  "applyingCover": "Applying cover…",
+  "coverApplied": "Cover updated."
 }

@@ -198,6 +198,23 @@ export type MetadataMatchCandidateDto = {
   score: number;
 };
 
+export type ArtworkCandidateDto = {
+  provider: string;
+  kind: string;
+  url: string;
+  thumbnailUrl: string;
+  language?: string | null;
+  width?: number | null;
+  height?: number | null;
+  voteAverage?: number | null;
+};
+
+export type SetItemArtworkRequest = {
+  url: string;
+};
+
+export type ArtworkKindParam = 'Poster' | 'Backdrop';
+
 export type ItemDetail = MovieDetail | SeriesDetail;
 
 export type Season = {

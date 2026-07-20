@@ -107,6 +107,35 @@ export const handlers = [
     }),
   ),
 
+  http.get(`${base}/items/:id/artwork-candidates`, ({ request }) => {
+    const kind = new URL(request.url).searchParams.get('kind') ?? 'Poster';
+    const isPoster = kind === 'Poster';
+    return HttpResponse.json([
+      {
+        provider: 'Tmdb',
+        kind,
+        url: `https://image.tmdb.org/t/p/w780/mock-${kind.toLowerCase()}-a.jpg`,
+        thumbnailUrl: `https://image.tmdb.org/t/p/w185/mock-${kind.toLowerCase()}-a.jpg`,
+        language: 'ru',
+        width: isPoster ? 1000 : 1920,
+        height: isPoster ? 1500 : 1080,
+        voteAverage: 5.2,
+      },
+      {
+        provider: 'Tmdb',
+        kind,
+        url: `https://image.tmdb.org/t/p/w780/mock-${kind.toLowerCase()}-b.jpg`,
+        thumbnailUrl: `https://image.tmdb.org/t/p/w185/mock-${kind.toLowerCase()}-b.jpg`,
+        language: null,
+        width: isPoster ? 800 : 1280,
+        height: isPoster ? 1200 : 720,
+        voteAverage: 3.1,
+      },
+    ]);
+  }),
+
+  http.put(`${base}/items/:id/artwork/:kind`, () => new HttpResponse(null, { status: 204 })),
+
   http.post(`${base}/libraries/:id/refresh-metadata`, async ({ params, request }) => {
     const body = (await request.json().catch(() => ({}))) as {
       mode?: string;

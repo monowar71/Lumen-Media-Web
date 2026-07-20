@@ -36,12 +36,12 @@ export function MediaCard({
           className="h-full"
         />
         <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-black/0 opacity-0 transition group-hover:bg-black/35 group-hover:opacity-100">
-          <span className="grid h-12 w-12 place-items-center rounded-full bg-accent text-black shadow-lg">
+          <span className="grid h-12 w-12 place-items-center rounded-full bg-accent text-on-accent shadow-lg">
             <IconPlay size={22} />
           </span>
         </div>
         {item.userData.watched && (
-          <div className="absolute right-1.5 top-1.5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-black">
+          <div className="absolute right-1.5 top-1.5 rounded-full bg-accent px-1.5 py-0.5 text-[10px] font-bold text-on-accent">
             {t('badge.watched')}
           </div>
         )}

@@ -1,16 +1,18 @@
 @import 'tailwindcss';
 
 @theme {
-  --color-bg: #0f1014;
-  --color-surface: #1a1c23;
-  --color-surface-2: #242730;
-  --color-surface-3: #2e323c;
-  --color-border: #343844;
-  --color-muted: #a0a7b5;
-  --color-text: #f5f6f8;
-  --color-accent: #e5a00d;
-  --color-accent-hover: #f2b21f;
-  --color-accent-soft: color-mix(in srgb, #e5a00d 18%, transparent);
+  /* Brand palette — aligned with docs/brand/lumen-mark.svg */
+  --color-bg: #0b1f1a;
+  --color-surface: #122a23;
+  --color-surface-2: #1a3830;
+  --color-surface-3: #224840;
+  --color-border: #2a554a;
+  --color-muted: #8aa399;
+  --color-text: #e7f6f0;
+  --color-accent: #3ecf9a;
+  --color-accent-hover: #5fe0b0;
+  --color-accent-soft: color-mix(in srgb, #3ecf9a 18%, transparent);
+  --color-on-accent: #0b1f1a;
 
   --font-sans: 'Manrope', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Manrope', system-ui, sans-serif;

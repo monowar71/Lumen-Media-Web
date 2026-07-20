@@ -34,6 +34,9 @@ import type {
   UserDto,
   MetadataMatchCandidateDto,
   UpdateItemMetadataRequest,
+  ArtworkCandidateDto,
+  ArtworkKindParam,
+  SetItemArtworkRequest,
   HistoryEntry,
   ClearHistoryResponse,
   DeleteMediaFileResponse,
@@ -290,4 +293,16 @@ export function getMatchCandidates(itemId: string, q?: string, year?: number) {
 
 export function updateItemMetadata(itemId: string, body: UpdateItemMetadataRequest) {
   return http.patch<void>(`${API}/items/${itemId}/metadata`, body).then((r) => r.data);
+}
+
+export function getArtworkCandidates(itemId: string, kind: ArtworkKindParam = 'Poster') {
+  return http
+    .get<ArtworkCandidateDto[]>(`${API}/items/${itemId}/artwork-candidates`, {
+      params: { kind },
+    })
+    .then((r) => r.data);
+}
+
+export function setItemArtwork(itemId: string, kind: ArtworkKindParam, body: SetItemArtworkRequest) {
+  return http.put<void>(`${API}/items/${itemId}/artwork/${kind}`, body).then((r) => r.data);
 }
