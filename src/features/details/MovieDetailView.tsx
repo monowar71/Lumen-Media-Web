@@ -10,7 +10,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { formatRuntime } from '@/lib/format';
 import { playerPath, type PlaybackNavState } from './playbackNav';
 import { MediaFileActions, fileNameFromPath } from './MediaFileActions';
-import { MetadataAdminPanel } from './MetadataAdminPanel';
+import { MetadataAdminHints, type EditableMetadata } from './MetadataAdminPanel';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {
   const { t } = useTranslation('details');
@@ -22,6 +22,24 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
 
   const resumeMs = movie.userData.playbackPositionMs ?? 0;
   const canResume = resumeMs > 0 && !movie.userData.watched;
+
+  const metadataAdmin: EditableMetadata | undefined =
+    role === 'Admin'
+      ? {
+          id: movie.id,
+          kind: 'Movie',
+          title: movie.title,
+          originalTitle: movie.originalTitle,
+          year: movie.year,
+          overview: movie.overview,
+          tagline: movie.tagline,
+          communityRating: movie.communityRating,
+          officialRating: movie.officialRating,
+          metadataLocked: movie.metadataLocked,
+          externalIds: movie.externalIds,
+          artwork: movie.artwork,
+        }
+      : undefined;
 
   const play = (fromStart: boolean) => {
     const state: PlaybackNavState = {
@@ -120,27 +138,11 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                   watched={Boolean(movie.userData.watched)}
                   trailerUrl={movie.trailerUrl}
                   onRemovedNavigateTo={`/library/${movie.libraryId}`}
+                  metadataAdmin={metadataAdmin}
                 />
               </div>
 
-              {role === 'Admin' && (
-                <MetadataAdminPanel
-                  item={{
-                    id: movie.id,
-                    kind: 'Movie',
-                    title: movie.title,
-                    originalTitle: movie.originalTitle,
-                    year: movie.year,
-                    overview: movie.overview,
-                    tagline: movie.tagline,
-                    communityRating: movie.communityRating,
-                    officialRating: movie.officialRating,
-                    metadataLocked: movie.metadataLocked,
-                    externalIds: movie.externalIds,
-                    artwork: movie.artwork,
-                  }}
-                />
-              )}
+              {metadataAdmin && <MetadataAdminHints item={metadataAdmin} />}
 
               {movie.overview && (
                 <p className="mt-5 max-w-3xl text-sm leading-6 text-muted sm:text-base sm:text-text/90">

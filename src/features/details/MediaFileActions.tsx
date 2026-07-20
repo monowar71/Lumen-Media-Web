@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { useDeleteMediaFile, useMarkWatchedMutation } from '@/api/queries';
+import { useDeleteMediaFile, useMarkWatchedMutation, useRefreshMetadata } from '@/api/queries';
 import { toErrorMessage } from '@/api/http';
 import { Button } from '@/components/ui/Button';
 import { IconMoreVertical } from '@/components/AppIcons';
@@ -10,6 +10,11 @@ import { downloadMediaUrl, sanitizeDownloadFileName } from '@/lib/mediaFile';
 import { cn } from '@/lib/utils';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
+import {
+  MetadataAdminDialogs,
+  type EditableMetadata,
+  type MetadataAdminPanelKind,
+} from './MetadataAdminPanel';
 
 type Props = {
   mediaId: string;
@@ -24,6 +29,8 @@ type Props = {
   trailerUrl?: string | null;
   /** When false, hide the download action (e.g. series-level menu). */
   showDownload?: boolean;
+  /** Admin-only metadata actions (refresh / edit / fix match). */
+  metadataAdmin?: EditableMetadata;
 };
 
 function itemClass(destructive?: boolean) {
@@ -34,7 +41,7 @@ function itemClass(destructive?: boolean) {
   );
 }
 
-/** Overflow menu for secondary media actions (download / delete / watched / trailer). */
+/** Overflow menu for secondary media actions (download / delete / watched / trailer / metadata). */
 export function MediaFileActions({
   mediaId,
   fileName,
@@ -43,6 +50,7 @@ export function MediaFileActions({
   watched,
   trailerUrl,
   showDownload = true,
+  metadataAdmin,
 }: Props) {
   const { t } = useTranslation('details');
   const navigate = useNavigate();
@@ -51,7 +59,11 @@ export function MediaFileActions({
   const baseUrl = useSettingsStore((s) => s.baseUrl);
   const deleteMutation = useDeleteMediaFile();
   const markWatched = useMarkWatchedMutation();
+  const refresh = useRefreshMetadata();
   const [error, setError] = useState<string | null>(null);
+  const [metadataPanel, setMetadataPanel] = useState<MetadataAdminPanelKind>('none');
+
+  const showMetadata = role === 'Admin' && Boolean(metadataAdmin);
 
   const onDownload = () => {
     const url = downloadMediaUrl(baseUrl, mediaId, token);
@@ -100,7 +112,7 @@ export function MediaFileActions({
             align="end"
             sideOffset={6}
             className={cn(
-              'z-50 min-w-44 overflow-hidden rounded-xl border border-border',
+              'z-50 min-w-52 overflow-hidden rounded-xl border border-border',
               'bg-surface p-1 shadow-xl shadow-black/40',
             )}
           >
@@ -126,6 +138,30 @@ export function MediaFileActions({
                 {t('download')}
               </DropdownMenu.Item>
             )}
+            {showMetadata && metadataAdmin && (
+              <>
+                <DropdownMenu.Separator className="my-1 h-px bg-border" />
+                <DropdownMenu.Item
+                  className={itemClass()}
+                  disabled={refresh.isPending}
+                  onSelect={() => refresh.mutate(metadataAdmin.id)}
+                >
+                  {refresh.isPending ? t('refreshing') : t('refreshMetadata')}
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className={itemClass()}
+                  onSelect={() => setMetadataPanel('edit')}
+                >
+                  {t('editMetadata')}
+                </DropdownMenu.Item>
+                <DropdownMenu.Item
+                  className={itemClass()}
+                  onSelect={() => setMetadataPanel('match')}
+                >
+                  {t('fixMatch')}
+                </DropdownMenu.Item>
+              </>
+            )}
             {showDownload && role === 'Admin' && (
               <DropdownMenu.Item
                 className={itemClass(true)}
@@ -142,6 +178,13 @@ export function MediaFileActions({
         <p className="text-sm text-red-400" role="alert">
           {error}
         </p>
+      )}
+      {showMetadata && metadataAdmin && (
+        <MetadataAdminDialogs
+          item={metadataAdmin}
+          panel={metadataPanel}
+          onPanelChange={setMetadataPanel}
+        />
       )}
     </div>
   );

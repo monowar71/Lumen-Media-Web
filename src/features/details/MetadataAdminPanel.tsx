@@ -4,7 +4,6 @@ import {
   useArtworkCandidates,
   useMatchCandidates,
   useMatchItem,
-  useRefreshMetadata,
   useSetItemArtwork,
   useUpdateItemMetadata,
 } from '@/api/queries';
@@ -37,48 +36,51 @@ export interface EditableMetadata {
   artwork?: { poster?: string | null; backdrop?: string | null };
 }
 
-type Panel = 'none' | 'edit' | 'match';
+export type MetadataAdminPanelKind = 'none' | 'edit' | 'match';
 
-export function MetadataAdminPanel({ item }: { item: EditableMetadata }) {
+/** Dialogs for admin metadata actions (opened from the overflow menu). */
+export function MetadataAdminDialogs({
+  item,
+  panel,
+  onPanelChange,
+}: {
+  item: EditableMetadata;
+  panel: MetadataAdminPanelKind;
+  onPanelChange: (panel: MetadataAdminPanelKind) => void;
+}) {
+  return (
+    <>
+      {panel === 'edit' && (
+        <EditMetadataDialog item={item} onClose={() => onPanelChange('none')} />
+      )}
+      {panel === 'match' && <FixMatchDialog item={item} onClose={() => onPanelChange('none')} />}
+    </>
+  );
+}
+
+export function MetadataAdminHints({ item }: { item: EditableMetadata }) {
   const { t } = useTranslation('details');
-  const [panel, setPanel] = useState<Panel>('none');
-  const refresh = useRefreshMetadata();
+  const hasIds = Boolean(
+    item.externalIds?.tmdb || item.externalIds?.tvdb || item.externalIds?.imdb,
+  );
+  if (!item.metadataLocked && !hasIds) return null;
 
   return (
-    <div className="mt-5 space-y-3">
-      <div className="flex flex-wrap gap-2">
-        <Button
-          size="lg"
-          variant="secondary"
-          disabled={refresh.isPending}
-          onClick={() => refresh.mutate(item.id)}
-        >
-          {refresh.isPending ? t('refreshing') : t('refreshMetadata')}
-        </Button>
-        <Button size="lg" variant="secondary" onClick={() => setPanel('edit')}>
-          {t('editMetadata')}
-        </Button>
-        <Button size="lg" variant="secondary" onClick={() => setPanel('match')}>
-          {t('fixMatch')}
-        </Button>
-      </div>
+    <div className="mt-3 space-y-1">
       {item.metadataLocked && (
         <p className="text-xs text-accent">{t('metadataLockedHint')}</p>
       )}
-      {(item.externalIds?.tmdb || item.externalIds?.tvdb || item.externalIds?.imdb) && (
+      {hasIds && (
         <p className="text-xs text-muted">
           {[
-            item.externalIds.tmdb && `TMDB ${item.externalIds.tmdb}`,
-            item.externalIds.tvdb && `TVDB ${item.externalIds.tvdb}`,
-            item.externalIds.imdb && item.externalIds.imdb,
+            item.externalIds?.tmdb && `TMDB ${item.externalIds.tmdb}`,
+            item.externalIds?.tvdb && `TVDB ${item.externalIds.tvdb}`,
+            item.externalIds?.imdb && item.externalIds.imdb,
           ]
             .filter(Boolean)
             .join(' · ')}
         </p>
       )}
-
-      {panel === 'edit' && <EditMetadataDialog item={item} onClose={() => setPanel('none')} />}
-      {panel === 'match' && <FixMatchDialog item={item} onClose={() => setPanel('none')} />}
     </div>
   );
 }

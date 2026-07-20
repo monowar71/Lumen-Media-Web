@@ -1,20 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
-import { MetadataAdminPanel } from './MetadataAdminPanel';
+import { MediaFileActions } from './MediaFileActions';
 import { authenticate, renderWithProviders } from '@/test/utils';
 import { mockMovieDetail } from '@/mocks/data';
 
 const movie = mockMovieDetail['movie-matrix']!;
 
 describe('MetadataAdminPanel cover picker', () => {
-  it('lists alternative posters in the edit dialog for a TMDB-matched item', async () => {
-    authenticate({ role: 'Admin' });
+  async function openEdit() {
     const { default: userEvent } = await import('@testing-library/user-event');
     const user = userEvent.setup();
 
     renderWithProviders(
-      <MetadataAdminPanel
-        item={{
+      <MediaFileActions
+        mediaId={movie.id}
+        showDownload={false}
+        metadataAdmin={{
           id: movie.id,
           kind: 'Movie',
           title: movie.title,
@@ -27,7 +28,14 @@ describe('MetadataAdminPanel cover picker', () => {
       />,
     );
 
-    await user.click(screen.getByRole('button', { name: 'Редактировать' }));
+    await user.click(screen.getByRole('button', { name: 'Ещё действия' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Редактировать' }));
+    return user;
+  }
+
+  it('lists alternative posters in the edit dialog for a TMDB-matched item', async () => {
+    authenticate({ role: 'Admin' });
+    await openEdit();
     expect(screen.getByRole('heading', { name: 'Обложка' })).toBeInTheDocument();
 
     await waitFor(
@@ -40,22 +48,7 @@ describe('MetadataAdminPanel cover picker', () => {
 
   it('applies a selected poster', async () => {
     authenticate({ role: 'Admin' });
-    const { default: userEvent } = await import('@testing-library/user-event');
-    const user = userEvent.setup();
-
-    renderWithProviders(
-      <MetadataAdminPanel
-        item={{
-          id: movie.id,
-          kind: 'Movie',
-          title: movie.title,
-          externalIds: movie.externalIds,
-          artwork: movie.artwork,
-        }}
-      />,
-    );
-
-    await user.click(screen.getByRole('button', { name: 'Редактировать' }));
+    const user = await openEdit();
     const options = await screen.findAllByRole(
       'button',
       { name: /Выбрать обложку/i },

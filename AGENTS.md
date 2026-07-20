@@ -1,6 +1,6 @@
 # AGENTS.md — client_web (Web)
 
-Веб-клиент LumenMedia на TypeScript + React (Vite). Сначала прочитай корневой [../AGENTS.md](../AGENTS.md) и [../docs/clients.md](../docs/clients.md).
+Веб-клиент LumenMedia на TypeScript + React (Vite). Репозиторий: [Lumen-Media-Web](https://github.com/monowar71/Lumen-Media-Web). Сервер: [Lumen-Media-Server](https://github.com/monowar71/Lumen-Media-Server). В umbrella-монорепо также см. корневой `AGENTS.md` и `docs/clients.md`.
 
 ## Стек
 

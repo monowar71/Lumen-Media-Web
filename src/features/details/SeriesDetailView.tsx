@@ -15,7 +15,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { MediaFileActions, fileNameFromPath } from './MediaFileActions';
-import { MetadataAdminPanel } from './MetadataAdminPanel';
+import { MetadataAdminHints, type EditableMetadata } from './MetadataAdminPanel';
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const { t } = useTranslation('details');
@@ -43,6 +43,23 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const seriesWatched = (series.userData.unwatchedEpisodeCount ?? 0) === 0 && series.episodeCount > 0;
   const seasonWatched = episodes.length > 0 && episodes.every((e) => e.userData.watched);
   const markSeason = useMarkWatchedMutation();
+
+  const metadataAdmin: EditableMetadata | undefined =
+    role === 'Admin'
+      ? {
+          id: series.id,
+          kind: 'Series',
+          title: series.title,
+          originalTitle: series.originalTitle,
+          year: series.year,
+          overview: series.overview,
+          communityRating: series.communityRating,
+          officialRating: series.officialRating,
+          metadataLocked: series.metadataLocked,
+          externalIds: series.externalIds,
+          artwork: series.artwork,
+        }
+      : undefined;
 
   return (
     <div>
@@ -143,25 +160,10 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                   showDownload={false}
                   watched={seriesWatched}
                   trailerUrl={series.trailerUrl}
+                  metadataAdmin={metadataAdmin}
                 />
               </div>
-              {role === 'Admin' && (
-                <MetadataAdminPanel
-                  item={{
-                    id: series.id,
-                    kind: 'Series',
-                    title: series.title,
-                    originalTitle: series.originalTitle,
-                    year: series.year,
-                    overview: series.overview,
-                    communityRating: series.communityRating,
-                    officialRating: series.officialRating,
-                    metadataLocked: series.metadataLocked,
-                    externalIds: series.externalIds,
-                    artwork: series.artwork,
-                  }}
-                />
-              )}
+              {metadataAdmin && <MetadataAdminHints item={metadataAdmin} />}
             </div>
           </div>
 
