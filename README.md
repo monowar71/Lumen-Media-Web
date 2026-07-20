@@ -35,12 +35,20 @@ Point the UI at a running server (login screen **Server URL**, or `VITE_API_BASE
 
 ### Runtime image
 
+CI pushes to Docker Hub on `main` (`nightly`, `sha-…`) and on `v*` tags (`latest`, semver):
+
 ```bash
-docker build -t lumenmedia/web:dev .
-docker run --rm -p 5173:80 lumenmedia/web:dev
+docker pull monowar71/lumenmedia-web:nightly
+docker run --rm -p 5173:80 monowar71/lumenmedia-web:nightly
 ```
 
-CI publishes a nightly pre-release with `lumenmedia-web-nightly.tar.gz` (static `dist`) and `lumenmedia-web-image-nightly.tar.gz` (`docker load` → `lumenmedia-web:ci`).
+Build locally:
+
+```bash
+docker build -t lumenmedia-web:dev .
+docker run --rm -p 5173:80 lumenmedia-web:dev
+```
+
 
 ### OpenAPI types
 
