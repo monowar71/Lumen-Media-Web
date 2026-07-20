@@ -33,6 +33,15 @@ docker run --rm -v "$PWD":/app -w /app -v lumenmedia-npm:/root/.npm node:24 npm 
 
 Point the UI at a running server (login screen **Server URL**, or `VITE_API_BASE_URL` — see [`.env.example`](.env.example)). Defaults: `localhost` → `http://localhost:8096`.
 
+### Runtime image
+
+```bash
+docker build -t lumenmedia/web:dev .
+docker run --rm -p 5173:80 lumenmedia/web:dev
+```
+
+CI publishes a nightly pre-release with `lumenmedia-web-nightly.tar.gz` (static `dist`) and `lumenmedia-web-image-nightly.tar.gz` (`docker load` → `lumenmedia-web:ci`).
+
 ### OpenAPI types
 
 When developing next to a server checkout:
