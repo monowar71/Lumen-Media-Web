@@ -3,12 +3,14 @@ name: CI
 on:
   push:
     branches: [main]
+    tags: ["v*"]
   pull_request:
     branches: [main]
+  workflow_dispatch:
 
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 permissions:
   contents: read
@@ -36,3 +38,52 @@ jobs:
 
       - name: Build
         run: npm run build
+
+      - name: Pack dist
+        if: github.event_name == 'push'
+        run: tar -C dist -czf lumenmedia-web-dist.tar.gz .
+
+      - name: Upload dist artifact
+        if: github.event_name == 'push'
+        uses: actions/upload-artifact@v4
+        with:
+          name: lumenmedia-web-dist
+          path: lumenmedia-web-dist.tar.gz
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v'))
+    needs: build-test
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download dist
+        uses: actions/download-artifact@v4
+        with:
+          name: lumenmedia-web-dist
+
+      - name: Rename asset
+        run: |
+          if [ "${{ github.ref_type }}" = "tag" ]; then
+            mv lumenmedia-web-dist.tar.gz "lumenmedia-web-${{ github.ref_name }}.tar.gz"
+          else
+            mv lumenmedia-web-dist.tar.gz lumenmedia-web-nightly.tar.gz
+          fi
+          ls -la lumenmedia-web-*.tar.gz
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_type == 'tag' && github.ref_name || 'nightly' }}
+          name: ${{ github.ref_type == 'tag' && github.ref_name || 'Nightly' }}
+          prerelease: ${{ github.ref_type != 'tag' }}
+          make_latest: ${{ github.ref_type == 'tag' && true || false }}
+          generate_release_notes: true
+          target_commitish: ${{ github.sha }}
+          files: lumenmedia-web-*.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
