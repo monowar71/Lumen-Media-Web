@@ -12,3 +12,8 @@ export function downloadMediaUrl(
   if (token) url.searchParams.set('access_token', token);
   return url.toString();
 }
+
+/** Sanitize a suggested download filename for the `download` attribute. */
+export function sanitizeDownloadFileName(name: string): string {
+  return name.replace(/[/\\?%*:|"<>]/g, '_').trim() || 'video';
+}

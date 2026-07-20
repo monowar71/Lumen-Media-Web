@@ -9,9 +9,8 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { formatRuntime } from '@/lib/format';
 import { playerPath, type PlaybackNavState } from './playbackNav';
+import { MediaFileActions, fileNameFromPath } from './MediaFileActions';
 import { MetadataAdminPanel } from './MetadataAdminPanel';
-import { MediaFileActions } from './MediaFileActions';
-import { WatchedToggle } from './WatchedToggle';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {
   const { t } = useTranslation('details');
@@ -100,7 +99,7 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                 </div>
               )}
 
-              <div className="mt-5 flex flex-wrap gap-3">
+              <div className="mt-5 flex flex-wrap items-center gap-3">
                 <Button size="lg" onClick={() => play(!canResume)}>
                   {canResume
                     ? t('resume', { time: formatRuntime(resumeMs) })
@@ -111,27 +110,18 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     {t('playFromStart')}
                   </Button>
                 )}
-                <WatchedToggle itemId={movie.id} watched={Boolean(movie.userData.watched)} />
-                {movie.trailerUrl && (
-                  <Button
-                    size="lg"
-                    variant="secondary"
-                    onClick={() => window.open(movie.trailerUrl!, '_blank', 'noopener')}
-                  >
-                    {t('trailer')}
-                  </Button>
-                )}
+                <MediaFileActions
+                  mediaId={movie.id}
+                  showDownload={movie.mediaSources.length > 0}
+                  fileName={fileNameFromPath(
+                    movie.mediaSources[0]?.path,
+                    `${movie.title}.${movie.mediaSources[0]?.container ?? 'mkv'}`,
+                  )}
+                  watched={Boolean(movie.userData.watched)}
+                  trailerUrl={movie.trailerUrl}
+                  onRemovedNavigateTo={`/library/${movie.libraryId}`}
+                />
               </div>
-
-              {movie.mediaSources.length > 0 && (
-                <div className="mt-3">
-                  <MediaFileActions
-                    mediaId={movie.id}
-                    fileName={`${movie.title}.${movie.mediaSources[0]?.container ?? 'mkv'}`}
-                    onRemovedNavigateTo={`/library/${movie.libraryId}`}
-                  />
-                </div>
-              )}
 
               {role === 'Admin' && (
                 <MetadataAdminPanel
@@ -147,6 +137,7 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     officialRating: movie.officialRating,
                     metadataLocked: movie.metadataLocked,
                     externalIds: movie.externalIds,
+                    artwork: movie.artwork,
                   }}
                 />
               )}

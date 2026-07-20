@@ -69,6 +69,16 @@ export function IconMenu(props: IconProps) {
   );
 }
 
+export function IconMoreVertical(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <circle cx="12" cy="5" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+      <circle cx="12" cy="19" r="1" fill="currentColor" stroke="none" />
+    </Icon>
+  );
+}
+
 export function IconClose(props: IconProps) {
   return (
     <Icon {...props}>
@@ -151,5 +161,46 @@ export function IconUser(props: IconProps) {
       <circle cx="12" cy="8" r="3.5" />
       <path d="M5 19c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5" />
     </Icon>
+  );
+}
+
+/** Official LM mark — colors follow theme tokens. */
+export function BrandMark({
+  size = 32,
+  className,
+  title,
+}: {
+  size?: number;
+  className?: string;
+  title?: string;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 128 128"
+      className={cn('shrink-0 rounded-[22%]', className)}
+      role={title ? 'img' : undefined}
+      aria-hidden={title ? undefined : true}
+      aria-label={title}
+    >
+      <rect width="128" height="128" rx="28" fill="var(--color-bg)" />
+      <path
+        fill="none"
+        stroke="var(--color-text)"
+        strokeWidth="10"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        d="M36 30 V92 H64"
+      />
+      <path
+        fill="none"
+        stroke="var(--color-accent)"
+        strokeWidth="10"
+        strokeLinejoin="round"
+        strokeLinecap="round"
+        d="M48 30 L64 62 L80 30 L94 30 V92"
+      />
+    </svg>
   );
 }

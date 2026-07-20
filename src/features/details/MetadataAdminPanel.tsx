@@ -1,16 +1,26 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
+  useArtworkCandidates,
   useMatchCandidates,
   useMatchItem,
   useRefreshMetadata,
+  useSetItemArtwork,
   useUpdateItemMetadata,
 } from '@/api/queries';
-import type { MetadataMatchCandidateDto, UpdateItemMetadataRequest } from '@/api/types';
+import type {
+  ArtworkCandidateDto,
+  ArtworkKindParam,
+  MetadataMatchCandidateDto,
+  UpdateItemMetadataRequest,
+} from '@/api/types';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { toErrorMessage } from '@/api/http';
+import { artworkUrl } from '@/lib/artwork';
 import { cn } from '@/lib/utils';
+import { useAuthStore } from '@/stores/authStore';
+import { useSettingsStore } from '@/stores/settingsStore';
 
 export interface EditableMetadata {
   id: string;
@@ -24,6 +34,7 @@ export interface EditableMetadata {
   metadataLocked?: boolean;
   kind: 'Movie' | 'Series';
   externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
+  artwork?: { poster?: string | null; backdrop?: string | null };
 }
 
 type Panel = 'none' | 'edit' | 'match';
@@ -92,7 +103,7 @@ function ModalShell({
         aria-label={title}
         className={cn(
           'relative z-10 max-h-[90vh] w-full overflow-y-auto rounded-2xl border border-border bg-surface p-5 shadow-2xl',
-          wide ? 'max-w-2xl' : 'max-w-lg',
+          wide ? 'max-w-3xl' : 'max-w-lg',
         )}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
@@ -127,9 +138,10 @@ function EditMetadataDialog({ item, onClose }: { item: EditableMetadata; onClose
   const [error, setError] = useState<string | null>(null);
 
   return (
-    <ModalShell title={t('editMetadata')} onClose={onClose}>
+    <ModalShell title={t('editMetadata')} onClose={onClose} wide>
+      <CoverPicker item={item} />
       <form
-        className="grid gap-3"
+        className="mt-5 grid gap-3 border-t border-border pt-5"
         onSubmit={(e) => {
           e.preventDefault();
           setError(null);
@@ -212,6 +224,139 @@ function EditMetadataDialog({ item, onClose }: { item: EditableMetadata; onClose
         </div>
       </form>
     </ModalShell>
+  );
+}
+
+function CoverPicker({ item }: { item: EditableMetadata }) {
+  const { t } = useTranslation('details');
+  const token = useAuthStore((s) => s.accessToken);
+  const baseUrl = useSettingsStore((s) => s.baseUrl);
+  const [kind, setKind] = useState<ArtworkKindParam>('Poster');
+  const [selectedUrl, setSelectedUrl] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const hasTmdb = Boolean(item.externalIds?.tmdb);
+
+  const candidates = useArtworkCandidates(item.id, kind, hasTmdb);
+  const setArtwork = useSetItemArtwork();
+
+  const currentPath = kind === 'Poster' ? item.artwork?.poster : item.artwork?.backdrop;
+  const currentSrc = artworkUrl(
+    baseUrl,
+    currentPath ?? undefined,
+    { w: 185, h: 278, quality: 70 },
+    token,
+  );
+
+  const apply = (c: ArtworkCandidateDto) => {
+    setError(null);
+    setMessage(null);
+    setSelectedUrl(c.url);
+    setArtwork.mutate(
+      { itemId: item.id, kind, body: { url: c.url } },
+      {
+        onSuccess: () => setMessage(t('coverApplied')),
+        onError: (err) => {
+          setSelectedUrl(null);
+          setError(toErrorMessage(err));
+        },
+      },
+    );
+  };
+
+  return (
+    <section aria-labelledby="cover-picker-title">
+      <div className="mb-3 flex flex-wrap items-end justify-between gap-2">
+        <div>
+          <h3 id="cover-picker-title" className="text-sm font-semibold">
+            {t('changeCover')}
+          </h3>
+          <p className="text-xs text-muted">{t('changeCoverHint')}</p>
+        </div>
+        <div className="flex gap-1 rounded-lg border border-border p-0.5">
+          {(['Poster', 'Backdrop'] as const).map((k) => (
+            <button
+              key={k}
+              type="button"
+              className={cn(
+                'rounded-md px-2.5 py-1 text-xs font-medium',
+                kind === k ? 'bg-accent text-on-accent' : 'text-muted hover:text-text',
+              )}
+              onClick={() => {
+                setKind(k);
+                setSelectedUrl(null);
+                setMessage(null);
+                setError(null);
+              }}
+            >
+              {k === 'Poster' ? t('coverPoster') : t('coverBackdrop')}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {!hasTmdb ? (
+        <p className="rounded-lg border border-dashed border-border px-3 py-4 text-sm text-muted">
+          {t('coverNeedsMatch')}
+        </p>
+      ) : candidates.isLoading ? (
+        <p className="text-sm text-muted">{t('loadingCovers')}</p>
+      ) : candidates.isError ? (
+        <p className="text-sm text-red-400">{toErrorMessage(candidates.error)}</p>
+      ) : (candidates.data ?? []).length === 0 ? (
+        <p className="text-sm text-muted">{t('noCovers')}</p>
+      ) : (
+        <div
+          className={cn(
+            'grid gap-2',
+            kind === 'Poster' ? 'grid-cols-3 sm:grid-cols-5' : 'grid-cols-2 sm:grid-cols-3',
+          )}
+        >
+          {currentSrc && (
+            <div className="relative overflow-hidden rounded-lg ring-2 ring-accent/60">
+              <img src={currentSrc} alt="" className="aspect-[2/3] w-full object-cover opacity-90" />
+              <span className="absolute inset-x-0 bottom-0 bg-black/70 px-1 py-0.5 text-center text-[10px] font-medium text-accent">
+                {t('currentCover')}
+              </span>
+            </div>
+          )}
+          {(candidates.data ?? []).map((c) => {
+            const active = selectedUrl === c.url;
+            return (
+              <button
+                key={c.url}
+                type="button"
+                disabled={setArtwork.isPending}
+                onClick={() => apply(c)}
+                className={cn(
+                  'overflow-hidden rounded-lg ring-1 ring-border transition hover:ring-accent focus:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                  active && 'ring-2 ring-accent',
+                )}
+                aria-label={t('selectCover', { lang: c.language ?? '—' })}
+              >
+                <img
+                  src={c.thumbnailUrl}
+                  alt=""
+                  loading="lazy"
+                  className={cn(
+                    'w-full object-cover',
+                    kind === 'Poster' ? 'aspect-[2/3]' : 'aspect-video',
+                  )}
+                />
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {setArtwork.isPending && <p className="mt-2 text-xs text-muted">{t('applyingCover')}</p>}
+      {message && <p className="mt-2 text-xs text-accent">{message}</p>}
+      {error && (
+        <p className="mt-2 text-xs text-red-400" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
   );
 }
 
@@ -300,11 +445,7 @@ function FixMatchDialog({ item, onClose }: { item: EditableMetadata; onClose: ()
                 {c.provider} · {c.providerId} · {(c.score * 100).toFixed(0)}%
               </p>
             </div>
-            <Button
-              size="sm"
-              disabled={match.isPending}
-              onClick={() => apply(c)}
-            >
+            <Button size="sm" disabled={match.isPending} onClick={() => apply(c)}>
               {t('applyMatch')}
             </Button>
           </li>

@@ -41,18 +41,66 @@ function isDocumentFullscreen(): boolean {
   return Boolean(document.fullscreenElement ?? doc.webkitFullscreenElement);
 }
 
-async function requestFullscreen(el: HTMLElement): Promise<void> {
-  const anyEl = el as HTMLElement & {
-    webkitRequestFullscreen?: () => void;
-  };
-  if (el.requestFullscreen) await el.requestFullscreen();
-  else anyEl.webkitRequestFullscreen?.();
+function isIosTouchDevice(): boolean {
+  if (typeof navigator === 'undefined') return false;
+  const ua = navigator.userAgent;
+  if (/iPad|iPhone|iPod/.test(ua)) return true;
+  // iPadOS 13+ reports as MacIntel with touch.
+  return navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1;
 }
 
-async function exitFullscreen(): Promise<void> {
+type VideoFs = HTMLVideoElement & {
+  webkitEnterFullscreen?: () => void;
+  webkitExitFullscreen?: () => void;
+  webkitDisplayingFullscreen?: boolean;
+};
+
+async function requestFullscreen(
+  el: HTMLElement,
+  video?: HTMLVideoElement | null,
+): Promise<void> {
+  const vid = video as VideoFs | null | undefined;
+
+  // iOS Safari only fullscreens <video> via the legacy webkit API.
+  if (isIosTouchDevice() && vid?.webkitEnterFullscreen) {
+    vid.webkitEnterFullscreen();
+    return;
+  }
+
+  const anyEl = el as HTMLElement & {
+    webkitRequestFullscreen?: () => void;
+    webkitRequestFullScreen?: () => void;
+  };
+  if (el.requestFullscreen) {
+    await el.requestFullscreen();
+    return;
+  }
+  if (anyEl.webkitRequestFullscreen) {
+    anyEl.webkitRequestFullscreen();
+    return;
+  }
+  if (anyEl.webkitRequestFullScreen) {
+    anyEl.webkitRequestFullScreen();
+    return;
+  }
+  // Last resort on mobile WebViews that only expose video FS.
+  if (vid?.webkitEnterFullscreen) {
+    vid.webkitEnterFullscreen();
+  }
+}
+
+async function exitFullscreen(video?: HTMLVideoElement | null): Promise<void> {
+  const vid = video as VideoFs | null | undefined;
+  if (vid?.webkitDisplayingFullscreen && vid.webkitExitFullscreen) {
+    vid.webkitExitFullscreen();
+    return;
+  }
   const doc = document as Document & { webkitExitFullscreen?: () => void };
-  if (document.exitFullscreen) await document.exitFullscreen();
-  else doc.webkitExitFullscreen?.();
+  if (document.exitFullscreen && document.fullscreenElement) {
+    await document.exitFullscreen();
+    return;
+  }
+  doc.webkitExitFullscreen?.();
 }
 
 function ControlButton({
@@ -114,24 +162,42 @@ export function PlayerScreen() {
   const displayTimeMs = scrubMs ?? player.currentTimeMs;
 
   useEffect(() => {
-    const sync = () => setIsFullscreen(isDocumentFullscreen());
+    const sync = () => {
+      const vid = player.videoRef.current as VideoFs | null;
+      setIsFullscreen(
+        isDocumentFullscreen() || Boolean(vid?.webkitDisplayingFullscreen),
+      );
+    };
+    const onWebkitBegin = () => setIsFullscreen(true);
+    const onWebkitEnd = () => setIsFullscreen(false);
+
     document.addEventListener('fullscreenchange', sync);
     document.addEventListener('webkitfullscreenchange', sync);
+    const video = player.videoRef.current;
+    video?.addEventListener('webkitbeginfullscreen', onWebkitBegin);
+    video?.addEventListener('webkitendfullscreen', onWebkitEnd);
     return () => {
       document.removeEventListener('fullscreenchange', sync);
       document.removeEventListener('webkitfullscreenchange', sync);
+      video?.removeEventListener('webkitbeginfullscreen', onWebkitBegin);
+      video?.removeEventListener('webkitendfullscreen', onWebkitEnd);
     };
-  }, []);
+  }, [player.videoRef]);
 
   const toggleFullscreen = useCallback(async () => {
     setControlsVisible(true);
+    const video = player.videoRef.current;
     try {
-      if (isDocumentFullscreen()) await exitFullscreen();
-      else if (rootRef.current) await requestFullscreen(rootRef.current);
+      const vid = video as VideoFs | null;
+      if (isDocumentFullscreen() || vid?.webkitDisplayingFullscreen) {
+        await exitFullscreen(video);
+      } else if (rootRef.current) {
+        await requestFullscreen(rootRef.current, video);
+      }
     } catch {
       // Browser may deny fullscreen without a user gesture or policy.
     }
-  }, []);
+  }, [player.videoRef]);
 
   useEffect(() => {
     if (!player.playing || !controlsVisible || scrubbing) return;
@@ -330,7 +396,7 @@ export function PlayerScreen() {
                 player.togglePlay();
                 setControlsVisible(true);
               }}
-              className="h-18 w-18 !h-[4.5rem] !w-[4.5rem] bg-accent text-black shadow-lg shadow-accent/30 ring-0 hover:bg-accent-hover"
+              className="h-18 w-18 !h-[4.5rem] !w-[4.5rem] bg-accent text-on-accent shadow-lg shadow-accent/30 ring-0 hover:bg-accent-hover"
             >
               {player.playing ? <IconPause size={30} /> : <IconPlay size={30} className="ml-0.5" />}
             </ControlButton>

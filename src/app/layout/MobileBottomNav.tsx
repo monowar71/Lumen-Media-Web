@@ -1,4 +1,4 @@
-import { NavLink, useSearchParams } from 'react-router-dom';
+import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { IconHome, IconLibrary, IconSearch, IconSettings } from '@/components/AppIcons';
 import { cn } from '@/lib/utils';
@@ -12,8 +12,10 @@ const itemClass = (active: boolean) =>
 /** Mobile bottom navigation — Plex-style thumb-friendly controls. */
 export function MobileBottomNav() {
   const { t } = useTranslation('common');
+  const { pathname } = useLocation();
   const [searchParams] = useSearchParams();
   const tab = searchParams.get('tab');
+  const onSettings = pathname.startsWith('/settings');
 
   return (
     <nav
@@ -28,7 +30,10 @@ export function MobileBottomNav() {
         <IconSearch size={20} />
         {t('nav.search')}
       </NavLink>
-      <NavLink to="/settings?tab=libraries" className={() => itemClass(tab === 'libraries')}>
+      <NavLink
+        to="/settings?tab=libraries"
+        className={() => itemClass(onSettings && tab === 'libraries')}
+      >
         <IconLibrary size={20} />
         {t('nav.libraries')}
       </NavLink>
@@ -36,7 +41,10 @@ export function MobileBottomNav() {
         to="/settings"
         end
         className={() =>
-          itemClass(tab === null || tab === 'general' || tab === 'playback' || tab === 'admin')
+          itemClass(
+            onSettings &&
+              (tab === null || tab === 'general' || tab === 'playback' || tab === 'admin'),
+          )
         }
       >
         <IconSettings size={20} />
