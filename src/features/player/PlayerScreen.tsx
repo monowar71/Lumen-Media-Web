@@ -259,23 +259,35 @@ export function PlayerScreen() {
 
   const audioOptions: TrackOption[] = useMemo(
     () =>
-      player.decision?.audioStreams.map((a) => ({
-        id: a.id,
-        label: formatTrackLanguage(a.language) || t('audioFallback'),
-        sublabel: [a.codec, a.channels ? t('channels', { count: a.channels }) : null]
-          .filter(Boolean)
-          .join(' '),
-      })) ?? [],
+      player.decision?.audioStreams.map((a) => {
+        const language = a.language ? formatTrackLanguage(a.language) : '';
+        const title = a.title?.trim() || '';
+        return {
+          id: a.id,
+          label: title || language || t('audioFallback'),
+          sublabel: [
+            title && language ? language : null,
+            a.codec,
+            a.channels ? t('channels', { count: a.channels }) : null,
+          ]
+            .filter(Boolean)
+            .join(' '),
+        };
+      }) ?? [],
     [player.decision, t],
   );
 
   const subtitleOptions: TrackOption[] = useMemo(() => {
     const subs =
-      player.decision?.subtitleStreams.map((s) => ({
-        id: s.id,
-        label: formatTrackLanguage(s.language) || t('subtitleFallback'),
-        sublabel: s.format,
-      })) ?? [];
+      player.decision?.subtitleStreams.map((s) => {
+        const language = s.language ? formatTrackLanguage(s.language) : '';
+        const title = s.title?.trim() || '';
+        return {
+          id: s.id,
+          label: title || language || t('subtitleFallback'),
+          sublabel: [title && language ? language : null, s.format].filter(Boolean).join(' '),
+        };
+      }) ?? [];
     return [{ id: 'off', label: t('off') }, ...subs];
   }, [player.decision, t]);
 
@@ -324,7 +336,7 @@ export function PlayerScreen() {
             id={s.id}
             kind="subtitles"
             srcLang={s.language ?? 'und'}
-            label={formatTrackLanguage(s.language) || t('subtitleFallback')}
+            label={s.title?.trim() || (s.language ? formatTrackLanguage(s.language) : '') || t('subtitleFallback')}
             src={subtitleTrackUrl(baseUrl, s.deliveryUrl, token)}
           />
         ))}

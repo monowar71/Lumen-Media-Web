@@ -2095,6 +2095,8 @@ export interface components {
             /** Format: uuid */
             id: string;
             language?: null | string;
+            /** Container track title — often the dubbing studio. */
+            title?: null | string;
             codec?: null | string;
             /** Format: int32 */
             channels?: null | number | string;
@@ -2672,7 +2674,11 @@ export interface components {
             /** Format: uuid */
             id: string;
             language?: null | string;
+            /** Container track title (e.g. "Russian (Forced)"). */
+            title?: null | string;
             format?: null | string;
+            isDefault?: boolean;
+            isForced?: boolean;
             deliveryUrl: string;
         };
         TokenResponse: {

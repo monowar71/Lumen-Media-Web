@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-07-26
+
+### Added
+
+- Player audio/subtitle menus show container track titles (dubbing studio / track name) when the server provides them.
+
 ### Changed
 
 - CI Docker images are multi-arch (`linux/amd64`, `linux/arm64`), built natively on `ubuntu-latest` + `ubuntu-24.04-arm` (no QEMU).
@@ -31,5 +37,6 @@ First tagged release. Images are published to Docker Hub (`monowar71/lumenmedia-
 - Show buffering as a ring around play; drop skip buttons.
 - Remove duplicate play glyph on detail CTAs.
 
-[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.1
 [0.1.0]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.0

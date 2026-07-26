@@ -354,6 +354,8 @@ export type QualityOption = {
 export type AudioStreamOption = {
   id: string;
   language?: string;
+  /** Container track title — often the dubbing studio. */
+  title?: string | null;
   codec?: string;
   channels?: number;
   isDefault?: boolean;
@@ -362,7 +364,11 @@ export type AudioStreamOption = {
 export type SubtitleStreamOption = {
   id: string;
   language?: string;
+  /** Container track title (e.g. "Russian (Forced)"). */
+  title?: string | null;
   format?: string;
+  isDefault?: boolean;
+  isForced?: boolean;
   deliveryUrl: string;
 };
 

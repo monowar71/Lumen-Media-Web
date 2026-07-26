@@ -451,7 +451,14 @@ export function decideForMedia(
       selectedQualityId: 'original',
       availableQualities,
       audioStreams: [
-        { id: 'strm-ia1', language: 'eng', codec: 'aac', channels: 2, isDefault: true },
+        {
+          id: 'strm-ia1',
+          language: 'eng',
+          title: 'English',
+          codec: 'aac',
+          channels: 2,
+          isDefault: true,
+        },
       ],
       subtitleStreams: [],
       expiresAt: '2099-01-01T00:00:00Z',
@@ -474,13 +481,27 @@ export function decideForMedia(
     selectedQualityId,
     availableQualities,
     audioStreams: [
-      { id: 'strm-a1', language: 'eng', codec: 'eac3', channels: 6, isDefault: true },
-      { id: 'strm-a2', language: 'rus', codec: 'aac', channels: 2 },
+      {
+        id: 'strm-a1',
+        language: 'eng',
+        title: 'English',
+        codec: 'eac3',
+        channels: 6,
+        isDefault: true,
+      },
+      {
+        id: 'strm-a2',
+        language: 'rus',
+        title: 'LostFilm',
+        codec: 'aac',
+        channels: 2,
+      },
     ],
     subtitleStreams: [
       {
         id: 'strm-s1',
         language: 'eng',
+        title: 'English (SDH)',
         format: 'srt',
         deliveryUrl: `/api/v1/items/${mediaId}/subtitles/strm-s1.vtt`,
       },
