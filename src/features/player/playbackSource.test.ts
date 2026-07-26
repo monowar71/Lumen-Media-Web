@@ -39,8 +39,10 @@ describe('playback decision -> source selection', () => {
     const decision = decideForMedia('movie-matrix', 'auto', null, 0);
     const ids = decision.availableQualities.map((q) => q.id);
     expect(ids).toContain('auto');
+    expect(ids).toContain('1080p-high');
     expect(ids).toContain('1080p');
     expect(ids).toContain('720p');
+    expect(ids).toContain('360p');
     expect(decision.availableQualities[0].adaptive).toBe(true);
   });
 

@@ -429,9 +429,12 @@ export function decideForMedia(
       height: 2160,
       bitrateKbps: 80000,
     },
+    { id: '1440p', label: '1440p (~16 Mbps)', width: 2560, height: 1440, bitrateKbps: 16000 },
+    { id: '1080p-high', label: '1080p High (~20 Mbps)', width: 1920, height: 1080, bitrateKbps: 20000 },
     { id: '1080p', label: '1080p (~10 Mbps)', width: 1920, height: 1080, bitrateKbps: 10000 },
     { id: '720p', label: '720p (~4 Mbps)', width: 1280, height: 720, bitrateKbps: 4000 },
     { id: '480p', label: '480p (~1.5 Mbps)', width: 854, height: 480, bitrateKbps: 1500 },
+    { id: '360p', label: '360p (~0.7 Mbps)', width: 640, height: 360, bitrateKbps: 700 },
   ];
 
   const selectedQualityId = mode === 'manual' && qualityId ? qualityId : 'auto';
