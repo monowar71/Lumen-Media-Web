@@ -21,16 +21,6 @@ function withToken(url: string, token?: string | null): string {
   return u.toString();
 }
 
-function attachNative(video: HTMLVideoElement, url: string, token?: string | null): AttachHandle {
-  video.src = withToken(url, token);
-  return {
-    destroy: () => {
-      video.removeAttribute('src');
-      video.load();
-    },
-  };
-}
-
 function applyBitrateCap(hls: Hls, maxBitrateKbps?: number): void {
   if (!maxBitrateKbps || maxBitrateKbps <= 0 || maxBitrateKbps >= 100_000) {
     hls.autoLevelCapping = -1;
@@ -68,6 +58,9 @@ function buildHlsConfig(accessToken?: string | null): Partial<Hls['config']> {
     backBufferLength: 30,
     startFragPrefetch: false,
     testBandwidth: !lan,
+    // EVENT playlists from ffmpeg -ss are VOD-like restarts, not true live.
+    // Prefer VOD handling so scrubbing does not stick to the live edge.
+    liveDurationInfinity: false,
     liveSyncDurationCount: 3,
     liveMaxLatencyDurationCount: Infinity,
     manifestLoadingTimeOut: 30_000,
@@ -92,16 +85,23 @@ export function attachSource(
   source: PlaybackSource,
   opts: AttachOptions = {},
 ): AttachHandle {
-  const { accessToken, maxBitrateKbps, onError } = opts;
+  const { accessToken, maxBitrateKbps, onError, onBuffering } = opts;
 
   if (source.kind === 'direct') {
-    return attachNative(video, source.url, accessToken);
+    return attachNative(video, withToken(source.url, accessToken), onBuffering);
   }
 
   if (Hls.isSupported()) {
     let networkRetries = 0;
     let mediaRetries = 0;
     const hls = new Hls(buildHlsConfig(accessToken));
+
+    const onWaiting = () => onBuffering?.(true);
+    const onPlaying = () => onBuffering?.(false);
+    const onCanPlay = () => onBuffering?.(false);
+    video.addEventListener('waiting', onWaiting);
+    video.addEventListener('playing', onPlaying);
+    video.addEventListener('canplay', onCanPlay);
 
     hls.on(Hls.Events.MANIFEST_PARSED, () => applyBitrateCap(hls, maxBitrateKbps));
     hls.on(Hls.Events.ERROR, (_event, data) => {
@@ -147,13 +147,43 @@ export function attachSource(
 
     hls.loadSource(withToken(source.url, accessToken));
     hls.attachMedia(video);
-    return { destroy: () => hls.destroy() };
+    return {
+      destroy: () => {
+        video.removeEventListener('waiting', onWaiting);
+        video.removeEventListener('playing', onPlaying);
+        video.removeEventListener('canplay', onCanPlay);
+        hls.destroy();
+      },
+    };
   }
 
   if (video.canPlayType('application/vnd.apple.mpegurl') !== '') {
-    return attachNative(video, source.url, accessToken);
+    return attachNative(video, withToken(source.url, accessToken), onBuffering);
   }
 
   onError?.('HLS is not supported in this browser');
   return { destroy: () => {} };
+}
+
+function attachNative(
+  video: HTMLVideoElement,
+  url: string,
+  onBuffering?: (buffering: boolean) => void,
+): AttachHandle {
+  const onWaiting = () => onBuffering?.(true);
+  const onPlaying = () => onBuffering?.(false);
+  const onCanPlay = () => onBuffering?.(false);
+  video.addEventListener('waiting', onWaiting);
+  video.addEventListener('playing', onPlaying);
+  video.addEventListener('canplay', onCanPlay);
+  video.src = url;
+  return {
+    destroy: () => {
+      video.removeEventListener('waiting', onWaiting);
+      video.removeEventListener('playing', onPlaying);
+      video.removeEventListener('canplay', onCanPlay);
+      video.removeAttribute('src');
+      video.load();
+    },
+  };
 }

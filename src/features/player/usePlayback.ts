@@ -216,6 +216,7 @@ export function usePlayback({
         if (isDirect && startMs > 0) {
           video.currentTime = startMs / 1000;
         }
+        setBuffering(false);
         void video.play().catch(() => {
           /* autoplay may be blocked; user can press play */
         });
@@ -465,10 +466,11 @@ export function usePlayback({
       });
 
       // A newer scrub won while we waited — don't attach the stale restart.
-      if (
-        seekEpoch !== seekEpochRef.current ||
-        pendingRemoteSeekMsRef.current != null
-      ) {
+      if (seekEpoch !== seekEpochRef.current) {
+        return;
+      }
+      if (pendingRemoteSeekMsRef.current != null) {
+        // Newer target queued; finally will flush it.
         return;
       }
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canLocalSeek, isInBuffered, SEEK_REMOTE_AHEAD_MS, SEEK_RESTART_SLACK_MS } from './seekHelpers';
+import { canLocalSeek, isInBuffered, SEEK_RESTART_SLACK_MS } from './seekHelpers';
 
 function fakeVideo(ranges: Array<[number, number]>, seekable?: Array<[number, number]>) {
   const mk = (list: Array<[number, number]>) =>
@@ -22,19 +22,19 @@ describe('canLocalSeek', () => {
     expect(isInBuffered(video, 5_000)).toBe(true);
   });
 
-  it('allows short look-ahead within seekable', () => {
+  it('does not trust seekable look-ahead (EVENT HLS stalls there)', () => {
     const video = fakeVideo([[0, 4]], [[0, 120]]);
     expect(isInBuffered(video, 10_000)).toBe(false);
-    expect(canLocalSeek(video, 10_000)).toBe(true);
+    expect(canLocalSeek(video, 10_000)).toBe(false);
   });
 
-  it('forces remote restart for long jumps past the buffer', () => {
+  it('forces remote restart for jumps past the buffer', () => {
     const video = fakeVideo([[0, 4]], [[0, 600]]);
-    expect(canLocalSeek(video, 4_000 + SEEK_REMOTE_AHEAD_MS + 1)).toBe(false);
+    expect(canLocalSeek(video, 20_000)).toBe(false);
     expect(canLocalSeek(video, 300_000)).toBe(false);
   });
 
-  it('rejects seeks past the seekable edge', () => {
+  it('rejects seeks past the buffered edge', () => {
     const video = fakeVideo([[0, 12]]);
     expect(canLocalSeek(video, 12_000 + SEEK_RESTART_SLACK_MS + 1)).toBe(false);
   });
