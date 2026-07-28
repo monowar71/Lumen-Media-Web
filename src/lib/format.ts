@@ -39,3 +39,18 @@ export function intlLocale(): string {
   const locale = useSettingsStore.getState().locale;
   return locale === 'ru' ? 'ru-RU' : 'en-US';
 }
+
+/** Human-readable file size (binary units). */
+export function formatBytes(bytes?: number | null): string {
+  if (bytes == null || !Number.isFinite(bytes) || bytes < 0) return '';
+  if (bytes < 1024) return i18n.t('format.bytes', { value: bytes });
+  const units = ['KB', 'MB', 'GB', 'TB'] as const;
+  let value = bytes / 1024;
+  let unitIndex = 0;
+  while (value >= 1024 && unitIndex < units.length - 1) {
+    value /= 1024;
+    unitIndex += 1;
+  }
+  const rounded = value >= 10 || unitIndex === 0 ? Math.round(value) : Math.round(value * 10) / 10;
+  return i18n.t(`format.bytes${units[unitIndex]}`, { value: rounded });
+}

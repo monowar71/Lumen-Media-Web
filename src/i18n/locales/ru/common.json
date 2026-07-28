@@ -69,7 +69,12 @@
   },
   "format": {
     "runtimeHoursMinutes": "{{hours}} ч {{minutes}} мин",
-    "runtimeMinutes": "{{minutes}} мин"
+    "runtimeMinutes": "{{minutes}} мин",
+    "bytes": "{{value}} B",
+    "bytesKB": "{{value}} КБ",
+    "bytesMB": "{{value}} МБ",
+    "bytesGB": "{{value}} ГБ",
+    "bytesTB": "{{value}} ТБ"
   },
   "trackLanguage": {
     "eng": "Английский",

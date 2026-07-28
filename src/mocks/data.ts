@@ -120,6 +120,7 @@ export const mockMovieDetail: Record<string, MovieDetail> = {
     mediaSources: [
       {
         id: 'src-matrix-01',
+        path: '/media/movies/The.Matrix.1999.2160p.mkv',
         container: 'mkv',
         sizeBytes: 34359738368,
         durationMs: 8160000,
@@ -156,6 +157,36 @@ export const mockMovieDetail: Record<string, MovieDetail> = {
             language: 'eng',
             format: 'srt',
             isExternal: false,
+          },
+        ],
+      },
+      {
+        id: 'src-matrix-02',
+        path: '/media/movies/The.Matrix.1999.1080p.mp4',
+        container: 'mp4',
+        sizeBytes: 8589934592,
+        durationMs: 8160000,
+        overallBitrateKbps: 8000,
+        streams: [
+          {
+            id: 'strm-v2',
+            kind: 'Video',
+            index: 0,
+            codec: 'h264',
+            width: 1920,
+            height: 1080,
+            frameRate: 23.976,
+            bitrateKbps: 7000,
+            isDefault: true,
+          },
+          {
+            id: 'strm-a2',
+            kind: 'Audio',
+            index: 1,
+            codec: 'aac',
+            language: 'eng',
+            channels: 2,
+            isDefault: true,
           },
         ],
       },
@@ -363,6 +394,7 @@ export const mockEpisodeDetail: Record<string, EpisodeDetail> = {
     mediaSources: [
       {
         id: 'src-ep101',
+        path: '/media/series/Breaking.Bad.S01E01.720p.mkv',
         container: 'mkv',
         sizeBytes: 2147483648,
         durationMs: 3480000,
@@ -370,6 +402,26 @@ export const mockEpisodeDetail: Record<string, EpisodeDetail> = {
         streams: [
           { id: 'strm-ev1', kind: 'Video', index: 0, codec: 'h264', width: 1280, height: 720 },
           { id: 'strm-ea1', kind: 'Audio', index: 1, codec: 'aac', language: 'eng', channels: 2 },
+        ],
+      },
+      {
+        id: 'src-ep101-b',
+        path: '/media/series/Breaking.Bad.S01E01.1080p.BluRay.mkv',
+        container: 'mkv',
+        sizeBytes: 4294967296,
+        durationMs: 3480000,
+        overallBitrateKbps: 10000,
+        streams: [
+          {
+            id: 'strm-ev1b',
+            kind: 'Video',
+            index: 0,
+            codec: 'hevc',
+            width: 1920,
+            height: 1080,
+            hdr: 'HDR10',
+          },
+          { id: 'strm-ea1b', kind: 'Audio', index: 1, codec: 'eac3', language: 'eng', channels: 6 },
         ],
       },
     ],

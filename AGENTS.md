@@ -36,6 +36,7 @@ client_web/
 
 - Device profile для веба: браузерная поддержка HEVC ограничена → как правило `videoCodecs: ["h264"]`, `containers: ["hls","mp4"]`.
 - `POST /playback/decision` → DirectPlay (`<video src>`) или HLS через Shaka/hls.js.
+- **Несколько файлов одного тайтла:** если у фильма/эпизода `mediaSources.length > 1`, перед стартом показывается выбор версии; в decision уходит выбранный `mediaSourceId`. Для эпизодов список без источников — перед выбором запрашивается `GET /episodes/{id}`.
 - Управление дорожками аудио/субтитров через API плеера; субтитры — WebVTT.
 - **Выбор качества:** UI-селектор со списком `availableQualities`. Auto → `master.m3u8` (ABR hls.js/Shaka). Manual → hls.js `currentLevel`/`autoLevelCapping` или Shaka `selectVariantTrack`/`configure({abr})`. Смена на лету: `set-quality` + подмена источника + seek на позицию.
 - **Сеть/кап:** отдельный кап для внешнего подключения; ориентировочный тип сети через `navigator.connection` (где доступно); подставлять `maxBitrateKbps`.

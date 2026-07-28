@@ -1,5 +1,4 @@
 import { useEffect, useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { EpisodeSummary, SeriesDetail } from '@/api/types';
 import { useEpisodes, useMarkWatchedMutation, useSeasons } from '@/api/queries';
@@ -10,17 +9,17 @@ import { Spinner } from '@/components/ui/Spinner';
 import { IconPlay } from '@/components/AppIcons';
 import { artworkUrl } from '@/lib/artwork';
 import { formatRuntime, progressFraction } from '@/lib/format';
-import { playerPath, type PlaybackNavState } from './playbackNav';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { cn } from '@/lib/utils';
 import { fileNameFromPath } from '@/lib/mediaFile';
 import { MediaFileActions } from './MediaFileActions';
+import { MediaSourcePicker } from './MediaSourcePicker';
 import { MetadataAdminHints, type EditableMetadata } from './MetadataAdminPanel';
+import { useStartPlayback } from './useStartPlayback';
 
 export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const { t } = useTranslation('details');
-  const navigate = useNavigate();
   const role = useAuthStore((s) => s.user?.role);
   const baseUrl = useSettingsStore((s) => s.baseUrl);
   const token = useAuthStore((s) => s.accessToken);
@@ -30,6 +29,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
     { w: 1280, h: 720, quality: 70 },
     token,
   );
+  const { start, picker, selectSource, cancelPicker } = useStartPlayback();
 
   const { data: seasonsData, isLoading: seasonsLoading } = useSeasons(series.id);
   const seasons = useMemo(() => seasonsData?.items ?? [], [seasonsData]);
@@ -64,6 +64,19 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
           artwork: series.artwork,
         }
       : undefined;
+
+  const playNextUp = () => {
+    if (!nextUp) return;
+    void start({
+      mediaId: nextUp.id,
+      title:
+        nextUp.title?.trim() ||
+        `${series.title} — S${nextUp.seasonNumber}E${nextUp.episodeNumber}`,
+      resumeMs: nextCanResume ? nextResumeMs : 0,
+      isEpisode: true,
+      backdrop: series.artwork.backdrop,
+    });
+  };
 
   return (
     <div>
@@ -140,20 +153,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
               )}
               <div className="mt-5 flex flex-wrap items-center gap-3">
                 {nextUp && (
-                  <Button
-                    size="lg"
-                    onClick={() => {
-                      const state: PlaybackNavState = {
-                        title:
-                          nextUp.title?.trim() ||
-                          `${series.title} — S${nextUp.seasonNumber}E${nextUp.episodeNumber}`,
-                        resumeMs: nextCanResume ? nextResumeMs : 0,
-                        isEpisode: true,
-                        backdrop: series.artwork.backdrop,
-                      };
-                      navigate(playerPath(nextUp.id), { state });
-                    }}
-                  >
+                  <Button size="lg" onClick={playNextUp}>
                     <IconPlay size={18} />
                     {nextCanResume
                       ? t('resume', { time: formatRuntime(nextResumeMs) })
@@ -239,11 +239,22 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                 episode={ep}
                 seriesTitle={series.title}
                 seriesId={series.id}
+                backdrop={series.artwork.backdrop}
+                onStartPlayback={start}
               />
             ))}
           </ul>
         )}
       </section>
+
+      {picker && (
+        <MediaSourcePicker
+          sources={picker.sources}
+          loading={picker.loading}
+          onSelect={selectSource}
+          onClose={cancelPicker}
+        />
+      )}
     </div>
   );
 }
@@ -252,13 +263,16 @@ function EpisodeRow({
   episode,
   seriesTitle,
   seriesId,
+  backdrop,
+  onStartPlayback,
 }: {
   episode: EpisodeSummary;
   seriesTitle: string;
   seriesId: string;
+  backdrop?: string;
+  onStartPlayback: ReturnType<typeof useStartPlayback>['start'];
 }) {
   const { t } = useTranslation('details');
-  const navigate = useNavigate();
   const resumeMs = episode.userData.playbackPositionMs ?? 0;
   const fraction = progressFraction(resumeMs, episode.runtimeMs);
   const canResume = resumeMs > 0 && !episode.userData.watched;
@@ -267,14 +281,15 @@ function EpisodeRow({
     `${seriesTitle} — S${episode.seasonNumber}E${episode.episodeNumber}`;
 
   const play = () => {
-    const state: PlaybackNavState = {
+    void onStartPlayback({
+      mediaId: episode.id,
       title: episode.title?.trim()
         ? `${episode.title} — S${episode.seasonNumber}E${episode.episodeNumber}`
         : episodeLabel,
       resumeMs: canResume ? resumeMs : 0,
       isEpisode: true,
-    };
-    navigate(playerPath(episode.id), { state });
+      backdrop,
+    });
   };
 
   return (

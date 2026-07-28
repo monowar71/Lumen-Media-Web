@@ -1,4 +1,3 @@
-import { useNavigate } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import type { MovieDetail } from '@/api/types';
 import { PosterImage } from '@/components/PosterImage';
@@ -9,21 +8,23 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { formatRuntime } from '@/lib/format';
 import { IconPlay } from '@/components/AppIcons';
-import { playerPath, type PlaybackNavState } from './playbackNav';
 import { fileNameFromPath } from '@/lib/mediaFile';
 import { MediaFileActions } from './MediaFileActions';
+import { MediaSourcePicker } from './MediaSourcePicker';
 import { MetadataAdminHints, type EditableMetadata } from './MetadataAdminPanel';
+import { useStartPlayback } from './useStartPlayback';
 
 export function MovieDetailView({ movie }: { movie: MovieDetail }) {
   const { t } = useTranslation('details');
-  const navigate = useNavigate();
   const baseUrl = useSettingsStore((s) => s.baseUrl);
   const token = useAuthStore((s) => s.accessToken);
   const role = useAuthStore((s) => s.user?.role);
   const backdrop = artworkUrl(baseUrl, movie.artwork.backdrop, { w: 1280, h: 720, quality: 70 }, token);
+  const { start, picker, selectSource, cancelPicker } = useStartPlayback();
 
   const resumeMs = movie.userData.playbackPositionMs ?? 0;
   const canResume = resumeMs > 0 && !movie.userData.watched;
+  const hasMultipleSources = movie.mediaSources.length > 1;
 
   const metadataAdmin: EditableMetadata | undefined =
     role === 'Admin'
@@ -44,14 +45,14 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
       : undefined;
 
   const play = (fromStart: boolean) => {
-    const state: PlaybackNavState = {
+    void start({
+      mediaId: movie.id,
       title: movie.title,
-      mediaSourceId: movie.mediaSources[0]?.id,
+      sources: movie.mediaSources,
       resumeMs: fromStart ? 0 : resumeMs,
       isEpisode: false,
       backdrop: movie.artwork.backdrop,
-    };
-    navigate(playerPath(movie.id), { state });
+    });
   };
 
   return (
@@ -106,6 +107,12 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     <>
                       <Dot />
                       <span className="text-accent">{t('watched')}</span>
+                    </>
+                  )}
+                  {hasMultipleSources && (
+                    <>
+                      <Dot />
+                      <span>{t('versionsCount', { count: movie.mediaSources.length })}</span>
                     </>
                   )}
                 </MetaBadges>
@@ -173,6 +180,15 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
           )}
         </div>
       </div>
+
+      {picker && (
+        <MediaSourcePicker
+          sources={picker.sources}
+          loading={picker.loading}
+          onSelect={selectSource}
+          onClose={cancelPicker}
+        />
+      )}
     </div>
   );
 }
