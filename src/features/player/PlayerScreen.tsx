@@ -330,16 +330,31 @@ export function PlayerScreen() {
         playsInline
         crossOrigin="anonymous"
       >
-        {player.decision?.subtitleStreams.map((s) => (
-          <track
-            key={s.id}
-            id={s.id}
-            kind="subtitles"
-            srcLang={s.language ?? 'und'}
-            label={s.title?.trim() || (s.language ? formatTrackLanguage(s.language) : '') || t('subtitleFallback')}
-            src={subtitleTrackUrl(baseUrl, s.deliveryUrl, token)}
-          />
-        ))}
+        {/* Only the active sidecar — mounting every deliveryUrl saturates the browser's
+            ~6 connections/host while ffmpeg extracts VTT from large MKVs, starving HLS. */}
+        {(() => {
+          const selected = player.selectedSubtitleId;
+          if (!selected) return null;
+          const stream = player.decision?.subtitleStreams.find(
+            (s) => s.id === selected && s.deliveryUrl,
+          );
+          if (!stream) return null;
+          return (
+            <track
+              key={stream.id}
+              id={stream.id}
+              kind="subtitles"
+              srcLang={stream.language ?? 'und'}
+              label={
+                stream.title?.trim() ||
+                (stream.language ? formatTrackLanguage(stream.language) : '') ||
+                t('subtitleFallback')
+              }
+              src={subtitleTrackUrl(baseUrl, stream.deliveryUrl, token)}
+              default
+            />
+          );
+        })()}
       </video>
 
       {/* Soft vignette always present for readable overlays */}

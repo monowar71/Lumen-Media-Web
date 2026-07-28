@@ -38,6 +38,8 @@ client_web/
 - `POST /playback/decision` → DirectPlay (`<video src>`) или HLS через Shaka/hls.js.
 - **Несколько файлов одного тайтла:** если у фильма/эпизода `mediaSources.length > 1`, перед стартом показывается выбор версии; в decision уходит выбранный `mediaSourceId`. Для эпизодов список без источников — перед выбором запрашивается `GET /episodes/{id}`.
 - Управление дорожками аудио/субтитров через API плеера; субтитры — WebVTT.
+  Монтировать в `<video>` только **выбранную** sidecar-дорожку (не все `deliveryUrl` сразу) —
+  иначе параллельные длинные VTT-конвертации на сервере забивают лимит HTTP-соединений и HLS зависает.
 - **Выбор качества:** UI-селектор со списком `availableQualities`. Auto → `master.m3u8` (ABR hls.js/Shaka). Manual → hls.js `currentLevel`/`autoLevelCapping` или Shaka `selectVariantTrack`/`configure({abr})`. Смена на лету: `set-quality` + подмена источника + seek на позицию.
 - **Сеть/кап:** отдельный кап для внешнего подключения; ориентировочный тип сети через `navigator.connection` (где доступно); подставлять `maxBitrateKbps`.
 - **Нестабильная сеть:** полагаться на ABR (понижение качества вместо паузы); индикатор буферизации; повтор с backoff.

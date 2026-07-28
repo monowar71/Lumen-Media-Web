@@ -638,24 +638,34 @@ export function usePlayback({
     video.muted = muted;
   }, [volume, muted]);
 
-  // Text subtitles: prefer server decision when switching (burn-in / track remap),
-  // then toggle native text tracks for WebVTT sidecars.
+  // Text subtitles: sidecar WebVTT is client-only (single <track>); burn-in needs a new decision.
   const changeSubtitle = useCallback(
     async (subtitleId: string | null) => {
       setSelectedSubtitleId(subtitleId);
       const d = decisionRef.current;
       const video = videoRef.current;
-      if (video) {
-        const tracks = video.textTracks;
-        for (let i = 0; i < tracks.length; i += 1) {
-          const track = tracks[i];
-          const match =
-            subtitleId != null &&
-            (track.id === subtitleId || track.label === subtitleId || String(i) === subtitleId);
-          track.mode = match ? 'showing' : 'disabled';
-        }
+
+      const hasSidecar =
+        !!subtitleId &&
+        !!d?.subtitleStreams.some((s) => s.id === subtitleId && s.deliveryUrl);
+
+      // Off or sidecar text: avoid tearing down the HLS session.
+      if (!subtitleId || hasSidecar) {
+        window.setTimeout(() => {
+          if (!video) return;
+          const tracks = video.textTracks;
+          for (let i = 0; i < tracks.length; i += 1) {
+            const track = tracks[i];
+            const match =
+              subtitleId != null &&
+              (track.id === subtitleId || track.label === subtitleId || String(i) === subtitleId);
+            track.mode = match ? 'showing' : 'disabled';
+          }
+        }, 0);
+        return;
       }
-      if (!d || !subtitleId) return;
+
+      if (!d) return;
       const resumePositionMs = Math.round(positionMsRef.current);
       const previousSid = d.sessionId;
       try {
