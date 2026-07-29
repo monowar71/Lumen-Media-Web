@@ -140,6 +140,7 @@ const SEEK_STALL_ESCALATE_MS = 2_500;
 
 export function usePlayback({
   itemId,
+  isEpisode,
   initialResumeMs,
   mediaSourceId,
 }: UsePlaybackArgs): PlaybackController {
