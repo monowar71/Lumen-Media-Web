@@ -20,7 +20,7 @@ import {
   type AudioFormatInfo,
   type VideoFormatInfo,
 } from '@/lib/mediaFormatLabels';
-import { canMarkUnwatched } from '@/features/details/MediaFileActions';
+import { canMarkUnwatched } from '@/features/details/watchedStatus';
 import { resolvePlaybackSource } from './playbackSource';
 import { attachSource, type AttachHandle } from './attachSource';
 import { canLocalSeek } from './seekHelpers';

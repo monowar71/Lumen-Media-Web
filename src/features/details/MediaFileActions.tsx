@@ -16,6 +16,8 @@ import {
   type MetadataAdminPanelKind,
 } from './MetadataAdminPanel';
 
+import { canMarkUnwatched } from './watchedStatus';
+
 type Props = {
   mediaId: string;
   /** Suggested filename for the browser download attribute. */
@@ -39,11 +41,6 @@ type Props = {
   /** Admin-only metadata actions (refresh / edit / fix match). */
   metadataAdmin?: EditableMetadata;
 };
-
-/** True when the item can be cleared back to unwatched (fully watched or in-progress). */
-export function canMarkUnwatched(watched?: boolean, playbackPositionMs?: number): boolean {
-  return Boolean(watched) || (playbackPositionMs ?? 0) > 0;
-}
 
 function itemClass(destructive?: boolean) {
   return cn(
