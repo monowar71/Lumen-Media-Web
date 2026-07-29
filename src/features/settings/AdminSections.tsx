@@ -179,6 +179,28 @@ export function AdminServerSettingsSection() {
             }
           />
         </label>
+        <label className="flex flex-col gap-1 text-sm sm:col-span-2">
+          <span className="text-muted">{t('serverAdmin.hdrToneMapMethod')}</span>
+          <select
+            className="rounded-md border border-border bg-bg px-3 py-2 text-sm"
+            value={settings.transcoding?.hdrToneMapMethod ?? 'hable'}
+            onChange={(e) =>
+              setDraft({
+                ...settings,
+                transcoding: {
+                  ...settings.transcoding,
+                  hdrToneMapMethod: e.target.value,
+                },
+              })
+            }
+          >
+            <option value="hable">{t('serverAdmin.hdrToneMapHable')}</option>
+            <option value="mobius">{t('serverAdmin.hdrToneMapMobius')}</option>
+            <option value="reinhard">{t('serverAdmin.hdrToneMapReinhard')}</option>
+            <option value="bt2390">{t('serverAdmin.hdrToneMapBt2390')}</option>
+          </select>
+          <span className="text-xs text-muted">{t('serverAdmin.hdrToneMapHint')}</span>
+        </label>
         <label className="flex items-center gap-2 text-sm">
           <input
             type="checkbox"

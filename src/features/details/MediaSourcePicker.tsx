@@ -57,8 +57,27 @@ export function MediaSourcePicker({ sources, loading, onSelect, onClose }: Props
                     )}
                   >
                     <span className="block truncate font-medium">{label.title}</span>
+                    {(label.video || label.audio) && (
+                      <span className="mt-1 block space-y-0.5 text-sm text-muted">
+                        {label.video && (
+                          <span className="block truncate">
+                            <span className="text-text/70">{t('mediaVideo')}: </span>
+                            {label.video}
+                          </span>
+                        )}
+                        {label.audio && (
+                          <span className="block truncate">
+                            <span className="text-text/70">{t('mediaAudio')}: </span>
+                            {label.audio}
+                            {label.extraAudioTracks > 0
+                              ? ` ${t('mediaExtraAudio', { count: label.extraAudioTracks })}`
+                              : ''}
+                          </span>
+                        )}
+                      </span>
+                    )}
                     {label.subtitle && (
-                      <span className="mt-0.5 block truncate text-sm text-muted">{label.subtitle}</span>
+                      <span className="mt-0.5 block truncate text-xs text-muted">{label.subtitle}</span>
                     )}
                   </button>
                 </li>

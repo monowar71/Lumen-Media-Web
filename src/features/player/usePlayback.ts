@@ -11,12 +11,11 @@ import type {
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePlayerStore } from '@/stores/playerStore';
-import { buildWebDeviceProfile } from '@/lib/deviceProfile';
+import { buildWebDeviceProfile, ensureSupportsHdr, getCachedSupportsHdr } from '@/lib/deviceProfile';
 import { detectConnectionKind } from '@/lib/network';
 import {
-  audioFormatBadges,
   formatNetworkMbps,
-  videoFormatBadges,
+  playbackFormatPaths,
   type AudioFormatInfo,
   type VideoFormatInfo,
 } from '@/lib/mediaFormatLabels';
@@ -51,12 +50,15 @@ export interface PlaybackController {
   selectedQualityId: string;
   selectedAudioId: string | null;
   selectedSubtitleId: string | null;
+  /** Force HDR→SDR when source is HDR (auto-on when device lacks HDR). */
+  forceHdrToSdr: boolean;
+  selectedAudioLayout: string | null;
   /** Estimated network throughput label (e.g. "12.4 Mbps"), or null when unknown. */
   networkMbpsLabel: string | null;
-  /** Video format chips (resolution / HDR / codec). */
-  videoBadges: string[];
-  /** Audio format chips (Atmos / DD+ / layout). */
-  audioBadges: string[];
+  /** Source or source→output video format (e.g. "HEVC · 2160p → H.264 · 1080p"). */
+  videoFormatLabel: string | null;
+  /** Source or source→output audio format (e.g. "EAC3 · 5.1 → AAC · Stereo"). */
+  audioFormatLabel: string | null;
   canMarkUnwatched: boolean;
   markingUnwatched: boolean;
   markUnwatched: () => void;
@@ -65,6 +67,8 @@ export interface PlaybackController {
   changeQuality: (qualityId: string) => void;
   changeAudio: (audioId: string) => void;
   changeSubtitle: (subtitleId: string | null) => void;
+  changeForceHdrToSdr: (force: boolean) => void;
+  changeAudioLayout: (layoutId: string) => void;
   retry: () => void;
 }
 
@@ -189,6 +193,10 @@ export function usePlayback({
   const [selectedQualityId, setSelectedQualityId] = useState('auto');
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
   const [selectedSubtitleId, setSelectedSubtitleId] = useState<string | null>(null);
+  const [forceHdrToSdr, setForceHdrToSdr] = useState(false);
+  const [selectedAudioLayout, setSelectedAudioLayout] = useState<string | null>(null);
+  const forceHdrToSdrRef = useRef(false);
+  const selectedAudioLayoutRef = useRef<string | null>(null);
   const [networkMbpsLabel, setNetworkMbpsLabel] = useState<string | null>(null);
   const [mediaSource, setMediaSource] = useState<MediaSource | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
@@ -302,7 +310,11 @@ export function usePlayback({
       }
 
       const cap = capForConnection(connectionKind);
-      const profile = buildWebDeviceProfile({ maxBitrateKbps: cap });
+      await ensureSupportsHdr();
+      const profile = buildWebDeviceProfile({
+        maxBitrateKbps: cap,
+        supportsHdr: getCachedSupportsHdr(),
+      });
 
       const mode = preferredMode;
       const next = await api.playbackDecision({
@@ -314,6 +326,8 @@ export function usePlayback({
         qualityId: mode === 'manual' ? 'original' : null,
         resumePositionMs: resumeMs,
         profile,
+        forceHdrToSdr: forceHdrToSdrRef.current,
+        audioLayout: selectedAudioLayoutRef.current,
       });
 
       // React Strict Mode remounts before the first decision returns — stop the
@@ -330,6 +344,14 @@ export function usePlayback({
         next.audioStreams.find((a) => a.isDefault)?.id ?? next.audioStreams[0]?.id ?? null,
       );
       setSelectedSubtitleId(null);
+      // Auto-force SDR when the device cannot play HDR and the source is HDR.
+      const autoForce = Boolean(next.sourceHdr) && !profile.supportsHdr;
+      const nextForce = forceHdrToSdrRef.current || autoForce || Boolean(next.toneMapActive);
+      forceHdrToSdrRef.current = nextForce;
+      setForceHdrToSdr(nextForce);
+      const layout = next.selectedAudioLayout ?? null;
+      selectedAudioLayoutRef.current = layout;
+      setSelectedAudioLayout(layout);
       positionMsRef.current = next.startPositionMs ?? 0;
       const known = toMs(next.durationMs);
       if (known > 0) {
@@ -621,10 +643,21 @@ export function usePlayback({
       setSelectedQualityId(qualityId);
       setBuffering(true);
       try {
-        const next = await api.setQuality(d.sessionId, { qualityId, mode, resumePositionMs });
+        const next = await api.setQuality(d.sessionId, {
+          qualityId,
+          mode,
+          resumePositionMs,
+          forceHdrToSdr: forceHdrToSdrRef.current,
+          audioLayout: selectedAudioLayoutRef.current,
+        });
         next.startPositionMs = resumePositionMs;
         decisionRef.current = next;
         setDecision(next);
+        if (next.selectedAudioLayout) {
+          selectedAudioLayoutRef.current = next.selectedAudioLayout;
+          setSelectedAudioLayout(next.selectedAudioLayout);
+        }
+        setForceHdrToSdr(Boolean(next.toneMapActive) || forceHdrToSdrRef.current);
         attachDecision(next);
       } catch (err) {
         setError(toErrorMessage(err, 'Could not change quality'));
@@ -646,7 +679,11 @@ export function usePlayback({
         stopSession(previousSid);
         decisionRef.current = null;
         const cap = capForConnection(connectionKind);
-        const profile = buildWebDeviceProfile({ maxBitrateKbps: cap });
+        await ensureSupportsHdr();
+        const profile = buildWebDeviceProfile({
+          maxBitrateKbps: cap,
+          supportsHdr: getCachedSupportsHdr(),
+        });
         const next = await api.playbackDecision({
           mediaId: itemId,
           mediaSourceId,
@@ -656,10 +693,16 @@ export function usePlayback({
           subtitleStreamId: selectedSubtitleId,
           resumePositionMs,
           profile,
+          forceHdrToSdr: forceHdrToSdrRef.current,
+          audioLayout: selectedAudioLayoutRef.current,
         });
         next.startPositionMs = resumePositionMs;
         decisionRef.current = next;
         setDecision(next);
+        if (next.selectedAudioLayout) {
+          selectedAudioLayoutRef.current = next.selectedAudioLayout;
+          setSelectedAudioLayout(next.selectedAudioLayout);
+        }
         const known = toMs(next.durationMs);
         if (known > 0) {
           durationMsRef.current = Math.max(durationMsRef.current, known);
@@ -681,6 +724,68 @@ export function usePlayback({
       attachDecision,
       stopSession,
     ],
+  );
+
+  const changeForceHdrToSdr = useCallback(
+    async (force: boolean) => {
+      const d = decisionRef.current;
+      if (!d || !d.sourceHdr) return;
+      // When the device cannot play HDR, tonemap stays required.
+      if (!getCachedSupportsHdr() && !force) return;
+      if (force === forceHdrToSdrRef.current) return;
+      forceHdrToSdrRef.current = force;
+      setForceHdrToSdr(force);
+      const resumePositionMs = Math.round(positionMsRef.current);
+      setBuffering(true);
+      try {
+        const next = await api.setQuality(d.sessionId, {
+          qualityId: selectedQualityId,
+          mode: d.mode,
+          resumePositionMs,
+          forceHdrToSdr: force,
+          audioLayout: selectedAudioLayoutRef.current,
+        });
+        next.startPositionMs = resumePositionMs;
+        decisionRef.current = next;
+        setDecision(next);
+        setForceHdrToSdr(Boolean(next.toneMapActive) || force);
+        attachDecision(next);
+      } catch (err) {
+        setError(toErrorMessage(err, 'Could not change HDR→SDR'));
+      }
+    },
+    [selectedQualityId, attachDecision],
+  );
+
+  const changeAudioLayout = useCallback(
+    async (layoutId: string) => {
+      const d = decisionRef.current;
+      if (!d || layoutId === selectedAudioLayoutRef.current) return;
+      selectedAudioLayoutRef.current = layoutId;
+      setSelectedAudioLayout(layoutId);
+      const resumePositionMs = Math.round(positionMsRef.current);
+      setBuffering(true);
+      try {
+        const next = await api.setQuality(d.sessionId, {
+          qualityId: selectedQualityId,
+          mode: d.mode,
+          resumePositionMs,
+          forceHdrToSdr: forceHdrToSdrRef.current,
+          audioLayout: layoutId,
+        });
+        next.startPositionMs = resumePositionMs;
+        decisionRef.current = next;
+        setDecision(next);
+        if (next.selectedAudioLayout) {
+          selectedAudioLayoutRef.current = next.selectedAudioLayout;
+          setSelectedAudioLayout(next.selectedAudioLayout);
+        }
+        attachDecision(next);
+      } catch (err) {
+        setError(toErrorMessage(err, 'Could not change audio layout'));
+      }
+    },
+    [selectedQualityId, attachDecision],
   );
 
   // Keep volume/mute in sync with persisted player preferences.
@@ -725,7 +830,11 @@ export function usePlayback({
         stopSession(previousSid);
         decisionRef.current = null;
         const cap = capForConnection(connectionKind);
-        const profile = buildWebDeviceProfile({ maxBitrateKbps: cap });
+        await ensureSupportsHdr();
+        const profile = buildWebDeviceProfile({
+          maxBitrateKbps: cap,
+          supportsHdr: getCachedSupportsHdr(),
+        });
         const next = await api.playbackDecision({
           mediaId: itemId,
           mediaSourceId,
@@ -735,6 +844,8 @@ export function usePlayback({
           subtitleStreamId: subtitleId,
           resumePositionMs,
           profile,
+          forceHdrToSdr: forceHdrToSdrRef.current,
+          audioLayout: selectedAudioLayoutRef.current,
         });
         next.startPositionMs = resumePositionMs;
         decisionRef.current = next;
@@ -826,7 +937,7 @@ export function usePlayback({
     if (!video) return null;
     return {
       codec: video.codec,
-      hdr: video.hdr,
+      hdr: video.hdr ?? decision?.sourceHdr ?? null,
       width: video.width,
       height: video.height,
     };
@@ -848,6 +959,16 @@ export function usePlayback({
     return { codec: audio.codec, channels: audio.channels, title: audio.title };
   })();
 
+  const formatPaths = playbackFormatPaths({
+    method: decision?.method,
+    sourceVideo: videoInfo,
+    sourceAudio: audioInfo,
+    selectedQualityId: selectedQualityId || decision?.selectedQualityId,
+    availableQualities: decision?.availableQualities,
+    toneMapActive: decision?.toneMapActive,
+    selectedAudioLayout: selectedAudioLayout ?? decision?.selectedAudioLayout,
+  });
+
   const showMarkUnwatched =
     canMarkUnwatched(userData?.watched, userData?.playbackPositionMs) ||
     currentTimeMs > 0;
@@ -865,9 +986,11 @@ export function usePlayback({
     selectedQualityId,
     selectedAudioId,
     selectedSubtitleId,
+    forceHdrToSdr,
+    selectedAudioLayout,
     networkMbpsLabel,
-    videoBadges: videoFormatBadges(videoInfo),
-    audioBadges: audioFormatBadges(audioInfo),
+    videoFormatLabel: formatPaths.videoLabel,
+    audioFormatLabel: formatPaths.audioLabel,
     canMarkUnwatched: showMarkUnwatched,
     markingUnwatched,
     markUnwatched,
@@ -876,6 +999,8 @@ export function usePlayback({
     changeQuality,
     changeAudio,
     changeSubtitle,
+    changeForceHdrToSdr,
+    changeAudioLayout,
     retry,
   };
 }

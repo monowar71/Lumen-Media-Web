@@ -1,5 +1,5 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
-import { screen, waitFor } from '@testing-library/dom';
+import { screen, waitFor, within } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
 import { Route, Routes, useLocation } from 'react-router-dom';
 import type { MediaSource } from '@/api/types';
@@ -56,10 +56,10 @@ describe('formatBytes / mediaSourceLabel', () => {
     expect(resolutionLabel(3840, 2160)).toBe('2160p');
     const label = mediaSourceLabel(dualSources[0], 0);
     expect(label.title).toBe('A.2160p.mkv');
-    expect(label.subtitle).toMatch(/2160p/);
-    expect(label.subtitle).toMatch(/HEVC/);
+    expect(label.video).toMatch(/2160p/);
+    expect(label.video).toMatch(/HEVC/);
+    expect(label.video).toMatch(/HDR10/);
     expect(label.subtitle).toMatch(/MKV/);
-    expect(label.subtitle).toMatch(/HDR10/);
   });
 });
 
@@ -103,9 +103,10 @@ describe('MovieDetailView multi-source play', () => {
 
     await user.click(screen.getByRole('button', { name: /продолжить|смотреть|play|resume/i }));
     expect(screen.getByRole('dialog')).toBeInTheDocument();
-    expect(screen.getByText(/The\.Matrix\.1999\.2160p\.mkv/i)).toBeInTheDocument();
+    const dialog = screen.getByRole('dialog');
+    expect(dialog).toHaveTextContent(/The\.Matrix\.1999\.2160p\.mkv/i);
 
-    await user.click(screen.getByText(/The\.Matrix\.1999\.1080p\.mp4/i));
+    await user.click(within(dialog).getByText(/The\.Matrix\.1999\.1080p\.mp4/i));
 
     await waitFor(() => {
       const payload = JSON.parse(screen.getByTestId('loc').textContent ?? '{}') as {

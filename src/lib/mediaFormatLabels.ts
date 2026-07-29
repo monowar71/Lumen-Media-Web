@@ -1,3 +1,4 @@
+import type { QualityOption } from '@/api/types';
 import { resolutionLabel } from '@/lib/mediaSourceLabel';
 
 export type VideoFormatInfo = {
@@ -11,6 +12,13 @@ export type AudioFormatInfo = {
   codec?: string;
   channels?: number;
   title?: string | null;
+};
+
+export type PlaybackFormatPaths = {
+  /** Source (or source→output) video summary for the player HUD. */
+  videoLabel: string | null;
+  /** Source (or source→output) audio summary for the player HUD. */
+  audioLabel: string | null;
 };
 
 /** Human-readable HDR / Dolby Vision label from probe metadata. */
@@ -70,19 +78,24 @@ export function channelLayoutLabel(channels?: number): string | undefined {
   if (!channels || channels <= 0) return undefined;
   if (channels === 1) return 'Mono';
   if (channels === 2) return 'Stereo';
+  if (channels === 3) return '2.1';
   if (channels === 6) return '5.1';
   if (channels === 8) return '7.1';
   return `${channels}ch`;
 }
 
-/** Ordered badges for the active video stream (resolution, HDR, codec). */
-export function videoFormatBadges(info?: VideoFormatInfo | null): string[] {
+/** Ordered badges for the active video stream (resolution, HDR/SDR, codec). */
+export function videoFormatBadges(
+  info?: VideoFormatInfo | null,
+  opts?: { includeSdr?: boolean },
+): string[] {
   if (!info) return [];
   const badges: string[] = [];
   const res = resolutionLabel(info.width, info.height);
   if (res) badges.push(res);
   const hdr = hdrLabel(info.hdr);
   if (hdr) badges.push(hdr);
+  else if (opts?.includeSdr) badges.push('SDR');
   const codec = videoCodecLabel(info.codec);
   if (codec) badges.push(codec);
   return badges;
@@ -100,6 +113,90 @@ export function audioFormatBadges(info?: AudioFormatInfo | null): string[] {
     if (layout) badges.push(layout);
   }
   return badges;
+}
+
+/** Compact "2160p · Dolby Vision · HEVC" summary for cards / HUD. */
+export function videoFormatSummary(
+  info?: VideoFormatInfo | null,
+  opts?: { includeSdr?: boolean },
+): string | null {
+  const parts = videoFormatBadges(info, opts);
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
+/** Compact "Dolby Digital+ · 5.1" summary for cards / HUD. */
+export function audioFormatSummary(info?: AudioFormatInfo | null): string | null {
+  const parts = audioFormatBadges(info);
+  return parts.length > 0 ? parts.join(' · ') : null;
+}
+
+/** Channel count for a playback audio-layout id (`stereo`, `5.1`, …). */
+export function channelsForAudioLayout(layoutId?: string | null): number | undefined {
+  if (!layoutId) return undefined;
+  switch (layoutId.trim().toLowerCase()) {
+    case 'mono':
+      return 1;
+    case 'stereo':
+      return 2;
+    case '2.1':
+      return 3;
+    case '5.1':
+      return 6;
+    case '7.1':
+      return 8;
+    default:
+      return undefined;
+  }
+}
+
+function joinArrow(from: string | null, to: string | null): string | null {
+  if (from && to && from !== to) return `${from} → ${to}`;
+  return to ?? from;
+}
+
+/**
+ * Player HUD labels: on Transcode show source → output (H.264/AAC); otherwise source only.
+ */
+export function playbackFormatPaths(args: {
+  method?: string | null;
+  sourceVideo?: VideoFormatInfo | null;
+  sourceAudio?: AudioFormatInfo | null;
+  selectedQualityId?: string | null;
+  availableQualities?: QualityOption[] | null;
+  toneMapActive?: boolean;
+  selectedAudioLayout?: string | null;
+}): PlaybackFormatPaths {
+  const method = args.method ?? '';
+  const isTranscode = method === 'Transcode';
+  const sourceVideoSummary = videoFormatSummary(args.sourceVideo);
+  const sourceAudioSummary = audioFormatSummary(args.sourceAudio);
+
+  if (!isTranscode) {
+    return { videoLabel: sourceVideoSummary, audioLabel: sourceAudioSummary };
+  }
+
+  const quality = args.availableQualities?.find((q) => q.id === args.selectedQualityId);
+  const outHeight = quality?.height ?? args.sourceVideo?.height;
+  const outWidth = quality?.width ?? args.sourceVideo?.width;
+  const hadHdr = Boolean(args.sourceVideo?.hdr) || Boolean(args.toneMapActive);
+  const outputVideo: VideoFormatInfo = {
+    codec: 'h264',
+    hdr: null,
+    width: outWidth,
+    height: outHeight,
+  };
+  const outputAudio: AudioFormatInfo = {
+    codec: 'aac',
+    channels: channelsForAudioLayout(args.selectedAudioLayout) ?? 2,
+  };
+
+  return {
+    videoLabel: joinArrow(
+      sourceVideoSummary,
+      videoFormatSummary(outputVideo, { includeSdr: hadHdr }),
+    ),
+    audioLabel: joinArrow(sourceAudioSummary, audioFormatSummary(outputAudio)),
+  };
 }
 
 /** Format measured throughput for the player HUD (e.g. "12.4 Mbps"). */

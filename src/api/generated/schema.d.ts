@@ -1178,6 +1178,69 @@ export interface paths {
                 };
             };
         };
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    kind: components["schemas"]["ArtworkKind"];
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": components["schemas"]["SetItemArtworkRequest"];
+                };
+            };
+            responses: {
+                /** @description No Content */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{id}/artwork-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    kind?: components["schemas"]["ArtworkKind"];
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["ArtworkCandidateDto"][];
+                    };
+                };
+            };
+        };
         put?: never;
         post?: never;
         delete?: never;
@@ -1734,6 +1797,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** HLS master playlist. Auth: unguessable sessionId (capability URL); JWT optional. */
         get: {
             parameters: {
                 query?: never;
@@ -1769,6 +1833,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** HLS media playlist. Auth: unguessable sessionId (capability URL); JWT optional. */
         get: {
             parameters: {
                 query?: never;
@@ -1797,6 +1862,49 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/stream/{sessionId}/source": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** DirectPlay media for a playback session. Auth: unguessable sessionId (capability URL); JWT optional. */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    sessionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Partial Content */
+                206: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/stream/{sessionId}/{segment}": {
         parameters: {
             query?: never;
@@ -1804,6 +1912,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** HLS segment. Auth: unguessable sessionId (capability URL); JWT optional. */
         get: {
             parameters: {
                 query?: never;
@@ -1880,6 +1989,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /** Delete on-disk video file(s) for a movie or episode (admin). */
         delete: {
             parameters: {
                 query?: never;
@@ -2091,11 +2201,17 @@ export interface components {
             thumb?: null | string;
             banner?: null | string;
         };
+        AudioLayoutOption: {
+            id: string;
+            label: string;
+            /** Format: int32 */
+            channels?: number | string;
+        };
         AudioStreamOption: {
             /** Format: uuid */
             id: string;
             language?: null | string;
-            /** Container track title — often the dubbing studio. */
+            /** @description Container track title — often the dubbing studio (LostFilm, MovieDalen, …). */
             title?: null | string;
             codec?: null | string;
             /** Format: int32 */
@@ -2396,6 +2512,22 @@ export interface components {
             isExternal?: boolean;
             format?: null | string;
         };
+        ArtworkCandidateDto: {
+            provider: string;
+            kind: string;
+            url: string;
+            thumbnailUrl: string;
+            language?: null | string;
+            /** Format: int32 */
+            width?: null | number | string;
+            /** Format: int32 */
+            height?: null | number | string;
+            /** Format: double */
+            voteAverage?: null | number | string;
+        };
+        SetItemArtworkRequest: {
+            url: string;
+        };
         MetadataMatchCandidateDto: {
             provider: string;
             providerId: string;
@@ -2512,6 +2644,8 @@ export interface components {
             /** Format: int64 */
             resumePositionMs?: number | string;
             profile?: components["schemas"]["DeviceProfile"];
+            forceHdrToSdr?: boolean;
+            audioLayout?: null | string;
         };
         PlaybackDecisionResponse: {
             sessionId: string;
@@ -2530,6 +2664,10 @@ export interface components {
             /** Format: date-time */
             expiresAt?: string;
             reason?: null | string;
+            sourceHdr?: null | string;
+            toneMapActive?: boolean;
+            availableAudioLayouts?: components["schemas"]["AudioLayoutOption"][];
+            selectedAudioLayout: string;
         };
         /** @enum {string} */
         PlaybackMethod: "DirectPlay" | "DirectStream" | "Transcode";
@@ -2657,6 +2795,8 @@ export interface components {
             audioStreamId?: null | string;
             /** Format: uuid */
             subtitleStreamId?: null | string;
+            forceHdrToSdr?: null | boolean;
+            audioLayout?: null | string;
         };
         SetupRequest: {
             username: string;
@@ -2674,7 +2814,7 @@ export interface components {
             /** Format: uuid */
             id: string;
             language?: null | string;
-            /** Container track title (e.g. "Russian (Forced)"). */
+            /** @description Container track title (e.g. "Russian (Forced)", "English (SDH)"). */
             title?: null | string;
             format?: null | string;
             isDefault?: boolean;
@@ -2699,6 +2839,7 @@ export interface components {
             ladder?: components["schemas"]["LadderRungDto"][];
             /** Format: int32 */
             defaultRemoteCapKbps?: number | string;
+            hdrToneMapMethod?: string;
         };
         UpdateItemMetadataRequest: {
             title?: null | string;

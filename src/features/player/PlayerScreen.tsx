@@ -257,6 +257,23 @@ export function PlayerScreen() {
     [player.decision],
   );
 
+  const hdrOptions: TrackOption[] = useMemo(() => {
+    if (!player.decision?.sourceHdr) return [];
+    return [
+      { id: 'on', label: t('hdrToSdrOn'), sublabel: t('hdrToSdrOnHint') },
+      { id: 'off', label: t('hdrToSdrOff'), sublabel: t('hdrToSdrOffHint') },
+    ];
+  }, [player.decision?.sourceHdr, t]);
+
+  const audioLayoutOptions: TrackOption[] = useMemo(
+    () =>
+      player.decision?.availableAudioLayouts?.map((l) => ({
+        id: l.id,
+        label: l.label,
+      })) ?? [],
+    [player.decision],
+  );
+
   const audioOptions: TrackOption[] = useMemo(
     () =>
       player.decision?.audioStreams.map((a) => {
@@ -442,8 +459,8 @@ export function PlayerScreen() {
               {(methodLabel ||
                 qualityLabel ||
                 player.networkMbpsLabel ||
-                player.videoBadges.length > 0 ||
-                player.audioBadges.length > 0) && (
+                player.videoFormatLabel ||
+                player.audioFormatLabel) && (
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/65">
                   {methodLabel && (
                     <span className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10">
@@ -451,22 +468,22 @@ export function PlayerScreen() {
                     </span>
                   )}
                   {qualityLabel && <span>{qualityLabel}</span>}
-                  {player.videoBadges.map((badge) => (
+                  {player.videoFormatLabel && (
                     <span
-                      key={`v-${badge}`}
                       className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10"
+                      title={t('videoFormatAria', { format: player.videoFormatLabel })}
                     >
-                      {badge}
+                      {player.videoFormatLabel}
                     </span>
-                  ))}
-                  {player.audioBadges.map((badge) => (
+                  )}
+                  {player.audioFormatLabel && (
                     <span
-                      key={`a-${badge}`}
                       className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10"
+                      title={t('audioFormatAria', { format: player.audioFormatLabel })}
                     >
-                      {badge}
+                      {player.audioFormatLabel}
                     </span>
-                  ))}
+                  )}
                   {player.networkMbpsLabel && (
                     <span
                       className="rounded-md bg-white/10 px-2 py-0.5 font-medium tabular-nums text-white/80 ring-1 ring-white/10"
@@ -617,6 +634,26 @@ export function PlayerScreen() {
                   selectedId={player.selectedSubtitleId ?? 'off'}
                   onSelect={(id) => void player.changeSubtitle(id === 'off' ? null : id)}
                 />
+                {audioLayoutOptions.length > 1 && (
+                  <TrackMenu
+                    label={t('audioLayout')}
+                    triggerLabel={t('audioLayout')}
+                    icon={<IconAudio size={16} />}
+                    options={audioLayoutOptions}
+                    selectedId={player.selectedAudioLayout}
+                    onSelect={(id) => player.changeAudioLayout(id)}
+                  />
+                )}
+                {hdrOptions.length > 0 && (
+                  <TrackMenu
+                    label={t('hdrToSdr')}
+                    triggerLabel={t('hdrToSdr')}
+                    icon={<IconQuality size={16} />}
+                    options={hdrOptions}
+                    selectedId={player.forceHdrToSdr ? 'on' : 'off'}
+                    onSelect={(id) => player.changeForceHdrToSdr(id === 'on')}
+                  />
+                )}
                 <TrackMenu
                   label={t('quality')}
                   triggerLabel={t('quality')}

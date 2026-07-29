@@ -14,6 +14,12 @@
   "audio": "Аудио",
   "subtitles": "Субтитры",
   "quality": "Качество",
+  "audioLayout": "Каналы",
+  "hdrToSdr": "HDR→SDR",
+  "hdrToSdrOn": "Конвертировать в SDR",
+  "hdrToSdrOnHint": "Тон-маппинг на сервере",
+  "hdrToSdrOff": "Оставить HDR",
+  "hdrToSdrOffHint": "Если дисплей поддерживает",
   "off": "Выкл.",
   "audioFallback": "Аудио",
   "subtitleFallback": "Субтитры",
@@ -28,5 +34,7 @@
   "fullscreenExit": "Выйти из полного экрана",
   "markUnwatched": "Отметить как непросмотренное",
   "networkLoad": "Сеть {{rate}}",
-  "networkLoadAria": "Текущая нагрузка на сеть {{rate}}"
+  "networkLoadAria": "Текущая нагрузка на сеть {{rate}}",
+  "videoFormatAria": "Формат видео {{format}}",
+  "audioFormatAria": "Формат аудио {{format}}"
 }

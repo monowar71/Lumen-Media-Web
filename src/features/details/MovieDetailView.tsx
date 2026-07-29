@@ -11,6 +11,7 @@ import { IconPlay } from '@/components/AppIcons';
 import { fileNameFromPath } from '@/lib/mediaFile';
 import { MediaFileActions } from './MediaFileActions';
 import { MediaSourcePicker } from './MediaSourcePicker';
+import { MediaSourcesInfo } from './MediaSourcesInfo';
 import { MetadataAdminHints, type EditableMetadata } from './MetadataAdminPanel';
 import { useStartPlayback } from './useStartPlayback';
 
@@ -154,6 +155,8 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
               </div>
 
               {metadataAdmin && <MetadataAdminHints item={metadataAdmin} />}
+
+              <MediaSourcesInfo sources={movie.mediaSources} />
 
               {movie.overview && (
                 <p className="mt-5 max-w-3xl text-sm leading-6 text-muted sm:text-base sm:text-text/90">

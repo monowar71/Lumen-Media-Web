@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.4] - 2026-07-29
+
+### Added
+
+- Player menus for HDR→SDR (when source is HDR) and audio channel layout (stereo / 2.1 / 5.1 / mono).
+- Admin server setting for HDR→SDR tonemap method (hable / mobius / reinhard / bt2390).
+- Web device profile probes HDR via Media Capabilities instead of hardcoding `supportsHdr: false`.
+- Player HUD shows source→output format when transcoding (e.g. HEVC HDR → H.264 SDR).
+- Movie details and version picker show source video/audio format per media file.
+
 ## [0.1.3] - 2026-07-29
 
 ### Added
@@ -56,7 +66,8 @@ First tagged release. Images are published to Docker Hub (`monowar71/lumenmedia-
 - Show buffering as a ring around play; drop skip buttons.
 - Remove duplicate play glyph on detail CTAs.
 
-[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.3...HEAD
+[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.4...HEAD
+[0.1.4]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.4
 [0.1.3]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.3
 [0.1.2]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.2
 [0.1.1]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.1

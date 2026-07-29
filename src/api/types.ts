@@ -340,6 +340,8 @@ export type PlaybackDecisionRequest = {
   subtitleStreamId?: string | null;
   resumePositionMs: number;
   profile: DeviceProfile;
+  forceHdrToSdr?: boolean;
+  audioLayout?: string | null;
 };
 
 export type QualityOption = {
@@ -349,6 +351,12 @@ export type QualityOption = {
   width?: number;
   height?: number;
   bitrateKbps?: number;
+};
+
+export type AudioLayoutOption = {
+  id: string;
+  label: string;
+  channels?: number;
 };
 
 export type AudioStreamOption = {
@@ -387,12 +395,20 @@ export type PlaybackDecisionResponse = {
   subtitleStreams: SubtitleStreamOption[];
   expiresAt?: string;
   reason?: string;
+  sourceHdr?: string | null;
+  toneMapActive?: boolean;
+  availableAudioLayouts?: AudioLayoutOption[];
+  selectedAudioLayout?: string;
 };
 
 export type SetQualityRequest = {
   qualityId: string;
   mode: PlaybackMode;
   resumePositionMs: number;
+  audioStreamId?: string | null;
+  subtitleStreamId?: string | null;
+  forceHdrToSdr?: boolean | null;
+  audioLayout?: string | null;
 };
 
 export type ProgressRequest = {

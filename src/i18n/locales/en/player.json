@@ -14,6 +14,12 @@
   "audio": "Audio",
   "subtitles": "Subtitles",
   "quality": "Quality",
+  "audioLayout": "Channels",
+  "hdrToSdr": "HDR→SDR",
+  "hdrToSdrOn": "Convert to SDR",
+  "hdrToSdrOnHint": "Server tone-mapping",
+  "hdrToSdrOff": "Keep HDR",
+  "hdrToSdrOffHint": "When the display supports it",
   "off": "Off",
   "audioFallback": "Audio",
   "subtitleFallback": "Subtitle",
@@ -28,5 +34,7 @@
   "fullscreenExit": "Exit fullscreen",
   "markUnwatched": "Mark as unwatched",
   "networkLoad": "Network {{rate}}",
-  "networkLoadAria": "Current network throughput {{rate}}"
+  "networkLoadAria": "Current network throughput {{rate}}",
+  "videoFormatAria": "Video format {{format}}",
+  "audioFormatAria": "Audio format {{format}}"
 }
