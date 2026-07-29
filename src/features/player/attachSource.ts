@@ -12,6 +12,8 @@ export interface AttachOptions {
 
 export interface AttachHandle {
   destroy: () => void;
+  /** Estimated download throughput in bits/sec (HLS ABR); null for Direct Play / unknown. */
+  getBandwidthEstimateBps?: () => number | null;
 }
 
 function withToken(url: string, token?: string | null): string {
@@ -153,6 +155,10 @@ export function attachSource(
         video.removeEventListener('playing', onPlaying);
         video.removeEventListener('canplay', onCanPlay);
         hls.destroy();
+      },
+      getBandwidthEstimateBps: () => {
+        const estimate = hls.bandwidthEstimate;
+        return Number.isFinite(estimate) && estimate > 0 ? estimate : null;
       },
     };
   }

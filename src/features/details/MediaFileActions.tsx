@@ -23,8 +23,15 @@ type Props = {
   size?: 'sm' | 'md' | 'lg';
   /** When media is removed, navigate here (e.g. library home). */
   onRemovedNavigateTo?: string;
-  /** Optional watched toggle inside the same menu. */
+  /** Optional watched status; with playbackPositionMs drives mark watched/unwatched items. */
   watched?: boolean;
+  /** Resume position; when &gt; 0, "mark as unwatched" is offered even if not fully watched. */
+  playbackPositionMs?: number;
+  /**
+   * When set, overrides progress-based eligibility for "mark as unwatched"
+   * (e.g. series/season with some watched episodes).
+   */
+  allowMarkUnwatched?: boolean;
   /** Optional trailer URL (opens in a new tab). */
   trailerUrl?: string | null;
   /** When false, hide the download action (e.g. series-level menu). */
@@ -32,6 +39,11 @@ type Props = {
   /** Admin-only metadata actions (refresh / edit / fix match). */
   metadataAdmin?: EditableMetadata;
 };
+
+/** True when the item can be cleared back to unwatched (fully watched or in-progress). */
+export function canMarkUnwatched(watched?: boolean, playbackPositionMs?: number): boolean {
+  return Boolean(watched) || (playbackPositionMs ?? 0) > 0;
+}
 
 function itemClass(destructive?: boolean) {
   return cn(
@@ -48,6 +60,8 @@ export function MediaFileActions({
   size = 'lg',
   onRemovedNavigateTo = '/',
   watched,
+  playbackPositionMs,
+  allowMarkUnwatched,
   trailerUrl,
   showDownload = true,
   metadataAdmin,
@@ -64,6 +78,11 @@ export function MediaFileActions({
   const [metadataPanel, setMetadataPanel] = useState<MetadataAdminPanelKind>('none');
 
   const showMetadata = role === 'Admin' && Boolean(metadataAdmin);
+  const showWatchedActions = typeof watched === 'boolean';
+  const showMarkWatched = showWatchedActions && !watched;
+  const showMarkUnwatched =
+    showWatchedActions &&
+    (allowMarkUnwatched ?? canMarkUnwatched(watched, playbackPositionMs));
 
   const onDownload = () => {
     const url = downloadMediaUrl(baseUrl, mediaId, token);
@@ -116,13 +135,22 @@ export function MediaFileActions({
               'bg-surface p-1 shadow-xl shadow-black/40',
             )}
           >
-            {typeof watched === 'boolean' && (
+            {showMarkWatched && (
               <DropdownMenu.Item
                 className={itemClass()}
                 disabled={markWatched.isPending}
-                onSelect={() => markWatched.mutate({ itemId: mediaId, watched: !watched })}
+                onSelect={() => markWatched.mutate({ itemId: mediaId, watched: true })}
               >
-                {watched ? t('markUnwatched') : t('markWatched')}
+                {t('markWatched')}
+              </DropdownMenu.Item>
+            )}
+            {showMarkUnwatched && (
+              <DropdownMenu.Item
+                className={itemClass()}
+                disabled={markWatched.isPending}
+                onSelect={() => markWatched.mutate({ itemId: mediaId, watched: false })}
+              >
+                {t('markUnwatched')}
               </DropdownMenu.Item>
             )}
             {trailerUrl && (

@@ -25,5 +25,8 @@
   "modeTranscode": "Транскод",
   "modeStream": "Direct Stream",
   "fullscreen": "Полный экран",
-  "fullscreenExit": "Выйти из полного экрана"
+  "fullscreenExit": "Выйти из полного экрана",
+  "markUnwatched": "Отметить как непросмотренное",
+  "networkLoad": "Сеть {{rate}}",
+  "networkLoadAria": "Текущая нагрузка на сеть {{rate}}"
 }

@@ -41,12 +41,20 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
 
   const { data: episodesData, isLoading: episodesLoading } = useEpisodes(seasonId);
   const episodes = episodesData?.items ?? [];
-  const seriesWatched = (series.userData.unwatchedEpisodeCount ?? 0) === 0 && series.episodeCount > 0;
-  const seasonWatched = episodes.length > 0 && episodes.every((e) => e.userData.watched);
-  const markSeason = useMarkWatchedMutation();
   const nextUp = series.userData.nextUp;
   const nextResumeMs = nextUp?.userData?.playbackPositionMs ?? 0;
   const nextCanResume = nextResumeMs > 0 && !nextUp?.userData?.watched;
+  const seriesWatched = (series.userData.unwatchedEpisodeCount ?? 0) === 0 && series.episodeCount > 0;
+  const seasonWatched = episodes.length > 0 && episodes.every((e) => e.userData.watched);
+  const seasonCanMarkUnwatched = episodes.some(
+    (e) => e.userData.watched || (e.userData.playbackPositionMs ?? 0) > 0,
+  );
+  const seriesCanMarkUnwatched =
+    seriesWatched ||
+    (series.episodeCount > 0 &&
+      (series.userData.unwatchedEpisodeCount ?? series.episodeCount) < series.episodeCount) ||
+    nextResumeMs > 0;
+  const markSeason = useMarkWatchedMutation();
 
   const metadataAdmin: EditableMetadata | undefined =
     role === 'Admin'
@@ -164,6 +172,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                   mediaId={series.id}
                   showDownload={false}
                   watched={seriesWatched}
+                  allowMarkUnwatched={seriesCanMarkUnwatched}
                   trailerUrl={series.trailerUrl}
                   metadataAdmin={metadataAdmin}
                 />
@@ -215,14 +224,28 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
               </div>
             )}
             {seasonId && episodes.length > 0 && (
-              <Button
-                size="sm"
-                variant="secondary"
-                disabled={markSeason.isPending}
-                onClick={() => markSeason.mutate({ itemId: seasonId, watched: !seasonWatched })}
-              >
-                {seasonWatched ? t('markSeasonUnwatched') : t('markSeasonWatched')}
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                {!seasonWatched && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={markSeason.isPending}
+                    onClick={() => markSeason.mutate({ itemId: seasonId, watched: true })}
+                  >
+                    {t('markSeasonWatched')}
+                  </Button>
+                )}
+                {seasonCanMarkUnwatched && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    disabled={markSeason.isPending}
+                    onClick={() => markSeason.mutate({ itemId: seasonId, watched: false })}
+                  >
+                    {t('markSeasonUnwatched')}
+                  </Button>
+                )}
+              </div>
             )}
           </div>
         </div>
@@ -347,6 +370,7 @@ function EpisodeRow({
               `${seriesTitle}-S${episode.seasonNumber}E${episode.episodeNumber}.mkv`,
             )}
             watched={Boolean(episode.userData.watched)}
+            playbackPositionMs={resumeMs}
             onRemovedNavigateTo={`/item/${seriesId}`}
           />
         </div>

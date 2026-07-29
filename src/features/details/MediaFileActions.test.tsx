@@ -95,4 +95,26 @@ describe('MediaFileActions', () => {
 
     await waitFor(() => expect(mockMovieDetail['movie-mock-delete']).toBeUndefined());
   });
+
+  it('shows mark as unwatched for in-progress media', async () => {
+    authenticate({ role: 'User' });
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+
+    renderWithProviders(
+      <MediaFileActions
+        mediaId="movie-in-progress"
+        watched={false}
+        playbackPositionMs={120_000}
+        showDownload={false}
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /more actions|ещё действия/i }));
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).getByText(/mark as watched|пометить как просмотренное/i)).toBeInTheDocument();
+    expect(
+      within(menu).getByText(/mark as unwatched|пометить как непросмотренное/i),
+    ).toBeInTheDocument();
+  });
 });

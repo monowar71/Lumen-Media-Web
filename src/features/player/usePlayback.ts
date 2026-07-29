@@ -1,12 +1,26 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from '@/api/endpoints';
 import { toErrorMessage } from '@/api/http';
-import type { PlaybackDecisionResponse, PlaybackMode } from '@/api/types';
+import type {
+  MediaSource,
+  MediaStream,
+  PlaybackDecisionResponse,
+  PlaybackMode,
+  UserData,
+} from '@/api/types';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import { buildWebDeviceProfile } from '@/lib/deviceProfile';
 import { detectConnectionKind } from '@/lib/network';
+import {
+  audioFormatBadges,
+  formatNetworkMbps,
+  videoFormatBadges,
+  type AudioFormatInfo,
+  type VideoFormatInfo,
+} from '@/lib/mediaFormatLabels';
+import { canMarkUnwatched } from '@/features/details/MediaFileActions';
 import { resolvePlaybackSource } from './playbackSource';
 import { attachSource, type AttachHandle } from './attachSource';
 import { canLocalSeek } from './seekHelpers';
@@ -37,6 +51,15 @@ export interface PlaybackController {
   selectedQualityId: string;
   selectedAudioId: string | null;
   selectedSubtitleId: string | null;
+  /** Estimated network throughput label (e.g. "12.4 Mbps"), or null when unknown. */
+  networkMbpsLabel: string | null;
+  /** Video format chips (resolution / HDR / codec). */
+  videoBadges: string[];
+  /** Audio format chips (Atmos / DD+ / layout). */
+  audioBadges: string[];
+  canMarkUnwatched: boolean;
+  markingUnwatched: boolean;
+  markUnwatched: () => void;
   togglePlay: () => void;
   seekTo: (ms: number) => void | Promise<void>;
   changeQuality: (qualityId: string) => void;
@@ -47,6 +70,31 @@ export interface PlaybackController {
 
 const PROGRESS_INTERVAL_MS = 10_000;
 const PING_INTERVAL_MS = 30_000;
+const BANDWIDTH_POLL_MS = 2_000;
+
+function primaryVideo(source?: MediaSource | null): MediaStream | undefined {
+  return source?.streams.find((s) => s.kind === 'Video');
+}
+
+function pickMediaSource(
+  sources: MediaSource[],
+  mediaSourceId?: string,
+): MediaSource | undefined {
+  if (mediaSourceId) {
+    const match = sources.find((s) => s.id === mediaSourceId);
+    if (match) return match;
+  }
+  return sources[0];
+}
+
+function navigatorDownlinkBps(): number | null {
+  const conn = (navigator as Navigator & {
+    connection?: { downlink?: number };
+  }).connection;
+  const mbps = conn?.downlink;
+  if (mbps == null || !Number.isFinite(mbps) || mbps <= 0) return null;
+  return mbps * 1_000_000;
+}
 
 function toMs(value: number | string | null | undefined): number {
   if (value == null) return 0;
@@ -140,6 +188,10 @@ export function usePlayback({
   const [selectedQualityId, setSelectedQualityId] = useState('auto');
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
   const [selectedSubtitleId, setSelectedSubtitleId] = useState<string | null>(null);
+  const [networkMbpsLabel, setNetworkMbpsLabel] = useState<string | null>(null);
+  const [mediaSource, setMediaSource] = useState<MediaSource | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [markingUnwatched, setMarkingUnwatched] = useState(false);
 
   const stopSession = useCallback((sessionId: string | null | undefined) => {
     if (!sessionId) return;
@@ -710,6 +762,95 @@ export function usePlayback({
 
   const retry = useCallback(() => void start(), [start]);
 
+  // Load mediaSources + userData for format badges and mark-unwatched.
+  useEffect(() => {
+    if (!itemId) return;
+    let cancelled = false;
+    void (async () => {
+      try {
+        if (isEpisode) {
+          const episode = await api.getEpisode(itemId);
+          if (cancelled) return;
+          setUserData(episode.userData);
+          setMediaSource(pickMediaSource(episode.mediaSources, mediaSourceId) ?? null);
+        } else {
+          const item = await api.getItem(itemId);
+          if (cancelled) return;
+          if (item.kind === 'Movie') {
+            setUserData(item.userData);
+            setMediaSource(pickMediaSource(item.mediaSources, mediaSourceId) ?? null);
+          }
+        }
+      } catch {
+        /* badges / mark-unwatched are best-effort */
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [itemId, isEpisode, mediaSourceId]);
+
+  // Poll ABR / Network Information throughput for the HUD.
+  useEffect(() => {
+    const tick = () => {
+      const fromHls = attachRef.current?.getBandwidthEstimateBps?.() ?? null;
+      const bps = fromHls ?? navigatorDownlinkBps();
+      setNetworkMbpsLabel(formatNetworkMbps(bps));
+    };
+    tick();
+    const id = window.setInterval(tick, BANDWIDTH_POLL_MS);
+    return () => window.clearInterval(id);
+  }, [decision?.sessionId]);
+
+  const markUnwatched = useCallback(() => {
+    if (markingUnwatched) return;
+    setMarkingUnwatched(true);
+    void api
+      .putProgress(itemId, { watched: false })
+      .then(() => {
+        setUserData((prev) => ({
+          ...(prev ?? {}),
+          watched: false,
+          playbackPositionMs: 0,
+        }));
+      })
+      .catch(() => {
+        /* mark-unwatched is best-effort from the player chrome */
+      })
+      .finally(() => setMarkingUnwatched(false));
+  }, [itemId, markingUnwatched]);
+
+  const videoInfo: VideoFormatInfo | null = (() => {
+    const video = primaryVideo(mediaSource);
+    if (!video) return null;
+    return {
+      codec: video.codec,
+      hdr: video.hdr,
+      width: video.width,
+      height: video.height,
+    };
+  })();
+
+  const audioInfo: AudioFormatInfo | null = (() => {
+    const fromDecision = decision?.audioStreams.find((a) => a.id === selectedAudioId);
+    if (fromDecision) {
+      return {
+        codec: fromDecision.codec,
+        channels: fromDecision.channels,
+        title: fromDecision.title,
+      };
+    }
+    const audio =
+      mediaSource?.streams.find((s) => s.kind === 'Audio' && s.isDefault) ??
+      mediaSource?.streams.find((s) => s.kind === 'Audio');
+    if (!audio) return null;
+    return { codec: audio.codec, channels: audio.channels, title: audio.title };
+  })();
+
+  const showMarkUnwatched =
+    canMarkUnwatched(userData?.watched, userData?.playbackPositionMs) ||
+    currentTimeMs > 0;
+
   return {
     videoRef,
     decision,
@@ -723,6 +864,12 @@ export function usePlayback({
     selectedQualityId,
     selectedAudioId,
     selectedSubtitleId,
+    networkMbpsLabel,
+    videoBadges: videoFormatBadges(videoInfo),
+    audioBadges: audioFormatBadges(audioInfo),
+    canMarkUnwatched: showMarkUnwatched,
+    markingUnwatched,
+    markUnwatched,
     togglePlay,
     seekTo,
     changeQuality,

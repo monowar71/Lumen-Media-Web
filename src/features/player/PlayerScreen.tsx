@@ -439,7 +439,11 @@ export function PlayerScreen() {
               <h1 className="truncate text-base font-semibold tracking-tight text-white sm:text-lg">
                 {title}
               </h1>
-              {(methodLabel || qualityLabel) && (
+              {(methodLabel ||
+                qualityLabel ||
+                player.networkMbpsLabel ||
+                player.videoBadges.length > 0 ||
+                player.audioBadges.length > 0) && (
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/65">
                   {methodLabel && (
                     <span className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10">
@@ -447,9 +451,48 @@ export function PlayerScreen() {
                     </span>
                   )}
                   {qualityLabel && <span>{qualityLabel}</span>}
+                  {player.videoBadges.map((badge) => (
+                    <span
+                      key={`v-${badge}`}
+                      className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10"
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                  {player.audioBadges.map((badge) => (
+                    <span
+                      key={`a-${badge}`}
+                      className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10"
+                    >
+                      {badge}
+                    </span>
+                  ))}
+                  {player.networkMbpsLabel && (
+                    <span
+                      className="rounded-md bg-white/10 px-2 py-0.5 font-medium tabular-nums text-white/80 ring-1 ring-white/10"
+                      title={t('networkLoadAria', { rate: player.networkMbpsLabel })}
+                    >
+                      {t('networkLoad', { rate: player.networkMbpsLabel })}
+                    </span>
+                  )}
                 </div>
               )}
             </div>
+            {player.canMarkUnwatched && (
+              <button
+                type="button"
+                disabled={player.markingUnwatched}
+                onClick={() => player.markUnwatched()}
+                className={cn(
+                  'shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium text-white/90',
+                  'bg-white/10 ring-1 ring-white/15 transition hover:bg-white/15',
+                  'disabled:cursor-wait disabled:opacity-60',
+                  'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent',
+                )}
+              >
+                {t('markUnwatched')}
+              </button>
+            )}
           </div>
         </div>
 

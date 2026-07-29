@@ -25,5 +25,8 @@
   "modeTranscode": "Transcode",
   "modeStream": "Direct Stream",
   "fullscreen": "Fullscreen",
-  "fullscreenExit": "Exit fullscreen"
+  "fullscreenExit": "Exit fullscreen",
+  "markUnwatched": "Mark as unwatched",
+  "networkLoad": "Network {{rate}}",
+  "networkLoadAria": "Current network throughput {{rate}}"
 }

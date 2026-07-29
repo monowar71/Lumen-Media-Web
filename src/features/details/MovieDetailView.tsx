@@ -146,6 +146,7 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     `${movie.title}.${movie.mediaSources[0]?.container ?? 'mkv'}`,
                   )}
                   watched={Boolean(movie.userData.watched)}
+                  playbackPositionMs={resumeMs}
                   trailerUrl={movie.trailerUrl}
                   onRemovedNavigateTo={`/library/${movie.libraryId}`}
                   metadataAdmin={metadataAdmin}
