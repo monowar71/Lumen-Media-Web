@@ -18,20 +18,12 @@ import {
 } from './PlayerIcons';
 import { Button } from '@/components/ui/Button';
 import { formatTime, formatTrackLanguage } from '@/lib/format';
-import { absoluteUrl } from '@/lib/artwork';
 import { cn } from '@/lib/utils';
 import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import type { PlaybackNavState } from '@/features/details/playbackNav';
-
-function subtitleTrackUrl(baseUrl: string, url: string, token: string | null): string {
-  const abs = absoluteUrl(baseUrl, url);
-  if (!token) return abs;
-  const u = new URL(abs);
-  u.searchParams.set('access_token', token);
-  return u.toString();
-}
+import { fetchSubtitleBlobUrl, showVideoTextTracks } from './subtitleSidecar';
 
 function isDocumentFullscreen(): boolean {
   const doc = document as Document & { webkitFullscreenElement?: Element | null };
@@ -152,8 +144,65 @@ export function PlayerScreen() {
   const [scrubMs, setScrubMs] = useState<number | null>(null);
   const [scrubbing, setScrubbing] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [subtitleBlobUrl, setSubtitleBlobUrl] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
   const displayTimeMs = scrubMs ?? player.currentTimeMs;
+
+  const selectedSubtitle = useMemo(() => {
+    const id = player.selectedSubtitleId;
+    if (!id) return null;
+    return player.decision?.subtitleStreams.find((s) => s.id === id && s.deliveryUrl) ?? null;
+  }, [player.selectedSubtitleId, player.decision?.subtitleStreams]);
+
+  // Fetch VTT with Authorization → blob URL so <track> is same-origin (works with MSE/hls.js).
+  useEffect(() => {
+    if (!selectedSubtitle?.deliveryUrl) {
+      setSubtitleBlobUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return null;
+      });
+      return;
+    }
+    const ac = new AbortController();
+    let objectUrl: string | null = null;
+    void fetchSubtitleBlobUrl(baseUrl, selectedSubtitle.deliveryUrl, token, ac.signal)
+      .then((url) => {
+        objectUrl = url;
+        setSubtitleBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return url;
+        });
+      })
+      .catch(() => {
+        if (!ac.signal.aborted) {
+          setSubtitleBlobUrl((prev) => {
+            if (prev) URL.revokeObjectURL(prev);
+            return null;
+          });
+        }
+      });
+    return () => {
+      ac.abort();
+      if (objectUrl) URL.revokeObjectURL(objectUrl);
+    };
+  }, [baseUrl, token, selectedSubtitle?.id, selectedSubtitle?.deliveryUrl]);
+
+  useEffect(() => {
+    const video = player.videoRef.current;
+    if (!video || !subtitleBlobUrl || !selectedSubtitle) return;
+    const enable = () => showVideoTextTracks(video, selectedSubtitle.id);
+    enable();
+    const trackEl = video.querySelector('track');
+    trackEl?.addEventListener('load', enable);
+    // Cues may arrive after load; nudge again shortly.
+    const t1 = window.setTimeout(enable, 50);
+    const t2 = window.setTimeout(enable, 300);
+    return () => {
+      trackEl?.removeEventListener('load', enable);
+      window.clearTimeout(t1);
+      window.clearTimeout(t2);
+    };
+  }, [subtitleBlobUrl, selectedSubtitle, player.videoRef]);
 
   useEffect(() => {
     const sync = () => {
@@ -347,31 +396,22 @@ export function PlayerScreen() {
         playsInline
         crossOrigin="anonymous"
       >
-        {/* Only the active sidecar — mounting every deliveryUrl saturates the browser's
-            ~6 connections/host while ffmpeg extracts VTT from large MKVs, starving HLS. */}
-        {(() => {
-          const selected = player.selectedSubtitleId;
-          if (!selected) return null;
-          const stream = player.decision?.subtitleStreams.find(
-            (s) => s.id === selected && s.deliveryUrl,
-          );
-          if (!stream) return null;
-          return (
-            <track
-              key={stream.id}
-              id={stream.id}
-              kind="subtitles"
-              srcLang={stream.language ?? 'und'}
-              label={
-                stream.title?.trim() ||
-                (stream.language ? formatTrackLanguage(stream.language) : '') ||
-                t('subtitleFallback')
-              }
-              src={subtitleTrackUrl(baseUrl, stream.deliveryUrl, token)}
-              default
-            />
-          );
-        })()}
+        {/* Single active sidecar via blob URL (fetch+auth); avoids CORS/MSE track failures. */}
+        {selectedSubtitle && subtitleBlobUrl && (
+          <track
+            key={`${selectedSubtitle.id}:${subtitleBlobUrl}`}
+            id={selectedSubtitle.id}
+            kind="subtitles"
+            srcLang={selectedSubtitle.language ?? 'und'}
+            label={
+              selectedSubtitle.title?.trim() ||
+              (selectedSubtitle.language ? formatTrackLanguage(selectedSubtitle.language) : '') ||
+              t('subtitleFallback')
+            }
+            src={subtitleBlobUrl}
+            default
+          />
+        )}
       </video>
 
       {/* Soft vignette always present for readable overlays */}

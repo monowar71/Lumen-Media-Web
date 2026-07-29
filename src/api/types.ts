@@ -147,6 +147,8 @@ export type MovieDetail = {
   externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
   metadataLocked?: boolean;
   trailerUrl?: string | null;
+  /** Cached ambient theme audio (`/api/v1/items/{id}/theme`) when ThemerrDB had a match. */
+  themeUrl?: string | null;
   artwork: ArtworkSet;
   mediaSources: MediaSource[];
   userData: UserData;
@@ -171,6 +173,8 @@ export type SeriesDetail = {
   externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
   metadataLocked?: boolean;
   trailerUrl?: string | null;
+  /** Cached ambient theme audio (`/api/v1/items/{id}/theme`) when ThemerrDB had a match. */
+  themeUrl?: string | null;
   seasonCount: number;
   episodeCount: number;
   artwork: ArtworkSet;

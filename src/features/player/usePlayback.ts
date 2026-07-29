@@ -801,7 +801,6 @@ export function usePlayback({
     async (subtitleId: string | null) => {
       setSelectedSubtitleId(subtitleId);
       const d = decisionRef.current;
-      const video = videoRef.current;
 
       const hasSidecar =
         !!subtitleId &&
@@ -810,13 +809,19 @@ export function usePlayback({
       // Off or sidecar text: avoid tearing down the HLS session.
       if (!subtitleId || hasSidecar) {
         window.setTimeout(() => {
-          if (!video) return;
-          const tracks = video.textTracks;
+          const el = videoRef.current;
+          if (!el) return;
+          if (!subtitleId) {
+            const tracks = el.textTracks;
+            for (let i = 0; i < tracks.length; i += 1) tracks[i].mode = 'disabled';
+            return;
+          }
+          // Track element mounts asynchronously; prefer enabling whatever sidecar is present.
+          const tracks = el.textTracks;
           for (let i = 0; i < tracks.length; i += 1) {
             const track = tracks[i];
             const match =
-              subtitleId != null &&
-              (track.id === subtitleId || track.label === subtitleId || String(i) === subtitleId);
+              track.id === subtitleId || tracks.length === 1 || track.label === subtitleId;
             track.mode = match ? 'showing' : 'disabled';
           }
         }, 0);
