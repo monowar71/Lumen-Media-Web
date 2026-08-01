@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 import { LoginScreen } from './LoginScreen';
 import { renderWithProviders } from '@/test/utils';
 import { useAuthStore } from '@/stores/authStore';

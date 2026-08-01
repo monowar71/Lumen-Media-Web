@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EpisodeSummary, SeriesDetail } from '@/api/types';
 import { useEpisodes, useMarkWatchedMutation, useSeasons } from '@/api/queries';
@@ -34,12 +34,9 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
   const { data: seasonsData, isLoading: seasonsLoading } = useSeasons(series.id);
   const seasons = useMemo(() => seasonsData?.items ?? [], [seasonsData]);
   const [seasonId, setSeasonId] = useState<string | undefined>(undefined);
+  const effectiveSeasonId = seasonId ?? seasons[0]?.id;
 
-  useEffect(() => {
-    if (!seasonId && seasons.length > 0) setSeasonId(seasons[0].id);
-  }, [seasons, seasonId]);
-
-  const { data: episodesData, isLoading: episodesLoading } = useEpisodes(seasonId);
+  const { data: episodesData, isLoading: episodesLoading } = useEpisodes(effectiveSeasonId);
   const episodes = episodesData?.items ?? [];
   const nextUp = series.userData.nextUp;
   const nextResumeMs = nextUp?.userData?.playbackPositionMs ?? 0;
@@ -213,7 +210,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     onClick={() => setSeasonId(s.id)}
                     className={cn(
                       'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
-                      seasonId === s.id
+                      effectiveSeasonId === s.id
                         ? 'bg-accent text-on-accent'
                         : 'bg-surface-2 text-muted hover:text-text',
                     )}
@@ -223,14 +220,14 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                 ))}
               </div>
             )}
-            {seasonId && episodes.length > 0 && (
+            {effectiveSeasonId && episodes.length > 0 && (
               <div className="flex flex-wrap gap-2">
                 {!seasonWatched && (
                   <Button
                     size="sm"
                     variant="secondary"
                     disabled={markSeason.isPending}
-                    onClick={() => markSeason.mutate({ itemId: seasonId, watched: true })}
+                    onClick={() => markSeason.mutate({ itemId: effectiveSeasonId, watched: true })}
                   >
                     {t('markSeasonWatched')}
                   </Button>
@@ -240,7 +237,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     size="sm"
                     variant="secondary"
                     disabled={markSeason.isPending}
-                    onClick={() => markSeason.mutate({ itemId: seasonId, watched: false })}
+                    onClick={() => markSeason.mutate({ itemId: effectiveSeasonId, watched: false })}
                   >
                     {t('markSeasonUnwatched')}
                   </Button>

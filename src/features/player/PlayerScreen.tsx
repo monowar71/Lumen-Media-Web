@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import * as Slider from '@radix-ui/react-slider';
 import { usePlayback } from './usePlayback';
@@ -133,7 +133,37 @@ export function PlayerScreen() {
   const setVolume = usePlayerStore((s) => s.setVolume);
   const setMuted = usePlayerStore((s) => s.setMuted);
 
-  const player = usePlayback({
+  const {
+    videoRef,
+    decision,
+    loading,
+    error,
+    buffering,
+    playing,
+    currentTimeMs,
+    durationMs,
+    bufferedRanges,
+    selectedQualityId,
+    selectedAudioId,
+    selectedSubtitleId,
+    forceHdrToSdr,
+    selectedHdrToneMapMethod,
+    selectedAudioLayout,
+    networkMbpsLabel,
+    videoFormatLabel,
+    audioFormatLabel,
+    canMarkUnwatched,
+    markingUnwatched,
+    markUnwatched,
+    togglePlay,
+    seekTo,
+    changeQuality,
+    changeAudio,
+    changeSubtitle,
+    changeHdrToneMapMethod,
+    changeAudioLayout,
+    retry,
+  } = usePlayback({
     itemId: itemId ?? '',
     isEpisode: state?.isEpisode ?? false,
     initialResumeMs: state?.resumeMs,
@@ -146,20 +176,22 @@ export function PlayerScreen() {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [subtitleBlobUrl, setSubtitleBlobUrl] = useState<string | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
-  const displayTimeMs = scrubMs ?? player.currentTimeMs;
+  const displayTimeMs = scrubMs ?? currentTimeMs;
 
   const selectedSubtitle = useMemo(() => {
-    const id = player.selectedSubtitleId;
+    const id = selectedSubtitleId;
     if (!id) return null;
-    return player.decision?.subtitleStreams.find((s) => s.id === id && s.deliveryUrl) ?? null;
-  }, [player.selectedSubtitleId, player.decision?.subtitleStreams]);
+    return decision?.subtitleStreams.find((s) => s.id === id && s.deliveryUrl) ?? null;
+  }, [selectedSubtitleId, decision?.subtitleStreams]);
 
   // Fetch VTT with Authorization → blob URL so <track> is same-origin (works with MSE/hls.js).
   useEffect(() => {
     if (!selectedSubtitle?.deliveryUrl) {
-      setSubtitleBlobUrl((prev) => {
-        if (prev) URL.revokeObjectURL(prev);
-        return null;
+      queueMicrotask(() => {
+        setSubtitleBlobUrl((prev) => {
+          if (prev) URL.revokeObjectURL(prev);
+          return null;
+        });
       });
       return;
     }
@@ -188,7 +220,7 @@ export function PlayerScreen() {
   }, [baseUrl, token, selectedSubtitle?.id, selectedSubtitle?.deliveryUrl]);
 
   useEffect(() => {
-    const video = player.videoRef.current;
+    const video = videoRef.current;
     if (!video || !subtitleBlobUrl || !selectedSubtitle) return;
     const enable = () => showVideoTextTracks(video, selectedSubtitle.id);
     enable();
@@ -202,11 +234,11 @@ export function PlayerScreen() {
       window.clearTimeout(t1);
       window.clearTimeout(t2);
     };
-  }, [subtitleBlobUrl, selectedSubtitle, player.videoRef]);
+  }, [subtitleBlobUrl, selectedSubtitle, videoRef]);
 
   useEffect(() => {
     const sync = () => {
-      const vid = player.videoRef.current as VideoFs | null;
+      const vid = videoRef.current as VideoFs | null;
       setIsFullscreen(
         isDocumentFullscreen() || Boolean(vid?.webkitDisplayingFullscreen),
       );
@@ -216,7 +248,7 @@ export function PlayerScreen() {
 
     document.addEventListener('fullscreenchange', sync);
     document.addEventListener('webkitfullscreenchange', sync);
-    const video = player.videoRef.current;
+    const video = videoRef.current;
     video?.addEventListener('webkitbeginfullscreen', onWebkitBegin);
     video?.addEventListener('webkitendfullscreen', onWebkitEnd);
     return () => {
@@ -225,11 +257,11 @@ export function PlayerScreen() {
       video?.removeEventListener('webkitbeginfullscreen', onWebkitBegin);
       video?.removeEventListener('webkitendfullscreen', onWebkitEnd);
     };
-  }, [player.videoRef]);
+  }, [videoRef]);
 
   const toggleFullscreen = useCallback(async () => {
     setControlsVisible(true);
-    const video = player.videoRef.current;
+    const video = videoRef.current;
     try {
       const vid = video as VideoFs | null;
       if (isDocumentFullscreen() || vid?.webkitDisplayingFullscreen) {
@@ -240,13 +272,13 @@ export function PlayerScreen() {
     } catch {
       // Browser may deny fullscreen without a user gesture or policy.
     }
-  }, [player.videoRef]);
+  }, [videoRef]);
 
   useEffect(() => {
-    if (!player.playing || !controlsVisible || scrubbing) return;
+    if (!playing || !controlsVisible || scrubbing) return;
     const id = setTimeout(() => setControlsVisible(false), 3200);
     return () => clearTimeout(id);
-  }, [player.playing, controlsVisible, player.currentTimeMs, scrubbing]);
+  }, [playing, controlsVisible, currentTimeMs, scrubbing]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -256,19 +288,19 @@ export function PlayerScreen() {
         case ' ':
         case 'k':
           e.preventDefault();
-          player.togglePlay();
+togglePlay();
           setControlsVisible(true);
           break;
         case 'ArrowLeft':
         case 'j':
           e.preventDefault();
-          void player.seekTo(Math.max(0, player.currentTimeMs - 10_000));
+          void seekTo(Math.max(0, currentTimeMs - 10_000));
           setControlsVisible(true);
           break;
         case 'ArrowRight':
         case 'l':
           e.preventDefault();
-          void player.seekTo(player.currentTimeMs + 10_000);
+          void seekTo(currentTimeMs + 10_000);
           setControlsVisible(true);
           break;
         case 'm':
@@ -295,20 +327,20 @@ export function PlayerScreen() {
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
-  }, [player, muted, setMuted, navigate, toggleFullscreen]);
+  }, [togglePlay, seekTo, currentTimeMs, muted, setMuted, navigate, toggleFullscreen]);
 
   const qualityOptions: TrackOption[] = useMemo(
     () =>
-      player.decision?.availableQualities.map((q) => ({
+decision?.availableQualities.map((q) => ({
         id: q.id,
         label: q.label,
       })) ?? [],
-    [player.decision],
+    [decision],
   );
 
   const hdrOptions: TrackOption[] = useMemo(() => {
-    const methods = player.decision?.availableHdrToneMapMethods ?? [];
-    if (!player.decision?.sourceHdr || methods.length === 0) return [];
+    const methods = decision?.availableHdrToneMapMethods ?? [];
+    if (!decision?.sourceHdr || methods.length === 0) return [];
     return [
       { id: 'off', label: t('hdrToSdrOff'), sublabel: t('hdrToSdrOffHint') },
       ...methods.map((m) => ({
@@ -317,28 +349,28 @@ export function PlayerScreen() {
         sublabel: m.hardware ? t('hdrToSdrHwHint') : t('hdrToSdrSwHint'),
       })),
     ];
-  }, [player.decision?.sourceHdr, player.decision?.availableHdrToneMapMethods, t]);
+  }, [decision?.sourceHdr, decision?.availableHdrToneMapMethods, t]);
 
   const hdrSelectedId =
-    player.forceHdrToSdr || player.decision?.toneMapActive
-      ? (player.selectedHdrToneMapMethod ??
-        player.decision?.selectedHdrToneMapMethod ??
-        player.decision?.availableHdrToneMapMethods?.[0]?.id ??
+forceHdrToSdr || decision?.toneMapActive
+      ? (selectedHdrToneMapMethod ??
+decision?.selectedHdrToneMapMethod ??
+decision?.availableHdrToneMapMethods?.[0]?.id ??
         'off')
       : 'off';
 
   const audioLayoutOptions: TrackOption[] = useMemo(
     () =>
-      player.decision?.availableAudioLayouts?.map((l) => ({
+decision?.availableAudioLayouts?.map((l) => ({
         id: l.id,
         label: l.label,
       })) ?? [],
-    [player.decision],
+    [decision],
   );
 
   const audioOptions: TrackOption[] = useMemo(
     () =>
-      player.decision?.audioStreams.map((a) => {
+decision?.audioStreams.map((a) => {
         const language = a.language ? formatTrackLanguage(a.language) : '';
         const title = a.title?.trim() || '';
         return {
@@ -353,12 +385,12 @@ export function PlayerScreen() {
             .join(' '),
         };
       }) ?? [],
-    [player.decision, t],
+    [decision, t],
   );
 
   const subtitleOptions: TrackOption[] = useMemo(() => {
     const subs =
-      player.decision?.subtitleStreams.map((s) => {
+decision?.subtitleStreams.map((s) => {
         const language = s.language ? formatTrackLanguage(s.language) : '';
         const title = s.title?.trim() || '';
         return {
@@ -368,27 +400,27 @@ export function PlayerScreen() {
         };
       }) ?? [];
     return [{ id: 'off', label: t('off') }, ...subs];
-  }, [player.decision, t]);
+  }, [decision, t]);
 
   const title = state?.title ?? t('nowPlaying');
   const methodLabel = useMemo(() => {
-    const method = player.decision?.method;
+    const method = decision?.method;
     if (method === 'DirectPlay') return t('modeDirect');
     if (method === 'DirectStream') return t('modeStream');
     if (method === 'Transcode') return t('modeTranscode');
     return null;
-  }, [player.decision?.method, t]);
+  }, [decision?.method, t]);
 
   const qualityLabel =
-    qualityOptions.find((q) => q.id === player.selectedQualityId)?.label ?? null;
+    qualityOptions.find((q) => q.id === selectedQualityId)?.label ?? null;
 
   const progressPct =
-    player.durationMs > 0
-      ? Math.min(100, Math.max(0, (displayTimeMs / player.durationMs) * 100))
+durationMs > 0
+      ? Math.min(100, Math.max(0, (displayTimeMs / durationMs) * 100))
       : 0;
 
-  const isBuffering = (player.loading || player.buffering) && !player.error;
-  const showCenterTransport = !player.error && (isBuffering || controlsVisible || !player.playing);
+  const isBuffering = (loading || buffering) && !error;
+  const showCenterTransport = !error && (isBuffering || controlsVisible || !playing);
 
   return (
     <div
@@ -404,7 +436,7 @@ export function PlayerScreen() {
       aria-label={t('ariaPlayer', { title })}
     >
       <video
-        ref={player.videoRef}
+        ref={videoRef}
         className="h-full w-full bg-black object-contain"
         playsInline
         crossOrigin="anonymous"
@@ -431,18 +463,18 @@ export function PlayerScreen() {
       <div
         className={cn(
           'pointer-events-none absolute inset-0 transition-opacity duration-500',
-          controlsVisible || !player.playing ? 'opacity-100' : 'opacity-0',
+          controlsVisible || !playing ? 'opacity-100' : 'opacity-0',
           'bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.35)_100%)]',
         )}
         aria-hidden
       />
 
-      {player.error && (
+      {error && (
         <div className="absolute inset-0 grid place-items-center bg-black/75 p-6 text-center backdrop-blur-sm">
           <div className="flex max-w-md flex-col items-center gap-5 rounded-3xl border border-white/10 bg-surface/90 p-8 shadow-2xl">
-            <p className="text-lg font-semibold text-white">{player.error}</p>
+            <p className="text-lg font-semibold text-white">{error}</p>
             <div className="flex gap-3">
-              <Button onClick={player.retry}>{t('retry')}</Button>
+              <Button onClick={retry}>{t('retry')}</Button>
               <Button variant="secondary" onClick={() => navigate(-1)}>
                 {t('goBack')}
               </Button>
@@ -474,14 +506,14 @@ export function PlayerScreen() {
               </>
             )}
             <ControlButton
-              label={player.playing ? t('pause') : t('play')}
+              label={playing ? t('pause') : t('play')}
               onClick={() => {
-                player.togglePlay();
+togglePlay();
                 setControlsVisible(true);
               }}
               className="!h-[4.5rem] !w-[4.5rem] bg-accent text-on-accent shadow-lg shadow-accent/30 ring-0 hover:bg-accent-hover"
             >
-              {player.playing ? <IconPause size={30} /> : <IconPlay size={30} className="ml-0.5" />}
+              {playing ? <IconPause size={30} /> : <IconPlay size={30} className="ml-0.5" />}
             </ControlButton>
           </div>
         </div>
@@ -511,9 +543,9 @@ export function PlayerScreen() {
               </h1>
               {(methodLabel ||
                 qualityLabel ||
-                player.networkMbpsLabel ||
-                player.videoFormatLabel ||
-                player.audioFormatLabel) && (
+networkMbpsLabel ||
+videoFormatLabel ||
+audioFormatLabel) && (
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/65">
                   {methodLabel && (
                     <span className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10">
@@ -521,38 +553,38 @@ export function PlayerScreen() {
                     </span>
                   )}
                   {qualityLabel && <span>{qualityLabel}</span>}
-                  {player.videoFormatLabel && (
+                  {videoFormatLabel && (
                     <span
                       className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10"
-                      title={t('videoFormatAria', { format: player.videoFormatLabel })}
+                      title={t('videoFormatAria', { format: videoFormatLabel })}
                     >
-                      {player.videoFormatLabel}
+                      {videoFormatLabel}
                     </span>
                   )}
-                  {player.audioFormatLabel && (
+                  {audioFormatLabel && (
                     <span
                       className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10"
-                      title={t('audioFormatAria', { format: player.audioFormatLabel })}
+                      title={t('audioFormatAria', { format: audioFormatLabel })}
                     >
-                      {player.audioFormatLabel}
+                      {audioFormatLabel}
                     </span>
                   )}
-                  {player.networkMbpsLabel && (
+                  {networkMbpsLabel && (
                     <span
                       className="rounded-md bg-white/10 px-2 py-0.5 font-medium tabular-nums text-white/80 ring-1 ring-white/10"
-                      title={t('networkLoadAria', { rate: player.networkMbpsLabel })}
+                      title={t('networkLoadAria', { rate: networkMbpsLabel })}
                     >
-                      {t('networkLoad', { rate: player.networkMbpsLabel })}
+                      {t('networkLoad', { rate: networkMbpsLabel })}
                     </span>
                   )}
                 </div>
               )}
             </div>
-            {player.canMarkUnwatched && (
+            {canMarkUnwatched && (
               <button
                 type="button"
-                disabled={player.markingUnwatched}
-                onClick={() => player.markUnwatched()}
+                disabled={markingUnwatched}
+                onClick={() => markUnwatched()}
                 className={cn(
                   'shrink-0 rounded-lg px-3 py-1.5 text-xs font-medium text-white/90',
                   'bg-white/10 ring-1 ring-white/15 transition hover:bg-white/15',
@@ -587,9 +619,9 @@ export function PlayerScreen() {
               <Slider.Root
                 className="relative flex h-6 w-full touch-none select-none items-center"
                 min={0}
-                max={Math.max(player.durationMs, 1)}
+                max={Math.max(durationMs, 1)}
                 step={500}
-                value={[Math.min(displayTimeMs, player.durationMs || displayTimeMs)]}
+                value={[Math.min(displayTimeMs, durationMs || displayTimeMs)]}
                 onValueChange={([v]) => {
                   setScrubbing(true);
                   setScrubMs(v);
@@ -598,15 +630,15 @@ export function PlayerScreen() {
                 onValueCommit={([v]) => {
                   setScrubbing(false);
                   setScrubMs(null);
-                  void player.seekTo(v);
+                  void seekTo(v);
                 }}
                 aria-label={t('seek')}
               >
                 <Slider.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-white/20 transition-[height] group-hover:h-2.5">
-                  {player.durationMs > 0 &&
-                    player.bufferedRanges.map((range, i) => {
-                      const left = (range.startMs / player.durationMs) * 100;
-                      const width = ((range.endMs - range.startMs) / player.durationMs) * 100;
+                  {durationMs > 0 &&
+bufferedRanges.map((range, i) => {
+                      const left = (range.startMs / durationMs) * 100;
+                      const width = ((range.endMs - range.startMs) / durationMs) * 100;
                       return (
                         <div
                           key={`${range.startMs}-${range.endMs}-${i}`}
@@ -632,16 +664,16 @@ export function PlayerScreen() {
             <div className="flex flex-wrap items-center gap-2 text-white sm:gap-3">
               <div className="flex items-center gap-1">
                 <ControlButton
-                  label={player.playing ? t('pause') : t('play')}
-                  onClick={() => player.togglePlay()}
+                  label={playing ? t('pause') : t('play')}
+                  onClick={() => togglePlay()}
                 >
-                  {player.playing ? <IconPause size={20} /> : <IconPlay size={20} className="ml-0.5" />}
+                  {playing ? <IconPause size={20} /> : <IconPlay size={20} className="ml-0.5" />}
                 </ControlButton>
               </div>
 
               <span className="min-w-[7.5rem] text-sm tabular-nums text-white/85">
                 <span className="text-white">{formatTime(displayTimeMs)}</span>
-                <span className="text-white/45"> / {formatTime(player.durationMs)}</span>
+                <span className="text-white/45"> / {formatTime(durationMs)}</span>
               </span>
 
               <div className="flex items-center gap-1">
@@ -676,16 +708,16 @@ export function PlayerScreen() {
                   triggerLabel={t('audio')}
                   icon={<IconAudio size={16} />}
                   options={audioOptions}
-                  selectedId={player.selectedAudioId}
-                  onSelect={(id) => player.changeAudio(id)}
+                  selectedId={selectedAudioId}
+                  onSelect={(id) => changeAudio(id)}
                 />
                 <TrackMenu
                   label={t('subtitles')}
                   triggerLabel={t('subtitles')}
                   icon={<IconSubtitles size={16} />}
                   options={subtitleOptions}
-                  selectedId={player.selectedSubtitleId ?? 'off'}
-                  onSelect={(id) => void player.changeSubtitle(id === 'off' ? null : id)}
+                  selectedId={selectedSubtitleId ?? 'off'}
+                  onSelect={(id) => void changeSubtitle(id === 'off' ? null : id)}
                 />
                 {audioLayoutOptions.length > 1 && (
                   <TrackMenu
@@ -693,8 +725,8 @@ export function PlayerScreen() {
                     triggerLabel={t('audioLayout')}
                     icon={<IconAudio size={16} />}
                     options={audioLayoutOptions}
-                    selectedId={player.selectedAudioLayout}
-                    onSelect={(id) => player.changeAudioLayout(id)}
+                    selectedId={selectedAudioLayout}
+                    onSelect={(id) => changeAudioLayout(id)}
                   />
                 )}
                 {hdrOptions.length > 0 && (
@@ -704,7 +736,7 @@ export function PlayerScreen() {
                     icon={<IconQuality size={16} />}
                     options={hdrOptions}
                     selectedId={hdrSelectedId}
-                    onSelect={(id) => player.changeHdrToneMapMethod(id)}
+                    onSelect={(id) => changeHdrToneMapMethod(id)}
                   />
                 )}
                 <TrackMenu
@@ -712,8 +744,8 @@ export function PlayerScreen() {
                   triggerLabel={t('quality')}
                   icon={<IconQuality size={16} />}
                   options={qualityOptions}
-                  selectedId={player.selectedQualityId}
-                  onSelect={(id) => player.changeQuality(id)}
+                  selectedId={selectedQualityId}
+                  onSelect={(id) => changeQuality(id)}
                 />
                 <ControlButton
                   label={isFullscreen ? t('fullscreenExit') : t('fullscreen')}

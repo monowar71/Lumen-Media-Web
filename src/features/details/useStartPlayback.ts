@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router';
 import type { MediaSource } from '@/api/types';
 import * as api from '@/api/endpoints';
 import { playerPath, type PlaybackNavState } from './playbackNav';

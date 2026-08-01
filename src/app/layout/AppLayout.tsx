@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router';
 import { useRealtime } from '@/api/useRealtime';
 import { Sidebar } from './Sidebar';
 import { TopBar } from './TopBar';

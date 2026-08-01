@@ -1,4 +1,4 @@
-import { NavLink, useLocation, useSearchParams } from 'react-router-dom';
+import { NavLink, useLocation, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { IconHome, IconLibrary, IconSearch, IconSettings } from '@/components/AppIcons';
 import { cn } from '@/lib/utils';

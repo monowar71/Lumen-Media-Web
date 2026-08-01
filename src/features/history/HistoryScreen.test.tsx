@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 import { HistoryScreen } from './HistoryScreen';
 import { authenticate, renderWithProviders } from '@/test/utils';
 import { resetMockHistory } from '@/mocks/data';

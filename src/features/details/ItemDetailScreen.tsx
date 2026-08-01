@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams } from 'react-router';
 import { useItem } from '@/api/queries';
 import { FullPageSpinner } from '@/components/ui/Spinner';
 import { ErrorState } from '@/components/StateViews';

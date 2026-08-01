@@ -10,7 +10,7 @@ vi.mock('@/api/endpoints', () => ({
 }));
 
 const navigate = vi.fn();
-vi.mock('react-router-dom', () => ({
+vi.mock('react-router', () => ({
   useNavigate: () => navigate,
 }));
 

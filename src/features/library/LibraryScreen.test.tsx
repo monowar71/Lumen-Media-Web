@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { screen, waitFor } from '@testing-library/react';
-import { Route, Routes } from 'react-router-dom';
+import { Route, Routes } from 'react-router';
 import { LibraryScreen } from './LibraryScreen';
 import { authenticate, renderWithProviders } from '@/test/utils';
 import { useLibraryUiStore } from '@/stores/libraryUiStore';

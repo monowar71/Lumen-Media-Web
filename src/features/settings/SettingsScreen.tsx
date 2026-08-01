@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -130,8 +130,10 @@ function GeneralSection() {
 
   useEffect(() => {
     const next = rewriteLoopbackBaseUrlForPage(baseUrl, window.location.hostname);
-    if (next !== baseUrl) setBaseUrl(next);
-    setServer(next);
+    queueMicrotask(() => {
+      if (next !== baseUrl) setBaseUrl(next);
+      setServer(next);
+    });
   }, [baseUrl, setBaseUrl]);
 
   const save = () => {

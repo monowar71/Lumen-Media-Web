@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   useArtworkCandidates,
@@ -53,7 +53,9 @@ export function MetadataAdminDialogs({
       {panel === 'edit' && (
         <EditMetadataDialog item={item} onClose={() => onPanelChange('none')} />
       )}
-      {panel === 'match' && <FixMatchDialog item={item} onClose={() => onPanelChange('none')} />}
+      {panel === 'match' && (
+        <FixMatchDialog key={item.id} item={item} onClose={() => onPanelChange('none')} />
+      )}
     </>
   );
 }
@@ -372,10 +374,6 @@ function FixMatchDialog({ item, onClose }: { item: EditableMetadata; onClose: ()
 
   const candidates = useMatchCandidates(item.id, searchKey.q, searchKey.year, true);
   const match = useMatchItem();
-
-  useEffect(() => {
-    setSearchKey({ q: item.title, year: item.year ?? undefined });
-  }, [item.id, item.title, item.year]);
 
   const apply = (c: MetadataMatchCandidateDto) => {
     setError(null);

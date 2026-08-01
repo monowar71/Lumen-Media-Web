@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Navigate, useLocation, useNavigate } from 'react-router-dom';
+import { Navigate, useLocation, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import { useAuthStore } from '@/stores/authStore';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -41,8 +41,10 @@ export function LoginScreen() {
       useSettingsStore.getState().baseUrl,
       window.location.hostname,
     );
-    setBaseUrl(next);
-    setServer(next);
+    queueMicrotask(() => {
+      setBaseUrl(next);
+      setServer(next);
+    });
   }, [setBaseUrl]);
 
   useEffect(() => {

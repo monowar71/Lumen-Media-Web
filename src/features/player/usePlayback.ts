@@ -383,7 +383,9 @@ export function usePlayback({
 
   // Start once on mount; stop + release everything on unmount.
   useEffect(() => {
-    void start();
+    queueMicrotask(() => {
+      void start();
+    });
     return () => {
       epochRef.current += 1;
       seekEpochRef.current += 1;
@@ -506,7 +508,7 @@ export function usePlayback({
     else video.pause();
   }, []);
 
-  const flushRemoteSeek = useCallback(async () => {
+  const flushRemoteSeek = async () => {
     if (remoteSeekInFlightRef.current) return;
 
     const target = pendingRemoteSeekMsRef.current;
@@ -572,39 +574,32 @@ export function usePlayback({
         void flushRemoteSeek();
       }
     }
-  }, [attachDecision, clearStallWatch]);
+  };
 
-  const scheduleRemoteSeek = useCallback(
-    (targetMs: number) => {
-      pendingRemoteSeekMsRef.current = targetMs;
-      if (remoteSeekTimerRef.current) clearTimeout(remoteSeekTimerRef.current);
-      remoteSeekTimerRef.current = setTimeout(() => {
-        remoteSeekTimerRef.current = null;
-        void flushRemoteSeek();
-      }, SEEK_REMOTE_DEBOUNCE_MS);
-    },
-    [flushRemoteSeek],
-  );
+  const scheduleRemoteSeek = (targetMs: number) => {
+    pendingRemoteSeekMsRef.current = targetMs;
+    if (remoteSeekTimerRef.current) clearTimeout(remoteSeekTimerRef.current);
+    remoteSeekTimerRef.current = setTimeout(() => {
+      remoteSeekTimerRef.current = null;
+      void flushRemoteSeek();
+    }, SEEK_REMOTE_DEBOUNCE_MS);
+  };
 
-  const watchLocalSeekStall = useCallback(
-    (absoluteTargetMs: number) => {
-      clearStallWatch();
-      stallTimerRef.current = setTimeout(() => {
-        stallTimerRef.current = null;
-        const video = videoRef.current;
-        const d = decisionRef.current;
-        if (!video || !d || d.method === 'DirectPlay') return;
-        // Still not playing near the scrub point → escalate to ffmpeg restart.
-        if (video.seeking || video.readyState < 2) {
-          scheduleRemoteSeek(absoluteTargetMs);
-        }
-      }, SEEK_STALL_ESCALATE_MS);
-    },
-    [clearStallWatch, scheduleRemoteSeek],
-  );
+  const watchLocalSeekStall = (absoluteTargetMs: number) => {
+    clearStallWatch();
+    stallTimerRef.current = setTimeout(() => {
+      stallTimerRef.current = null;
+      const video = videoRef.current;
+      const d = decisionRef.current;
+      if (!video || !d || d.method === 'DirectPlay') return;
+      // Still not playing near the scrub point → escalate to ffmpeg restart.
+      if (video.seeking || video.readyState < 2) {
+        scheduleRemoteSeek(absoluteTargetMs);
+      }
+    }, SEEK_STALL_ESCALATE_MS);
+  };
 
-  const seekTo = useCallback(
-    (ms: number) => {
+  const seekTo = (ms: number) => {
       const video = videoRef.current;
       const d = decisionRef.current;
       if (!video || !d) return;
@@ -634,9 +629,7 @@ export function usePlayback({
       }
 
       scheduleRemoteSeek(target);
-    },
-    [scheduleRemoteSeek, watchLocalSeekStall, clearStallWatch],
-  );
+  };
 
   const changeQuality = useCallback(
     async (qualityId: string) => {

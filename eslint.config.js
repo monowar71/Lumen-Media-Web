@@ -6,7 +6,16 @@ import tseslint from 'typescript-eslint';
 import prettier from 'eslint-config-prettier';
 
 export default tseslint.config(
-  { ignores: ['dist', 'coverage', 'node_modules', 'public/mockServiceWorker.js'] },
+  {
+    ignores: [
+      'dist',
+      'coverage',
+      'node_modules',
+      'public/mockServiceWorker.js',
+      // Generated OpenAPI types — not hand-maintained.
+      'src/api/generated/**',
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ['**/*.{ts,tsx}'],
@@ -26,7 +35,7 @@ export default tseslint.config(
     },
   },
   {
-    files: ['**/*.test.{ts,tsx}', 'src/test/**', 'src/mocks/**'],
+    files: ['**/*.test.{ts,tsx}', 'src/test/**', 'src/mocks/**', 'src/app/router.tsx'],
     rules: {
       'react-refresh/only-export-components': 'off',
     },

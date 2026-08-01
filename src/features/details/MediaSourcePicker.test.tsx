@@ -1,7 +1,7 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 import { screen, waitFor, within } from '@testing-library/dom';
 import userEvent from '@testing-library/user-event';
-import { Route, Routes, useLocation } from 'react-router-dom';
+import { Route, Routes, useLocation } from 'react-router';
 import type { MediaSource } from '@/api/types';
 import { formatBytes } from '@/lib/format';
 import { mediaSourceLabel, resolutionLabel } from '@/lib/mediaSourceLabel';

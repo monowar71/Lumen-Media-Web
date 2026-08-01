@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useWindowVirtualizer } from '@tanstack/react-virtual';
 import type { MediaItemSummary } from '@/api/types';
 import { MediaCard } from './MediaCard';
@@ -29,17 +29,28 @@ export function VirtualPosterGrid({
 }: VirtualPosterGridProps) {
   const parentRef = useRef<HTMLDivElement>(null);
   const width = useElementWidth(parentRef);
+  const [scrollMargin, setScrollMargin] = useState(0);
 
   const columns = Math.max(1, Math.floor((width + GAP) / (MIN_CARD + GAP)));
   const cardWidth = columns > 0 && width > 0 ? (width - GAP * (columns - 1)) / columns : MIN_CARD;
   const rowHeight = cardWidth * 1.5 + LABEL_HEIGHT + GAP;
   const rowCount = Math.ceil(items.length / columns);
 
+  useEffect(() => {
+    const el = parentRef.current;
+    if (!el) return;
+    const ro = new ResizeObserver(() => {
+      setScrollMargin(el.offsetTop);
+    });
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   const virtualizer = useWindowVirtualizer({
     count: rowCount,
     estimateSize: () => rowHeight,
     overscan: 4,
-    scrollMargin: parentRef.current?.offsetTop ?? 0,
+    scrollMargin,
   });
 
   // Re-measure when layout inputs change (resize -> different columns/rowHeight).

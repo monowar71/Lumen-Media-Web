@@ -1,4 +1,4 @@
-import { RouterProvider } from 'react-router-dom';
+import { RouterProvider } from 'react-router';
 import { AppProviders } from './providers';
 import { router } from './router';
 
