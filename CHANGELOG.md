@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.6] - 2026-08-02
+
+### Fixed
+
+- Do not send `forceHdrToSdr` on quality/audio `set-quality` calls so the server keeps the session HDR→SDR flag until the player menu toggles it.
+
 ## [0.1.5] - 2026-07-29
 
 ### Added
@@ -76,7 +82,8 @@ First tagged release. Images are published to Docker Hub (`monowar71/lumenmedia-
 - Show buffering as a ring around play; drop skip buttons.
 - Remove duplicate play glyph on detail CTAs.
 
-[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.5...HEAD
+[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.6...HEAD
+[0.1.6]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.6
 [0.1.5]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.5
 [0.1.4]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.4
 [0.1.3]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.3

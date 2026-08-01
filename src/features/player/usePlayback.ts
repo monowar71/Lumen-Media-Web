@@ -647,7 +647,7 @@ export function usePlayback({
           qualityId,
           mode,
           resumePositionMs,
-          forceHdrToSdr: forceHdrToSdrRef.current,
+          // Omit forceHdrToSdr — server keeps the session flag until explicitly toggled.
           audioLayout: selectedAudioLayoutRef.current,
         });
         next.startPositionMs = resumePositionMs;
@@ -770,7 +770,7 @@ export function usePlayback({
           qualityId: selectedQualityId,
           mode: d.mode,
           resumePositionMs,
-          forceHdrToSdr: forceHdrToSdrRef.current,
+          // Omit forceHdrToSdr — server keeps the session flag until explicitly toggled.
           audioLayout: layoutId,
         });
         next.startPositionMs = resumePositionMs;
