@@ -345,6 +345,7 @@ export type PlaybackDecisionRequest = {
   resumePositionMs: number;
   profile: DeviceProfile;
   forceHdrToSdr?: boolean;
+  hdrToneMapMethod?: string | null;
   audioLayout?: string | null;
 };
 
@@ -361,6 +362,12 @@ export type AudioLayoutOption = {
   id: string;
   label: string;
   channels?: number;
+};
+
+export type HdrToneMapMethodOption = {
+  id: string;
+  label: string;
+  hardware?: boolean;
 };
 
 export type AudioStreamOption = {
@@ -403,6 +410,8 @@ export type PlaybackDecisionResponse = {
   toneMapActive?: boolean;
   availableAudioLayouts?: AudioLayoutOption[];
   selectedAudioLayout?: string;
+  availableHdrToneMapMethods?: HdrToneMapMethodOption[];
+  selectedHdrToneMapMethod?: string | null;
 };
 
 export type SetQualityRequest = {
@@ -412,6 +421,7 @@ export type SetQualityRequest = {
   audioStreamId?: string | null;
   subtitleStreamId?: string | null;
   forceHdrToSdr?: boolean | null;
+  hdrToneMapMethod?: string | null;
   audioLayout?: string | null;
 };
 

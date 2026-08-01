@@ -52,6 +52,8 @@ export interface PlaybackController {
   selectedSubtitleId: string | null;
   /** Force HDR→SDR when source is HDR (auto-on when device lacks HDR). */
   forceHdrToSdr: boolean;
+  /** Preferred / active tonemap method id when source is HDR. */
+  selectedHdrToneMapMethod: string | null;
   selectedAudioLayout: string | null;
   /** Estimated network throughput label (e.g. "12.4 Mbps"), or null when unknown. */
   networkMbpsLabel: string | null;
@@ -67,7 +69,7 @@ export interface PlaybackController {
   changeQuality: (qualityId: string) => void;
   changeAudio: (audioId: string) => void;
   changeSubtitle: (subtitleId: string | null) => void;
-  changeForceHdrToSdr: (force: boolean) => void;
+  changeHdrToneMapMethod: (methodId: string) => void;
   changeAudioLayout: (layoutId: string) => void;
   retry: () => void;
 }
@@ -194,6 +196,7 @@ export function usePlayback({
   const [selectedAudioId, setSelectedAudioId] = useState<string | null>(null);
   const [selectedSubtitleId, setSelectedSubtitleId] = useState<string | null>(null);
   const [forceHdrToSdr, setForceHdrToSdr] = useState(false);
+  const [selectedHdrToneMapMethod, setSelectedHdrToneMapMethod] = useState<string | null>(null);
   const [selectedAudioLayout, setSelectedAudioLayout] = useState<string | null>(null);
   const forceHdrToSdrRef = useRef(false);
   const selectedAudioLayoutRef = useRef<string | null>(null);
@@ -349,6 +352,7 @@ export function usePlayback({
       const nextForce = forceHdrToSdrRef.current || autoForce || Boolean(next.toneMapActive);
       forceHdrToSdrRef.current = nextForce;
       setForceHdrToSdr(nextForce);
+      setSelectedHdrToneMapMethod(next.selectedHdrToneMapMethod ?? null);
       const layout = next.selectedAudioLayout ?? null;
       selectedAudioLayoutRef.current = layout;
       setSelectedAudioLayout(layout);
@@ -658,6 +662,9 @@ export function usePlayback({
           setSelectedAudioLayout(next.selectedAudioLayout);
         }
         setForceHdrToSdr(Boolean(next.toneMapActive) || forceHdrToSdrRef.current);
+        if (next.selectedHdrToneMapMethod) {
+          setSelectedHdrToneMapMethod(next.selectedHdrToneMapMethod);
+        }
         attachDecision(next);
       } catch (err) {
         setError(toErrorMessage(err, 'Could not change quality'));
@@ -726,15 +733,21 @@ export function usePlayback({
     ],
   );
 
-  const changeForceHdrToSdr = useCallback(
-    async (force: boolean) => {
+  const changeHdrToneMapMethod = useCallback(
+    async (methodId: string) => {
       const d = decisionRef.current;
       if (!d || !d.sourceHdr) return;
+      const off = methodId === 'off';
       // When the device cannot play HDR, tonemap stays required.
-      if (!getCachedSupportsHdr() && !force) return;
-      if (force === forceHdrToSdrRef.current) return;
-      forceHdrToSdrRef.current = force;
-      setForceHdrToSdr(force);
+      if (!getCachedSupportsHdr() && off) return;
+      const currentId =
+        forceHdrToSdrRef.current || d.toneMapActive
+          ? (selectedHdrToneMapMethod ?? d.selectedHdrToneMapMethod ?? 'off')
+          : 'off';
+      if (methodId === currentId) return;
+      forceHdrToSdrRef.current = !off;
+      setForceHdrToSdr(!off);
+      if (!off) setSelectedHdrToneMapMethod(methodId);
       const resumePositionMs = Math.round(positionMsRef.current);
       setBuffering(true);
       try {
@@ -742,19 +755,21 @@ export function usePlayback({
           qualityId: selectedQualityId,
           mode: d.mode,
           resumePositionMs,
-          forceHdrToSdr: force,
+          forceHdrToSdr: !off,
+          hdrToneMapMethod: off ? undefined : methodId,
           audioLayout: selectedAudioLayoutRef.current,
         });
         next.startPositionMs = resumePositionMs;
         decisionRef.current = next;
         setDecision(next);
-        setForceHdrToSdr(Boolean(next.toneMapActive) || force);
+        setForceHdrToSdr(Boolean(next.toneMapActive) || !off);
+        setSelectedHdrToneMapMethod(next.selectedHdrToneMapMethod ?? methodId);
         attachDecision(next);
       } catch (err) {
         setError(toErrorMessage(err, 'Could not change HDR→SDR'));
       }
     },
-    [selectedQualityId, attachDecision],
+    [selectedQualityId, selectedHdrToneMapMethod, attachDecision],
   );
 
   const changeAudioLayout = useCallback(
@@ -992,6 +1007,7 @@ export function usePlayback({
     selectedAudioId,
     selectedSubtitleId,
     forceHdrToSdr,
+    selectedHdrToneMapMethod,
     selectedAudioLayout,
     networkMbpsLabel,
     videoFormatLabel: formatPaths.videoLabel,
@@ -1004,7 +1020,7 @@ export function usePlayback({
     changeQuality,
     changeAudio,
     changeSubtitle,
-    changeForceHdrToSdr,
+    changeHdrToneMapMethod,
     changeAudioLayout,
     retry,
   };

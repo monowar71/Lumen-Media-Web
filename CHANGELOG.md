@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.7] - 2026-08-02
+
+### Added
+
+- Player HDR→SDR menu lists Off plus server methods (Hardware VAAPI / hable / mobius / reinhard / bt2390) and can switch mid-playback via `hdrToneMapMethod`.
+
 ## [0.1.6] - 2026-08-02
 
 ### Fixed
@@ -82,7 +88,8 @@ First tagged release. Images are published to Docker Hub (`monowar71/lumenmedia-
 - Show buffering as a ring around play; drop skip buttons.
 - Remove duplicate play glyph on detail CTAs.
 
-[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.6...HEAD
+[Unreleased]: https://github.com/monowar71/Lumen-Media-Web/compare/v0.1.7...HEAD
+[0.1.7]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.7
 [0.1.6]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.6
 [0.1.5]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.5
 [0.1.4]: https://github.com/monowar71/Lumen-Media-Web/releases/tag/v0.1.4

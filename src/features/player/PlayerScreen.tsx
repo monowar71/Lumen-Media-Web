@@ -307,12 +307,25 @@ export function PlayerScreen() {
   );
 
   const hdrOptions: TrackOption[] = useMemo(() => {
-    if (!player.decision?.sourceHdr) return [];
+    const methods = player.decision?.availableHdrToneMapMethods ?? [];
+    if (!player.decision?.sourceHdr || methods.length === 0) return [];
     return [
-      { id: 'on', label: t('hdrToSdrOn'), sublabel: t('hdrToSdrOnHint') },
       { id: 'off', label: t('hdrToSdrOff'), sublabel: t('hdrToSdrOffHint') },
+      ...methods.map((m) => ({
+        id: m.id,
+        label: m.label,
+        sublabel: m.hardware ? t('hdrToSdrHwHint') : t('hdrToSdrSwHint'),
+      })),
     ];
-  }, [player.decision?.sourceHdr, t]);
+  }, [player.decision?.sourceHdr, player.decision?.availableHdrToneMapMethods, t]);
+
+  const hdrSelectedId =
+    player.forceHdrToSdr || player.decision?.toneMapActive
+      ? (player.selectedHdrToneMapMethod ??
+        player.decision?.selectedHdrToneMapMethod ??
+        player.decision?.availableHdrToneMapMethods?.[0]?.id ??
+        'off')
+      : 'off';
 
   const audioLayoutOptions: TrackOption[] = useMemo(
     () =>
@@ -690,8 +703,8 @@ export function PlayerScreen() {
                     triggerLabel={t('hdrToSdr')}
                     icon={<IconQuality size={16} />}
                     options={hdrOptions}
-                    selectedId={player.forceHdrToSdr ? 'on' : 'off'}
-                    onSelect={(id) => player.changeForceHdrToSdr(id === 'on')}
+                    selectedId={hdrSelectedId}
+                    onSelect={(id) => player.changeHdrToneMapMethod(id)}
                   />
                 )}
                 <TrackMenu

@@ -2645,7 +2645,13 @@ export interface components {
             resumePositionMs?: number | string;
             profile?: components["schemas"]["DeviceProfile"];
             forceHdrToSdr?: boolean;
+            hdrToneMapMethod?: null | string;
             audioLayout?: null | string;
+        };
+        HdrToneMapMethodOption: {
+            id: string;
+            label: string;
+            hardware?: boolean;
         };
         PlaybackDecisionResponse: {
             sessionId: string;
@@ -2668,6 +2674,8 @@ export interface components {
             toneMapActive?: boolean;
             availableAudioLayouts?: components["schemas"]["AudioLayoutOption"][];
             selectedAudioLayout: string;
+            availableHdrToneMapMethods?: components["schemas"]["HdrToneMapMethodOption"][];
+            selectedHdrToneMapMethod?: null | string;
         };
         /** @enum {string} */
         PlaybackMethod: "DirectPlay" | "DirectStream" | "Transcode";
@@ -2796,6 +2804,7 @@ export interface components {
             /** Format: uuid */
             subtitleStreamId?: null | string;
             forceHdrToSdr?: null | boolean;
+            hdrToneMapMethod?: null | string;
             audioLayout?: null | string;
         };
         SetupRequest: {

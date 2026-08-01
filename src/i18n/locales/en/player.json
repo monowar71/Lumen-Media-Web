@@ -20,6 +20,8 @@
   "hdrToSdrOnHint": "Server tone-mapping",
   "hdrToSdrOff": "Keep HDR",
   "hdrToSdrOffHint": "When the display supports it",
+  "hdrToSdrHwHint": "GPU tonemap (fast)",
+  "hdrToSdrSwHint": "Software tonemap (heavier)",
   "off": "Off",
   "audioFallback": "Audio",
   "subtitleFallback": "Subtitle",

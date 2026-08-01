@@ -20,6 +20,8 @@
   "hdrToSdrOnHint": "Тон-маппинг на сервере",
   "hdrToSdrOff": "Оставить HDR",
   "hdrToSdrOffHint": "Если дисплей поддерживает",
+  "hdrToSdrHwHint": "GPU тонмап (быстро)",
+  "hdrToSdrSwHint": "Software тонмап (тяжелее)",
   "off": "Выкл.",
   "audioFallback": "Аудио",
   "subtitleFallback": "Субтитры",
