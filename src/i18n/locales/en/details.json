@@ -29,6 +29,8 @@
   "deleteFileConfirm": "Delete this video file from the server? This cannot be undone.",
   "moreActions": "More actions",
   "seasonsCount": "{{count}} seasons",
+  "statusContinuing": "Continuing",
+  "statusEnded": "Ended",
   "season": "Season {{number}}",
   "episodes": "Episodes",
   "selectSeason": "Select season",

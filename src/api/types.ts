@@ -169,6 +169,7 @@ export type SeriesDetail = {
   communityRating?: number;
   officialRating?: string;
   genres?: string[];
+  studios?: string[];
   people?: Person[];
   externalIds?: { tmdb?: string | null; tvdb?: string | null; imdb?: string | null };
   metadataLocked?: boolean;

@@ -31,6 +31,8 @@
   "deleteFileConfirm": "Удалить видеофайл с сервера? Это действие нельзя отменить.",
   "moreActions": "Ещё действия",
   "seasonsCount": "{{count}} сез.",
+  "statusContinuing": "Идёт",
+  "statusEnded": "Завершён",
   "season": "Сезон {{number}}",
   "episodes": "Эпизоды",
   "selectSeason": "Выбрать сезон",

@@ -108,6 +108,10 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
             </div>
             <div className="flex-1 pt-1">
               <h1 className="text-display text-3xl font-extrabold sm:text-4xl">{series.title}</h1>
+              {series.originalTitle &&
+                series.originalTitle.trim() !== series.title.trim() && (
+                  <p className="mt-1 text-sm text-muted">{series.originalTitle}</p>
+                )}
               <div className="mt-3">
                 <MetaBadges>
                   {series.year && (
@@ -119,7 +123,13 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                   {series.status && (
                     <>
                       <Dot />
-                      <span>{series.status}</span>
+                      <span>
+                        {series.status === 'Ended'
+                          ? t('statusEnded')
+                          : series.status === 'Continuing'
+                            ? t('statusContinuing')
+                            : series.status}
+                      </span>
                     </>
                   )}
                   {series.officialRating && (
@@ -132,6 +142,12 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                     <>
                       <Dot />
                       <span>★ {series.communityRating.toFixed(1)}</span>
+                    </>
+                  )}
+                  {series.studios && series.studios.length > 0 && (
+                    <>
+                      <Dot />
+                      <span>{series.studios.join(', ')}</span>
                     </>
                   )}
                   <Dot />
@@ -351,6 +367,9 @@ function EpisodeRow({
         </div>
         {episode.runtimeMs && (
           <p className="text-xs text-muted">{formatRuntime(episode.runtimeMs)}</p>
+        )}
+        {episode.airDate && (
+          <p className="text-xs text-muted">{episode.airDate}</p>
         )}
         {episode.overview && (
           <p className="mt-1 line-clamp-2 text-sm text-muted">{episode.overview}</p>

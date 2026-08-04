@@ -81,6 +81,10 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
 
             <div className="flex-1 pt-1">
               <h1 className="text-display text-3xl font-extrabold sm:text-4xl">{movie.title}</h1>
+              {movie.originalTitle &&
+                movie.originalTitle.trim() !== movie.title.trim() && (
+                  <p className="mt-1 text-sm text-muted">{movie.originalTitle}</p>
+                )}
               {movie.tagline && <p className="mt-1 italic text-muted">{movie.tagline}</p>}
 
               <div className="mt-3">
@@ -102,6 +106,12 @@ export function MovieDetailView({ movie }: { movie: MovieDetail }) {
                     <>
                       <Dot />
                       <span>★ {movie.communityRating.toFixed(1)}</span>
+                    </>
+                  )}
+                  {movie.studios && movie.studios.length > 0 && (
+                    <>
+                      <Dot />
+                      <span>{movie.studios.join(', ')}</span>
                     </>
                   )}
                   {movie.userData.watched && (
