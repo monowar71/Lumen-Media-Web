@@ -37,6 +37,7 @@
   "markUnwatched": "Отметить как непросмотренное",
   "networkLoad": "Сеть {{rate}}",
   "networkLoadAria": "Текущая нагрузка на сеть {{rate}}",
+  "torrentStatsAria": "Торрент {{stats}}",
   "videoFormatAria": "Формат видео {{format}}",
   "audioFormatAria": "Формат аудио {{format}}"
 }

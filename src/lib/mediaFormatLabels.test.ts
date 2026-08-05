@@ -3,6 +3,7 @@ import {
   audioFormatBadges,
   audioFormatLabel,
   formatNetworkMbps,
+  formatTorrentStatsLabel,
   hdrLabel,
   playbackFormatPaths,
   videoFormatBadges,
@@ -49,6 +50,32 @@ describe('mediaFormatLabels', () => {
     });
     expect(paths.videoLabel).toBe('2160p · Dolby Vision · HEVC → 1080p · SDR · H.264');
     expect(paths.audioLabel).toBe('Dolby Digital+ · 5.1 → AAC · Stereo');
+  });
+
+  it('hides unknown source codec on transcode', () => {
+    const paths = playbackFormatPaths({
+      method: 'Transcode',
+      sourceVideo: { codec: 'unknown' },
+      sourceAudio: { codec: 'unknown' },
+      selectedQualityId: 'auto',
+      availableQualities: [],
+    });
+    expect(paths.videoLabel).toBe('H.264');
+    expect(paths.audioLabel).toBe('AAC · Stereo');
+  });
+
+  it('formats torrent stats for the player HUD', () => {
+    expect(
+      formatTorrentStatsLabel({
+        seeders: 12,
+        peers: 45,
+        downloadSpeedBytesPerSec: 2_100_000,
+      }),
+    ).toBe('↓ 2.1 MB/s · 12↑ · 45 peers');
+    expect(formatTorrentStatsLabel({ seeders: 0, peers: 0, downloadSpeedBytesPerSec: 0 })).toBe(
+      '0↑ · 0 peers',
+    );
+    expect(formatTorrentStatsLabel(null)).toBeNull();
   });
 
   it('keeps source-only labels for Direct Play', () => {

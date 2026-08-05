@@ -413,6 +413,32 @@ export type PlaybackDecisionResponse = {
   selectedAudioLayout?: string;
   availableHdrToneMapMethods?: HdrToneMapMethodOption[];
   selectedHdrToneMapMethod?: string | null;
+  torrentStats?: TorrentPlaybackStats | null;
+  /** True when playback uses TorrServer (stats may still be warming up). */
+  isTorrentSource?: boolean;
+  /** Source codecs after play-time ffprobe (or from a prior play). */
+  probedFormat?: ProbedFormat | null;
+};
+
+export type TorrentPlaybackStats = {
+  seeders: number;
+  peers: number;
+  downloadSpeedBytesPerSec: number;
+};
+
+export type ProbedFormat = {
+  videoCodec?: string | null;
+  videoHdr?: string | null;
+  width?: number | null;
+  height?: number | null;
+  audioCodec?: string | null;
+  audioChannels?: number | null;
+  audioTitle?: string | null;
+};
+
+export type PlaybackPingResponse = {
+  torrentStats?: TorrentPlaybackStats | null;
+  probedFormat?: ProbedFormat | null;
 };
 
 export type SetQualityRequest = {

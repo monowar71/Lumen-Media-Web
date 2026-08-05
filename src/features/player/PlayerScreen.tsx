@@ -150,6 +150,7 @@ export function PlayerScreen() {
     selectedHdrToneMapMethod,
     selectedAudioLayout,
     networkMbpsLabel,
+    torrentStatsLabel,
     videoFormatLabel,
     audioFormatLabel,
     canMarkUnwatched,
@@ -543,9 +544,10 @@ togglePlay();
               </h1>
               {(methodLabel ||
                 qualityLabel ||
-networkMbpsLabel ||
-videoFormatLabel ||
-audioFormatLabel) && (
+                networkMbpsLabel ||
+                torrentStatsLabel ||
+                videoFormatLabel ||
+                audioFormatLabel) && (
                 <div className="mt-1 flex flex-wrap items-center gap-2 text-xs text-white/65">
                   {methodLabel && (
                     <span className="rounded-md bg-white/10 px-2 py-0.5 font-medium text-white/80 ring-1 ring-white/10">
@@ -567,6 +569,14 @@ audioFormatLabel) && (
                       title={t('audioFormatAria', { format: audioFormatLabel })}
                     >
                       {audioFormatLabel}
+                    </span>
+                  )}
+                  {torrentStatsLabel && (
+                    <span
+                      className="rounded-md bg-white/10 px-2 py-0.5 font-medium tabular-nums text-white/80 ring-1 ring-white/10"
+                      title={t('torrentStatsAria', { stats: torrentStatsLabel })}
+                    >
+                      {torrentStatsLabel}
                     </span>
                   )}
                   {networkMbpsLabel && (

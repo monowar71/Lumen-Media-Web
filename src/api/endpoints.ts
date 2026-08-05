@@ -198,7 +198,7 @@ export function seekSession(sessionId: string, body: { positionMs: number }) {
 }
 
 export function pingSession(sessionId: string) {
-  return http.post<void>(`${API}/playback/${sessionId}/ping`).then((r) => r.data);
+  return http.post<import('./types').PlaybackPingResponse>(`${API}/playback/${sessionId}/ping`).then((r) => r.data);
 }
 
 export function stopSession(sessionId: string) {

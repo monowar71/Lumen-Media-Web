@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.10] - 2026-08-05
+
+### Added
+
+- Torrent library type in settings; player HUD shows TorrServer seeders / peers / download speed.
+- Player uses play-time `probedFormat` from ping so torrent codecs update after the server probes the stream.
+- Hide placeholder `unknown` codecs in format HUD (no more `UNKNOWN → H.264`).
+
 ## [0.1.9] - 2026-08-04
 
 ### Added

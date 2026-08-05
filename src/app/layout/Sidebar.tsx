@@ -27,7 +27,9 @@ function navClass(active: boolean) {
 }
 
 function LibraryIcon({ type }: { type: LibraryType }) {
-  return type === 'Series' ? <IconTv size={18} /> : <IconMovies size={18} />;
+  if (type === 'Series') return <IconTv size={18} />;
+  if (type === 'Torrent') return <IconLibrary size={18} />;
+  return <IconMovies size={18} />;
 }
 
 /** Settings tabs share pathname `/settings`; only active while on that route. */

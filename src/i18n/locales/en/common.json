@@ -86,6 +86,7 @@
   },
   "mediaTypes": {
     "Movies": "Movies",
-    "Series": "Series"
+    "Series": "Series",
+    "Torrent": "Torrent"
   }
 }

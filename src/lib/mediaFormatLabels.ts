@@ -38,7 +38,8 @@ export function hdrLabel(hdr?: string | null): string | undefined {
 
 function videoCodecLabel(codec?: string): string | undefined {
   if (!codec) return undefined;
-  const c = codec.toLowerCase();
+  const c = codec.toLowerCase().trim();
+  if (!c || c === 'unknown' || c === 'und' || c === 'none') return undefined;
   if (c === 'h264' || c === 'avc' || c === 'avc1') return 'H.264';
   if (c === 'hevc' || c === 'h265' || c === 'hvc1') return 'HEVC';
   if (c === 'av1' || c === 'av01') return 'AV1';
@@ -69,7 +70,7 @@ export function audioFormatLabel(info: AudioFormatInfo): string | undefined {
   if (codec === 'opus') return 'Opus';
   if (codec === 'aac' || codec === 'mp4a') return 'AAC';
   if (codec === 'pcm' || codec.startsWith('pcm_')) return 'PCM';
-  if (!codec) return undefined;
+  if (!codec || codec === 'unknown' || codec === 'und' || codec === 'none') return undefined;
   return codec.toUpperCase();
 }
 
@@ -206,4 +207,25 @@ export function formatNetworkMbps(bps: number | null | undefined): string | null
   if (mbps >= 100) return `${Math.round(mbps)} Mbps`;
   if (mbps >= 10) return `${Math.round(mbps * 10) / 10} Mbps`;
   return `${Math.round(mbps * 100) / 100} Mbps`;
+}
+
+export type TorrentStatsInfo = {
+  seeders?: number;
+  peers?: number;
+  downloadSpeedBytesPerSec?: number;
+};
+
+/** Compact torrent HUD chip: "↓ 2.1 MB/s · 12↑ · 45 peers". */
+export function formatTorrentStatsLabel(stats?: TorrentStatsInfo | null): string | null {
+  if (!stats) return null;
+  const parts: string[] = [];
+  const speed = stats.downloadSpeedBytesPerSec ?? 0;
+  if (speed > 0) {
+    if (speed >= 1_000_000) parts.push(`↓ ${(speed / 1_000_000).toFixed(speed >= 10_000_000 ? 0 : 1)} MB/s`);
+    else if (speed >= 1000) parts.push(`↓ ${Math.round(speed / 1000)} KB/s`);
+    else parts.push(`↓ ${speed} B/s`);
+  }
+  parts.push(`${stats.seeders ?? 0}↑`);
+  parts.push(`${stats.peers ?? 0} peers`);
+  return parts.join(' · ');
 }

@@ -455,6 +455,7 @@ function LibrariesSection() {
             >
               <option value="Movies">{t('common:mediaTypes.Movies')}</option>
               <option value="Series">{t('common:mediaTypes.Series')}</option>
+              <option value="Torrent">{t('common:mediaTypes.Torrent', { defaultValue: 'Torrent' })}</option>
             </select>
           </label>
         </div>

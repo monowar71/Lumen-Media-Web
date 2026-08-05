@@ -2436,7 +2436,7 @@ export interface components {
             autoScan?: boolean;
         };
         /** @enum {string} */
-        LibraryType: "Movies" | "Series";
+        LibraryType: "Movies" | "Series" | "Torrent";
         LoginRequest: {
             username: string;
             password: string;

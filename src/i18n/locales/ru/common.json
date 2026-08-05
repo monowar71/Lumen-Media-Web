@@ -86,6 +86,7 @@
   },
   "mediaTypes": {
     "Movies": "Фильмы",
-    "Series": "Сериалы"
+    "Series": "Сериалы",
+    "Torrent": "Торрент"
   }
 }

@@ -6,6 +6,8 @@ import type {
   MediaStream,
   PlaybackDecisionResponse,
   PlaybackMode,
+  ProbedFormat,
+  TorrentPlaybackStats,
   UserData,
 } from '@/api/types';
 import { useSettingsStore } from '@/stores/settingsStore';
@@ -15,6 +17,7 @@ import { buildWebDeviceProfile, ensureSupportsHdr, getCachedSupportsHdr } from '
 import { detectConnectionKind } from '@/lib/network';
 import {
   formatNetworkMbps,
+  formatTorrentStatsLabel,
   playbackFormatPaths,
   type AudioFormatInfo,
   type VideoFormatInfo,
@@ -57,6 +60,8 @@ export interface PlaybackController {
   selectedAudioLayout: string | null;
   /** Estimated network throughput label (e.g. "12.4 Mbps"), or null when unknown. */
   networkMbpsLabel: string | null;
+  /** Live torrent seeders/peers/speed chip, when playing a torrent source. */
+  torrentStatsLabel: string | null;
   /** Source or source→output video format (e.g. "HEVC · 2160p → H.264 · 1080p"). */
   videoFormatLabel: string | null;
   /** Source or source→output audio format (e.g. "EAC3 · 5.1 → AAC · Stereo"). */
@@ -76,6 +81,7 @@ export interface PlaybackController {
 
 const PROGRESS_INTERVAL_MS = 10_000;
 const PING_INTERVAL_MS = 30_000;
+const TORRENT_PING_INTERVAL_MS = 5_000;
 const BANDWIDTH_POLL_MS = 2_000;
 
 function primaryVideo(source?: MediaSource | null): MediaStream | undefined {
@@ -201,6 +207,8 @@ export function usePlayback({
   const forceHdrToSdrRef = useRef(false);
   const selectedAudioLayoutRef = useRef<string | null>(null);
   const [networkMbpsLabel, setNetworkMbpsLabel] = useState<string | null>(null);
+  const [torrentStats, setTorrentStats] = useState<TorrentPlaybackStats | null>(null);
+  const [probedFormat, setProbedFormat] = useState<ProbedFormat | null>(null);
   const [mediaSource, setMediaSource] = useState<MediaSource | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [markingUnwatched, setMarkingUnwatched] = useState(false);
@@ -342,6 +350,8 @@ export function usePlayback({
 
       decisionRef.current = next;
       setDecision(next);
+      setTorrentStats(next.torrentStats ?? null);
+      setProbedFormat(next.probedFormat ?? null);
       setSelectedQualityId(next.selectedQualityId);
       setSelectedAudioId(
         next.audioStreams.find((a) => a.isDefault)?.id ?? next.audioStreams[0]?.id ?? null,
@@ -475,17 +485,26 @@ export function usePlayback({
     return () => clearInterval(id);
   }, [playing, report]);
 
-  // Keep-alive ping so the server extends the transcode session.
+  // Keep-alive ping so the server extends the transcode session; also refreshes torrent stats.
   useEffect(() => {
     const sid = decision?.sessionId;
     if (!sid) return;
-    const id = setInterval(() => {
-      if (typeof document === 'undefined' || !document.hidden) {
-        void api.pingSession(sid).catch(() => {});
-      }
-    }, PING_INTERVAL_MS);
+    const isTorrent = Boolean(decision?.isTorrentSource);
+    const interval = isTorrent ? TORRENT_PING_INTERVAL_MS : PING_INTERVAL_MS;
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.hidden) return;
+      void api
+        .pingSession(sid)
+        .then((res) => {
+          if (res?.torrentStats) setTorrentStats(res.torrentStats);
+          if (res?.probedFormat) setProbedFormat(res.probedFormat);
+        })
+        .catch(() => {});
+    };
+    tick();
+    const id = setInterval(tick, interval);
     return () => clearInterval(id);
-  }, [decision?.sessionId]);
+  }, [decision?.sessionId, decision?.isTorrentSource]);
 
   // Persist position when the tab is hidden or the page unloads.
   useEffect(() => {
@@ -946,6 +965,14 @@ export function usePlayback({
   }, [itemId, markingUnwatched]);
 
   const videoInfo: VideoFormatInfo | null = (() => {
+    if (probedFormat?.videoCodec || probedFormat?.width || probedFormat?.height || probedFormat?.videoHdr) {
+      return {
+        codec: probedFormat.videoCodec ?? undefined,
+        hdr: probedFormat.videoHdr ?? decision?.sourceHdr ?? null,
+        width: probedFormat.width ?? undefined,
+        height: probedFormat.height ?? undefined,
+      };
+    }
     const video = primaryVideo(mediaSource);
     if (!video) return null;
     return {
@@ -957,6 +984,13 @@ export function usePlayback({
   })();
 
   const audioInfo: AudioFormatInfo | null = (() => {
+    if (probedFormat?.audioCodec || probedFormat?.audioChannels) {
+      return {
+        codec: probedFormat.audioCodec ?? undefined,
+        channels: probedFormat.audioChannels ?? undefined,
+        title: probedFormat.audioTitle ?? undefined,
+      };
+    }
     const fromDecision = decision?.audioStreams.find((a) => a.id === selectedAudioId);
     if (fromDecision) {
       return {
@@ -982,6 +1016,8 @@ export function usePlayback({
     selectedAudioLayout: selectedAudioLayout ?? decision?.selectedAudioLayout,
   });
 
+  const torrentStatsLabel = formatTorrentStatsLabel(torrentStats);
+
   const showMarkUnwatched =
     canMarkUnwatched(userData?.watched, userData?.playbackPositionMs) ||
     currentTimeMs > 0;
@@ -1003,6 +1039,7 @@ export function usePlayback({
     selectedHdrToneMapMethod,
     selectedAudioLayout,
     networkMbpsLabel,
+    torrentStatsLabel,
     videoFormatLabel: formatPaths.videoLabel,
     audioFormatLabel: formatPaths.audioLabel,
     canMarkUnwatched: showMarkUnwatched,
