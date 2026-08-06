@@ -16,6 +16,7 @@ import type {
   PagedResult,
   PlaybackDecisionRequest,
   PlaybackDecisionResponse,
+  PlaybackPingResponse,
   ProgressRequest,
   ProgressResponse,
   RefreshRequest,
@@ -198,7 +199,7 @@ export function seekSession(sessionId: string, body: { positionMs: number }) {
 }
 
 export function pingSession(sessionId: string) {
-  return http.post<import('./types').PlaybackPingResponse>(`${API}/playback/${sessionId}/ping`).then((r) => r.data);
+  return http.post<PlaybackPingResponse>(`${API}/playback/${sessionId}/ping`).then((r) => r.data);
 }
 
 export function stopSession(sessionId: string) {
