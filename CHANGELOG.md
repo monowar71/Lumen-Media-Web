@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.11] - 2026-08-07
+
+### Added
+
+- Optional deep torrent scan checkbox («Probe codecs») that sends `{ "probeMedia": true }` on library scan.
+
+### Fixed
+
+- ESLint `consistent-type-imports` for `PlaybackPingResponse` so release CI publishes Docker `latest` (0.1.10 tag never reached Hub).
+
 ## [0.1.10] - 2026-08-05
 
 ### Added

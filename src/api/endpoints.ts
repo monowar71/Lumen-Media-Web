@@ -101,8 +101,10 @@ export function deleteLibrary(id: string) {
   return http.delete<void>(`${API}/libraries/${id}`).then((r) => r.data);
 }
 
-export function scanLibrary(id: string) {
-  return http.post<ScanJobAccepted>(`${API}/libraries/${id}/scan`).then((r) => r.data);
+export function scanLibrary(id: string, body?: { probeMedia?: boolean }) {
+  return http
+    .post<ScanJobAccepted>(`${API}/libraries/${id}/scan`, body ?? {})
+    .then((r) => r.data);
 }
 
 export function updateLibrary(id: string, body: UpdateLibraryRequest) {

@@ -57,6 +57,8 @@
     "noPaths": "no paths",
     "items": "{{count}} items",
     "scan": "Scan",
+    "probeMedia": "Probe codecs",
+    "probeMediaHint": "Starts TorrServer and ffprobe for each video (needs peers; much slower).",
     "delete": "Delete",
     "confirmDelete": "Delete library “{{name}}”?",
     "addTitle": "Add library",
@@ -74,16 +76,16 @@
     "scanFailed": "Scan failed",
     "deleted": "Deleted “{{name}}”.",
     "deleteFailed": "Delete failed",
-    "enrichMode": "Metadata enrichment mode",
+    "enrichMode": "Metadata update mode",
     "enrichModeMissing": "Missing metadata only",
     "enrichModeMatched": "Already matched (refresh)",
     "enrichModeAll": "Entire library",
     "enrichHint": "Language affects TMDB titles/overviews. For English filenames, en-US usually matches better.",
     "preferredLanguage": "Library metadata language",
-    "enrich": "Enrich",
+    "enrich": "Update metadata",
     "enriching": "Queuing…",
     "enrichStarted": "“{{name}}”: queued {{count}} items.",
-    "enrichFailed": "Could not start enrichment"
+    "enrichFailed": "Could not update metadata"
   },
   "users": {
     "title": "Users",

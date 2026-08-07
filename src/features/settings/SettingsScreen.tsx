@@ -297,6 +297,7 @@ function LibrariesSection() {
   const [message, setMessage] = useState<string | null>(null);
   const [enrichMode, setEnrichMode] = useState<MetadataRefreshMode>('Missing');
   const [enrichLanguageByLib, setEnrichLanguageByLib] = useState<Record<string, string>>({});
+  const [probeMediaByLib, setProbeMediaByLib] = useState<Record<string, boolean>>({});
 
   const onCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -316,7 +317,7 @@ function LibrariesSection() {
       });
       setMessage(t('libraries.createdScanning', { name: lib.name }));
       setName('');
-      await scan.mutateAsync(lib.id);
+      await scan.mutateAsync({ id: lib.id });
       setMessage(t('libraries.createdScanned', { name: lib.name }));
     } catch (err) {
       setError(toErrorMessage(err, t('libraries.createFailed')));
@@ -363,16 +364,40 @@ function LibrariesSection() {
                     {t('libraries.items', { count: lib.itemCount })}
                   </p>
                 </div>
+                {lib.type === 'Torrent' && (
+                  <label className="flex cursor-pointer items-center gap-2 text-xs text-muted">
+                    <input
+                      type="checkbox"
+                      className="size-4 rounded border-border accent-accent"
+                      checked={probeMediaByLib[lib.id] === true}
+                      onChange={(e) =>
+                        setProbeMediaByLib((prev) => ({
+                          ...prev,
+                          [lib.id]: e.target.checked,
+                        }))
+                      }
+                    />
+                    <span title={t('libraries.probeMediaHint')}>{t('libraries.probeMedia')}</span>
+                  </label>
+                )}
                 <Button
                   size="sm"
                   variant="secondary"
                   disabled={scan.isPending}
                   onClick={() => {
                     setError(null);
-                    scan.mutate(lib.id, {
-                      onSuccess: () => setMessage(t('libraries.scanStarted', { name: lib.name })),
-                      onError: (err) => setError(toErrorMessage(err, t('libraries.scanFailed'))),
-                    });
+                    scan.mutate(
+                      {
+                        id: lib.id,
+                        probeMedia: lib.type === 'Torrent' && probeMediaByLib[lib.id] === true,
+                      },
+                      {
+                        onSuccess: () =>
+                          setMessage(t('libraries.scanStarted', { name: lib.name })),
+                        onError: (err) =>
+                          setError(toErrorMessage(err, t('libraries.scanFailed'))),
+                      },
+                    );
                   }}
                 >
                   {t('libraries.scan')}

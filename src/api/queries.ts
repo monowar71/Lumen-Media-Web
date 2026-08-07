@@ -216,8 +216,9 @@ export function useCreateLibrary() {
 export function useScanLibrary() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => api.scanLibrary(id),
-    onSuccess: (_data, id) => {
+    mutationFn: ({ id, probeMedia }: { id: string; probeMedia?: boolean }) =>
+      api.scanLibrary(id, probeMedia ? { probeMedia: true } : undefined),
+    onSuccess: (_data, { id }) => {
       void qc.invalidateQueries({ queryKey: queryKeys.libraries });
       void qc.invalidateQueries({ queryKey: queryKeys.library(id) });
       void qc.invalidateQueries({ queryKey: ['libraryItems', id] });
