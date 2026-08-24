@@ -160,6 +160,9 @@ export function useProgressMutation() {
       qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
       qc.invalidateQueries({ queryKey: queryKeys.history });
       qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: ['episodes'] });
+      void qc.invalidateQueries({ queryKey: ['item'] });
+      void qc.invalidateQueries({ queryKey: queryKeys.episode(data.itemId) });
     },
   });
 }

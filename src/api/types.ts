@@ -248,6 +248,7 @@ export type EpisodeSummary = {
 
 export type EpisodeDetail = EpisodeSummary & {
   mediaSources: MediaSource[];
+  nextEpisode?: EpisodeSummary | null;
 };
 
 export type LibrarySettingsDto = {

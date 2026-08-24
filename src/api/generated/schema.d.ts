@@ -825,7 +825,13 @@ export interface paths {
                 };
                 cookie?: never;
             };
-            requestBody?: never;
+            requestBody?: {
+                content: {
+                    "application/json": null | components["schemas"]["ScanLibraryRequest"];
+                    "text/json": null | components["schemas"]["ScanLibraryRequest"];
+                    "application/*+json": null | components["schemas"]["ScanLibraryRequest"];
+                };
+            };
             responses: {
                 /** @description Accepted */
                 202: {
@@ -1191,6 +1197,8 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": components["schemas"]["SetItemArtworkRequest"];
+                    "text/json": components["schemas"]["SetItemArtworkRequest"];
+                    "application/*+json": components["schemas"]["SetItemArtworkRequest"];
                 };
             };
             responses: {
@@ -1210,7 +1218,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/api/v1/items/{id}/artwork-candidates": {
+    "/api/v1/items/{id}/theme": {
         parameters: {
             query?: never;
             header?: never;
@@ -1219,9 +1227,56 @@ export interface paths {
         };
         get: {
             parameters: {
-                query?: {
-                    kind?: components["schemas"]["ArtworkKind"];
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
                 };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: {
+            parameters: {
+                query?: never;
                 header?: never;
                 path: {
                     id: string;
@@ -1236,14 +1291,24 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ArtworkCandidateDto"][];
+                        "text/plain": components["schemas"]["DeleteMediaFileResponse"];
+                        "application/json": components["schemas"]["DeleteMediaFileResponse"];
+                        "text/json": components["schemas"]["DeleteMediaFileResponse"];
+                    };
+                };
+                /** @description Not Found */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ProblemDetails"];
+                        "application/json": components["schemas"]["ProblemDetails"];
+                        "text/json": components["schemas"]["ProblemDetails"];
                     };
                 };
             };
         };
-        put?: never;
-        post?: never;
-        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -1279,6 +1344,47 @@ export interface paths {
                         "text/plain": components["schemas"]["MetadataMatchCandidateDto"][];
                         "application/json": components["schemas"]["MetadataMatchCandidateDto"][];
                         "text/json": components["schemas"]["MetadataMatchCandidateDto"][];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/items/{id}/artwork-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: {
+            parameters: {
+                query?: {
+                    kind?: components["schemas"]["ArtworkKind"];
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "text/plain": components["schemas"]["ArtworkCandidateDto"][];
+                        "application/json": components["schemas"]["ArtworkCandidateDto"][];
+                        "text/json": components["schemas"]["ArtworkCandidateDto"][];
                     };
                 };
             };
@@ -1569,12 +1675,14 @@ export interface paths {
             };
             requestBody?: never;
             responses: {
-                /** @description No Content */
-                204: {
+                /** @description OK */
+                200: {
                     headers: {
                         [name: string]: unknown;
                     };
-                    content?: never;
+                    content: {
+                        "application/json": components["schemas"]["PlaybackPingResponse"];
+                    };
                 };
             };
         };
@@ -1797,7 +1905,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** HLS master playlist. Auth: unguessable sessionId (capability URL); JWT optional. */
         get: {
             parameters: {
                 query?: never;
@@ -1833,7 +1940,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** HLS media playlist. Auth: unguessable sessionId (capability URL); JWT optional. */
         get: {
             parameters: {
                 query?: never;
@@ -1869,7 +1975,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** DirectPlay media for a playback session. Auth: unguessable sessionId (capability URL); JWT optional. */
         get: {
             parameters: {
                 query?: never;
@@ -1883,13 +1988,6 @@ export interface paths {
             responses: {
                 /** @description OK */
                 200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-                /** @description Partial Content */
-                206: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -1912,7 +2010,6 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** HLS segment. Auth: unguessable sessionId (capability URL); JWT optional. */
         get: {
             parameters: {
                 query?: never;
@@ -1974,51 +2071,6 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/api/v1/items/{id}/file": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        post?: never;
-        /** Delete on-disk video file(s) for a movie or episode (admin). */
-        delete: {
-            parameters: {
-                query?: never;
-                header?: never;
-                path: {
-                    id: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description OK */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": components["schemas"]["DeleteMediaFileResponse"];
-                    };
-                };
-                /** @description Not Found */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content?: never;
-                };
-            };
-        };
         options?: never;
         head?: never;
         patch?: never;
@@ -2192,6 +2244,19 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        ArtworkCandidateDto: {
+            provider: string;
+            kind: string;
+            url: string;
+            thumbnailUrl: string;
+            language?: null | string;
+            /** Format: int32 */
+            width?: null | number | string;
+            /** Format: int32 */
+            height?: null | number | string;
+            /** Format: double */
+            voteAverage?: null | number | string;
+        };
         /** @enum {string} */
         ArtworkKind: "Poster" | "Backdrop" | "Logo" | "Thumb" | "Banner";
         ArtworkUrls: {
@@ -2207,11 +2272,15 @@ export interface components {
             /** Format: int32 */
             channels?: number | string;
         };
+        HdrToneMapMethodOption: {
+            id: string;
+            label: string;
+            hardware?: boolean;
+        };
         AudioStreamOption: {
             /** Format: uuid */
             id: string;
             language?: null | string;
-            /** @description Container track title — often the dubbing studio (LostFilm, MovieDalen, …). */
             title?: null | string;
             codec?: null | string;
             /** Format: int32 */
@@ -2221,13 +2290,6 @@ export interface components {
         ClearHistoryResponse: {
             /** Format: int32 */
             clearedCount?: number | string;
-        };
-        DeleteMediaFileResponse: {
-            /** Format: int32 */
-            deletedFiles?: number | string;
-            /** Format: int32 */
-            sourcesRemoved?: number | string;
-            mediaRemoved?: boolean;
         };
         CreateLibraryRequest: {
             name: string;
@@ -2242,6 +2304,13 @@ export interface components {
             libraryAccess?: null | string[];
             allowTranscoding?: boolean;
             pin?: null | string;
+        };
+        DeleteMediaFileResponse: {
+            /** Format: int32 */
+            deletedFiles?: number | string;
+            /** Format: int32 */
+            sourcesRemoved?: number | string;
+            mediaRemoved?: boolean;
         };
         DeviceProfile: {
             maxResolution?: null | string;
@@ -2275,6 +2344,7 @@ export interface components {
             artwork?: components["schemas"]["ArtworkUrls"];
             mediaSources?: components["schemas"]["MediaSourceDto"][];
             userData?: components["schemas"]["UserDataDto"];
+            nextEpisode?: null | components["schemas"]["EpisodeSummary"];
         };
         EpisodeSummary: {
             /** Format: uuid */
@@ -2312,10 +2382,7 @@ export interface components {
             };
         };
         HistoryEntryDto: {
-            /**
-             * Format: uuid
-             * @description Local media/episode id when matched; null for unmatched external rows.
-             */
+            /** Format: uuid */
             itemId?: null | string;
             kind: components["schemas"]["MediaKind"];
             title: string;
@@ -2336,9 +2403,7 @@ export interface components {
             durationMs?: null | number | string;
             /** Format: date-time */
             updatedAt?: string;
-            /** @description True when the row came from an external import and is not in the local library. */
             isExternal?: boolean;
-            /** @description Stable key for unmatched external rows. */
             externalKey?: null | string;
         };
         HomeResponse: {
@@ -2512,22 +2577,6 @@ export interface components {
             isExternal?: boolean;
             format?: null | string;
         };
-        ArtworkCandidateDto: {
-            provider: string;
-            kind: string;
-            url: string;
-            thumbnailUrl: string;
-            language?: null | string;
-            /** Format: int32 */
-            width?: null | number | string;
-            /** Format: int32 */
-            height?: null | number | string;
-            /** Format: double */
-            voteAverage?: null | number | string;
-        };
-        SetItemArtworkRequest: {
-            url: string;
-        };
         MetadataMatchCandidateDto: {
             provider: string;
             providerId: string;
@@ -2648,11 +2697,6 @@ export interface components {
             hdrToneMapMethod?: null | string;
             audioLayout?: null | string;
         };
-        HdrToneMapMethodOption: {
-            id: string;
-            label: string;
-            hardware?: boolean;
-        };
         PlaybackDecisionResponse: {
             sessionId: string;
             method: components["schemas"]["PlaybackMethod"];
@@ -2676,6 +2720,9 @@ export interface components {
             selectedAudioLayout: string;
             availableHdrToneMapMethods?: components["schemas"]["HdrToneMapMethodOption"][];
             selectedHdrToneMapMethod?: null | string;
+            torrentStats?: null | components["schemas"]["TorrentPlaybackStats"];
+            isTorrentSource?: boolean;
+            probedFormat?: null | components["schemas"]["ProbedFormat"];
         };
         /** @enum {string} */
         PlaybackMethod: "DirectPlay" | "DirectStream" | "Transcode";
@@ -2712,6 +2759,10 @@ export interface components {
         RefreshLibraryMetadataRequest: {
             mode?: components["schemas"]["MetadataRefreshMode"];
             preferredLanguage?: null | string;
+        };
+        ScanLibraryRequest: {
+            /** @description Torrent libraries only: probe codecs via TorrServer during the scan (needs peers; slower). */
+            probeMedia?: boolean;
         };
         RefreshRequest: {
             refreshToken: string;
@@ -2760,7 +2811,9 @@ export interface components {
             officialRating?: null | string;
             genres?: string[];
             people?: components["schemas"]["PersonDto"][];
+            studios?: string[];
             trailerUrl?: null | string;
+            themeUrl?: null | string;
             externalIds?: components["schemas"]["ExternalIds"];
             metadataLocked?: boolean;
             /** Format: int32 */
@@ -2782,6 +2835,8 @@ export interface components {
         ServerFeatures: {
             hardwareAccel?: string;
             abr?: boolean;
+            /** Format: int32 */
+            nextEpisodePromptPercentFromEnd?: number | string;
         };
         ServerInfoResponse: {
             name?: string;
@@ -2793,6 +2848,14 @@ export interface components {
             transcoding?: components["schemas"]["TranscodingSettingsDto"];
             metadata?: components["schemas"]["MetadataSettingsDto"];
             import?: components["schemas"]["ImportSettingsDto"];
+            playbackUi?: components["schemas"]["PlaybackUiSettingsDto"];
+        };
+        PlaybackUiSettingsDto: {
+            /** Format: int32 */
+            nextEpisodePromptPercentFromEnd?: number | string;
+        };
+        SetItemArtworkRequest: {
+            url: string;
         };
         SetQualityRequest: {
             qualityId: string;
@@ -2823,7 +2886,6 @@ export interface components {
             /** Format: uuid */
             id: string;
             language?: null | string;
-            /** @description Container track title (e.g. "Russian (Forced)", "English (SDH)"). */
             title?: null | string;
             format?: null | string;
             isDefault?: boolean;
@@ -2907,6 +2969,30 @@ export interface components {
         };
         /** @enum {string} */
         UserRole: "Admin" | "User";
+        TorrentPlaybackStats: {
+            /** Format: int32 */
+            seeders?: number;
+            /** Format: int32 */
+            peers?: number;
+            /** Format: int64 */
+            downloadSpeedBytesPerSec?: number | string;
+        };
+        PlaybackPingResponse: {
+            torrentStats?: null | components["schemas"]["TorrentPlaybackStats"];
+            probedFormat?: null | components["schemas"]["ProbedFormat"];
+        };
+        ProbedFormat: {
+            videoCodec?: null | string;
+            videoHdr?: null | string;
+            /** Format: int32 */
+            width?: null | number;
+            /** Format: int32 */
+            height?: null | number;
+            audioCodec?: null | string;
+            /** Format: int32 */
+            audioChannels?: null | number;
+            audioTitle?: null | string;
+        };
     };
     responses: never;
     parameters: never;

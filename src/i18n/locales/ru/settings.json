@@ -131,6 +131,8 @@
     "tvdbKeyHelp": "Бесплатный project key на thetvdb.com/api-information",
     "keyConfiguredPlaceholder": "Ключ сохранён — введите новый, чтобы заменить",
     "keysHint": "Ключи не отдаются обратно в API. Хранятся в /config/metadata-secrets.json (или задаются через env).",
+    "nextEpisodePercent": "Кнопка «Следующая серия» (% до конца)",
+    "nextEpisodePercentHint": "Показать кнопку в плеере, когда до конца серии осталось не больше этого процента (1–50).",
     "save": "Сохранить настройки сервера",
     "saved": "Настройки сервера сохранены"
   },

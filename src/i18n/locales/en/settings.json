@@ -131,6 +131,8 @@
     "tvdbKeyHelp": "Free project key at thetvdb.com/api-information",
     "keyConfiguredPlaceholder": "Key saved — enter a new one to replace",
     "keysHint": "Keys are never returned by the API. Stored in /config/metadata-secrets.json (or set via env).",
+    "nextEpisodePercent": "Next episode button (% remaining)",
+    "nextEpisodePercentHint": "Show “Next episode” in the player when this percent of the episode remains (1–50).",
     "save": "Save server settings",
     "saved": "Server settings saved"
   },

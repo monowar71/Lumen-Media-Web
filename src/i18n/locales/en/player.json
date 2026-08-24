@@ -39,5 +39,6 @@
   "networkLoadAria": "Current network throughput {{rate}}",
   "torrentStatsAria": "Torrent {{stats}}",
   "videoFormatAria": "Video format {{format}}",
-  "audioFormatAria": "Audio format {{format}}"
+  "audioFormatAria": "Audio format {{format}}",
+  "nextEpisode": "Next Episode"
 }

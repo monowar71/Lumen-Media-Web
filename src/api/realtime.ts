@@ -49,7 +49,10 @@ export async function startRealtime(
     if (payload.itemId) {
       void queryClient.invalidateQueries({ queryKey: queryKeys.progress(payload.itemId) });
       void queryClient.invalidateQueries({ queryKey: queryKeys.item(payload.itemId) });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.episode(payload.itemId) });
     }
+    void queryClient.invalidateQueries({ queryKey: ['episodes'] });
+    void queryClient.invalidateQueries({ queryKey: ['item'] });
     void queryClient.invalidateQueries({ queryKey: queryKeys.home });
     void queryClient.invalidateQueries({ queryKey: queryKeys.continueWatching });
   });

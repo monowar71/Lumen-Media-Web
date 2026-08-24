@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import type { EpisodeSummary, SeriesDetail } from '@/api/types';
 import { useEpisodes, useMarkWatchedMutation, useSeasons } from '@/api/queries';
@@ -33,8 +33,18 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
 
   const { data: seasonsData, isLoading: seasonsLoading } = useSeasons(series.id);
   const seasons = useMemo(() => seasonsData?.items ?? [], [seasonsData]);
-  const [seasonId, setSeasonId] = useState<string | undefined>(undefined);
-  const effectiveSeasonId = seasonId ?? seasons[0]?.id;
+  const [seasonOverride, setSeasonOverride] = useState<string | undefined>(undefined);
+  const preferredSeasonId = useMemo(() => {
+    const nextSeasonId = series.userData.nextUp?.seasonId;
+    if (nextSeasonId && seasons.some((s) => s.id === nextSeasonId)) return nextSeasonId;
+    return seasons[0]?.id;
+  }, [seasons, series.userData.nextUp?.seasonId]);
+  const effectiveSeasonId = seasonOverride ?? preferredSeasonId;
+
+  // Reset manual season pick when opening a different series.
+  useEffect(() => {
+    setSeasonOverride(undefined);
+  }, [series.id]);
 
   const { data: episodesData, isLoading: episodesLoading } = useEpisodes(effectiveSeasonId);
   const episodes = episodesData?.items ?? [];
@@ -223,7 +233,7 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                   <button
                     key={s.id}
                     type="button"
-                    onClick={() => setSeasonId(s.id)}
+                    onClick={() => setSeasonOverride(s.id)}
                     className={cn(
                       'shrink-0 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors',
                       effectiveSeasonId === s.id

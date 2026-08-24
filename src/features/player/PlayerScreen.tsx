@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useLocation, useNavigate, useParams } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import * as Slider from '@radix-ui/react-slider';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { usePlayback } from './usePlayback';
 import { TrackMenu, type TrackOption } from './TrackMenu';
 import {
@@ -23,7 +24,12 @@ import { useSettingsStore } from '@/stores/settingsStore';
 import { useAuthStore } from '@/stores/authStore';
 import { usePlayerStore } from '@/stores/playerStore';
 import type { PlaybackNavState } from '@/features/details/playbackNav';
+import { playerPath } from '@/features/details/playbackNav';
 import { fetchSubtitleBlobUrl, showVideoTextTracks } from './subtitleSidecar';
+import * as api from '@/api/endpoints';
+import { queryKeys } from '@/api/queries';
+
+const DEFAULT_NEXT_EPISODE_PERCENT = 5;
 
 function isDocumentFullscreen(): boolean {
   const doc = document as Document & { webkitFullscreenElement?: Element | null };
@@ -132,6 +138,15 @@ export function PlayerScreen() {
   const muted = usePlayerStore((s) => s.muted);
   const setVolume = usePlayerStore((s) => s.setVolume);
   const setMuted = usePlayerStore((s) => s.setMuted);
+  const qc = useQueryClient();
+
+  const { data: serverInfo } = useQuery({
+    queryKey: queryKeys.serverInfo,
+    queryFn: () => api.getServerInfo(),
+    staleTime: 60_000,
+  });
+  const nextEpisodePercent =
+    Number(serverInfo?.features?.nextEpisodePromptPercentFromEnd) || DEFAULT_NEXT_EPISODE_PERCENT;
 
   const {
     videoRef,
@@ -164,12 +179,46 @@ export function PlayerScreen() {
     changeHdrToneMapMethod,
     changeAudioLayout,
     retry,
+    nextEpisode,
   } = usePlayback({
     itemId: itemId ?? '',
     isEpisode: state?.isEpisode ?? false,
     initialResumeMs: state?.resumeMs,
     mediaSourceId: state?.mediaSourceId,
   });
+
+  // Refresh series episode watched/progress caches when leaving the player.
+  useEffect(() => {
+    return () => {
+      void qc.invalidateQueries({ queryKey: ['episodes'] });
+      void qc.invalidateQueries({ queryKey: ['item'] });
+      void qc.invalidateQueries({ queryKey: queryKeys.home });
+      void qc.invalidateQueries({ queryKey: queryKeys.continueWatching });
+      void qc.invalidateQueries({ queryKey: queryKeys.history });
+    };
+  }, [qc]);
+
+  const remainingPercent =
+    durationMs > 0 ? Math.max(0, ((durationMs - currentTimeMs) / durationMs) * 100) : 100;
+  // nextEpisode is only loaded for episode playback; do not require location.state
+  // (deep links / refresh may omit nav state).
+  const showNextEpisode = Boolean(nextEpisode) && remainingPercent <= nextEpisodePercent;
+
+  const playNextEpisode = useCallback(() => {
+    if (!nextEpisode) return;
+    const title =
+      nextEpisode.title?.trim() ||
+      `S${nextEpisode.seasonNumber}E${nextEpisode.episodeNumber}`;
+    navigate(playerPath(nextEpisode.id), {
+      replace: true,
+      state: {
+        title,
+        resumeMs: 0,
+        isEpisode: true,
+        backdrop: state?.backdrop,
+      } satisfies PlaybackNavState,
+    });
+  }, [navigate, nextEpisode, state?.backdrop]);
 
   const [controlsVisible, setControlsVisible] = useState(true);
   const [scrubMs, setScrubMs] = useState<number | null>(null);
@@ -276,10 +325,14 @@ export function PlayerScreen() {
   }, [videoRef]);
 
   useEffect(() => {
-    if (!playing || !controlsVisible || scrubbing) return;
+    if (!playing || !controlsVisible || scrubbing || showNextEpisode) return;
     const id = setTimeout(() => setControlsVisible(false), 3200);
     return () => clearTimeout(id);
-  }, [playing, controlsVisible, currentTimeMs, scrubbing]);
+  }, [playing, controlsVisible, currentTimeMs, scrubbing, showNextEpisode]);
+
+  useEffect(() => {
+    if (showNextEpisode) setControlsVisible(true);
+  }, [showNextEpisode]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -517,6 +570,22 @@ togglePlay();
               {playing ? <IconPause size={30} /> : <IconPlay size={30} className="ml-0.5" />}
             </ControlButton>
           </div>
+        </div>
+      )}
+
+      {showNextEpisode && nextEpisode && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-28 z-20 flex justify-center px-4 sm:bottom-32">
+          <Button
+            size="lg"
+            className="pointer-events-auto shadow-xl shadow-black/40"
+            onClick={(e) => {
+              e.stopPropagation();
+              playNextEpisode();
+            }}
+          >
+            <IconPlay size={18} />
+            {t('nextEpisode')}
+          </Button>
         </div>
       )}
 

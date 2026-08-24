@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import * as api from '@/api/endpoints';
 import { toErrorMessage } from '@/api/http';
 import type {
+  EpisodeSummary,
   MediaSource,
   MediaStream,
   PlaybackDecisionResponse,
@@ -77,7 +78,9 @@ export interface PlaybackController {
   changeHdrToneMapMethod: (methodId: string) => void;
   changeAudioLayout: (layoutId: string) => void;
   retry: () => void;
-}
+  /** Next chronological episode when playing a series episode. */
+  nextEpisode: EpisodeSummary | null;
+};
 
 const PROGRESS_INTERVAL_MS = 10_000;
 const PING_INTERVAL_MS = 30_000;
@@ -211,6 +214,7 @@ export function usePlayback({
   const [probedFormat, setProbedFormat] = useState<ProbedFormat | null>(null);
   const [mediaSource, setMediaSource] = useState<MediaSource | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [nextEpisode, setNextEpisode] = useState<EpisodeSummary | null>(null);
   const [markingUnwatched, setMarkingUnwatched] = useState(false);
 
   const stopSession = useCallback((sessionId: string | null | undefined) => {
@@ -916,10 +920,12 @@ export function usePlayback({
           const episode = await api.getEpisode(itemId);
           if (cancelled) return;
           setUserData(episode.userData);
+          setNextEpisode(episode.nextEpisode ?? null);
           setMediaSource(pickMediaSource(episode.mediaSources, mediaSourceId) ?? null);
         } else {
           const item = await api.getItem(itemId);
           if (cancelled) return;
+          setNextEpisode(null);
           if (item.kind === 'Movie') {
             setUserData(item.userData);
             setMediaSource(pickMediaSource(item.mediaSources, mediaSourceId) ?? null);
@@ -1053,5 +1059,6 @@ export function usePlayback({
     changeHdrToneMapMethod,
     changeAudioLayout,
     retry,
+    nextEpisode,
   };
 }

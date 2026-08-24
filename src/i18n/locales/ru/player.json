@@ -39,5 +39,6 @@
   "networkLoadAria": "Текущая нагрузка на сеть {{rate}}",
   "torrentStatsAria": "Торрент {{stats}}",
   "videoFormatAria": "Формат видео {{format}}",
-  "audioFormatAria": "Формат аудио {{format}}"
+  "audioFormatAria": "Формат аудио {{format}}",
+  "nextEpisode": "Следующая серия"
 }

@@ -340,6 +340,31 @@ export function AdminServerSettingsSection() {
       </div>
       <p className="mt-2 text-xs text-muted">{t('serverAdmin.keysHint')}</p>
 
+      <div className="mt-4 grid gap-3 sm:grid-cols-2">
+        <label className="flex flex-col gap-1 text-sm">
+          <span className="text-muted">{t('serverAdmin.nextEpisodePercent')}</span>
+          <Input
+            type="number"
+            min={1}
+            max={50}
+            value={String(settings.playbackUi?.nextEpisodePromptPercentFromEnd ?? 5)}
+            onChange={(e) =>
+              setDraft({
+                ...settings,
+                playbackUi: {
+                  ...settings.playbackUi,
+                  nextEpisodePromptPercentFromEnd: Math.min(
+                    50,
+                    Math.max(1, Number(e.target.value) || 5),
+                  ),
+                },
+              })
+            }
+          />
+          <span className="text-xs text-muted">{t('serverAdmin.nextEpisodePercentHint')}</span>
+        </label>
+      </div>
+
       <div className="mt-4 flex items-center gap-3">
         <Button
           onClick={() => {
