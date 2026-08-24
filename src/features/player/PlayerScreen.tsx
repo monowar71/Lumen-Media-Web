@@ -330,9 +330,7 @@ export function PlayerScreen() {
     return () => clearTimeout(id);
   }, [playing, controlsVisible, currentTimeMs, scrubbing, showNextEpisode]);
 
-  useEffect(() => {
-    if (showNextEpisode) setControlsVisible(true);
-  }, [showNextEpisode]);
+  const chromeVisible = controlsVisible || showNextEpisode;
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -474,14 +472,14 @@ durationMs > 0
       : 0;
 
   const isBuffering = (loading || buffering) && !error;
-  const showCenterTransport = !error && (isBuffering || controlsVisible || !playing);
+  const showCenterTransport = !error && (isBuffering || chromeVisible || !playing);
 
   return (
     <div
       ref={rootRef}
       className={cn(
         'relative h-screen w-screen overflow-hidden bg-black select-none',
-        controlsVisible ? 'cursor-default' : 'cursor-none',
+        chromeVisible ? 'cursor-default' : 'cursor-none',
       )}
       onMouseMove={() => setControlsVisible(true)}
       onDoubleClick={() => void toggleFullscreen()}
@@ -517,7 +515,7 @@ durationMs > 0
       <div
         className={cn(
           'pointer-events-none absolute inset-0 transition-opacity duration-500',
-          controlsVisible || !playing ? 'opacity-100' : 'opacity-0',
+          chromeVisible || !playing ? 'opacity-100' : 'opacity-0',
           'bg-[radial-gradient(ellipse_at_center,transparent_45%,rgba(0,0,0,0.35)_100%)]',
         )}
         aria-hidden
@@ -592,14 +590,14 @@ togglePlay();
       <div
         className={cn(
           'pointer-events-none absolute inset-0 flex flex-col justify-between transition-opacity duration-300',
-          controlsVisible ? 'opacity-100' : 'opacity-0',
+          chromeVisible ? 'opacity-100' : 'opacity-0',
         )}
       >
         {/* Top bar */}
         <div
           className={cn(
             'bg-gradient-to-b from-black/80 via-black/40 to-transparent px-4 pb-10 pt-4 sm:px-6 sm:pt-5',
-            controlsVisible ? 'pointer-events-auto' : 'pointer-events-none',
+            chromeVisible ? 'pointer-events-auto' : 'pointer-events-none',
           )}
           onClick={(e) => e.stopPropagation()}
         >
@@ -681,7 +679,7 @@ togglePlay();
         <div
           className={cn(
             'bg-gradient-to-t from-black/90 via-black/55 to-transparent px-4 pb-5 pt-16 sm:px-6 sm:pb-7',
-            controlsVisible ? 'pointer-events-auto' : 'pointer-events-none',
+            chromeVisible ? 'pointer-events-auto' : 'pointer-events-none',
           )}
           onClick={(e) => e.stopPropagation()}
         >          <div className="mx-auto flex max-w-7xl flex-col gap-3">
