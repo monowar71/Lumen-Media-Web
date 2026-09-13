@@ -51,7 +51,7 @@
     "jsdom": "^30.0.1",
     "msw": "^2.15.0",
     "openapi-typescript": "^7.13.0",
-    "orval": "^8.23.0",
+    "orval": "^8.33.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",
     "@typescript/native": "npm:typescript@^7.0.2",
