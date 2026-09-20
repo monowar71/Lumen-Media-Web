@@ -142,7 +142,7 @@ export function getItem(id: string) {
   return http.get<ItemDetail>(`${API}/items/${id}`).then((r) => r.data);
 }
 
-/** Admin: delete on-disk video file(s) for a movie or episode. */
+/** Admin: delete on-disk video file(s) for a movie, episode, season, or series. */
 export function deleteMediaFile(id: string) {
   return http.delete<DeleteMediaFileResponse>(`${API}/items/${id}/file`).then((r) => r.data);
 }

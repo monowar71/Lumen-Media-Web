@@ -187,7 +187,7 @@ export function useMarkWatchedMutation() {
   });
 }
 
-/** Admin: delete the video file for a movie/episode from the server. */
+/** Admin: delete video file(s) for a movie, episode, season, or series from the server. */
 export function useDeleteMediaFile() {
   const qc = useQueryClient();
   return useMutation({
@@ -195,6 +195,7 @@ export function useDeleteMediaFile() {
     onSuccess: (_data, mediaId) => {
       void qc.invalidateQueries({ queryKey: queryKeys.item(mediaId) });
       void qc.invalidateQueries({ queryKey: queryKeys.episode(mediaId) });
+      void qc.invalidateQueries({ queryKey: ['seasons'] });
       void qc.invalidateQueries({ queryKey: ['episodes'] });
       void qc.invalidateQueries({ queryKey: ['item'] });
       void qc.invalidateQueries({ queryKey: ['libraryItems'] });

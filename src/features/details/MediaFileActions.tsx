@@ -38,6 +38,12 @@ type Props = {
   trailerUrl?: string | null;
   /** When false, hide the download action (e.g. series-level menu). */
   showDownload?: boolean;
+  /** When set, overrides the default "delete only if download is shown" rule. */
+  showDelete?: boolean;
+  /** Confirm copy for admin file delete (defaults to a single-file warning). */
+  deleteConfirm?: string;
+  /** Menu label for admin file delete. */
+  deleteLabel?: string;
   /** Admin-only metadata actions (refresh / edit / fix match). */
   metadataAdmin?: EditableMetadata;
 };
@@ -61,6 +67,9 @@ export function MediaFileActions({
   allowMarkUnwatched,
   trailerUrl,
   showDownload = true,
+  showDelete,
+  deleteConfirm,
+  deleteLabel,
   metadataAdmin,
 }: Props) {
   const { t } = useTranslation('details');
@@ -75,6 +84,7 @@ export function MediaFileActions({
   const [metadataPanel, setMetadataPanel] = useState<MetadataAdminPanelKind>('none');
 
   const showMetadata = role === 'Admin' && Boolean(metadataAdmin);
+  const canDelete = role === 'Admin' && (showDelete ?? showDownload);
   const showWatchedActions = typeof watched === 'boolean';
   const showMarkWatched = showWatchedActions && !watched;
   const showMarkUnwatched =
@@ -94,7 +104,7 @@ export function MediaFileActions({
   };
 
   const onDelete = async () => {
-    if (!window.confirm(t('deleteFileConfirm'))) return;
+    if (!window.confirm(deleteConfirm ?? t('deleteFileConfirm'))) return;
     setError(null);
     try {
       const result = await deleteMutation.mutateAsync(mediaId);
@@ -187,13 +197,13 @@ export function MediaFileActions({
                 </DropdownMenu.Item>
               </>
             )}
-            {showDownload && role === 'Admin' && (
+            {canDelete && (
               <DropdownMenu.Item
                 className={itemClass(true)}
                 disabled={deleteMutation.isPending}
                 onSelect={() => void onDelete()}
               >
-                {deleteMutation.isPending ? t('deleting') : t('deleteFile')}
+                {deleteMutation.isPending ? t('deleting') : (deleteLabel ?? t('deleteFile'))}
               </DropdownMenu.Item>
             )}
           </DropdownMenu.Content>

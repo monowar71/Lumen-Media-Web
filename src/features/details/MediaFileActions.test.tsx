@@ -73,6 +73,40 @@ describe('MediaFileActions', () => {
     expect(within(menu).queryByText(/delete file|удалить файл/i)).toBeNull();
   });
 
+  it('shows series delete for admin without a download action', async () => {
+    authenticate({ role: 'Admin' });
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+
+    renderWithProviders(
+      <MediaFileActions
+        mediaId="series-bb"
+        showDownload={false}
+        showDelete
+        deleteLabel="Delete series"
+      />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /more actions|ещё действия/i }));
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).queryByText(/download|скачать/i)).toBeNull();
+    expect(within(menu).getByText('Delete series')).toBeInTheDocument();
+  });
+
+  it('hides series delete for non-admin', async () => {
+    authenticate({ role: 'User' });
+    const { default: userEvent } = await import('@testing-library/user-event');
+    const user = userEvent.setup();
+
+    renderWithProviders(
+      <MediaFileActions mediaId="series-bb" showDownload={false} showDelete />,
+    );
+
+    await user.click(screen.getByRole('button', { name: /more actions|ещё действия/i }));
+    const menu = await screen.findByRole('menu');
+    expect(within(menu).queryByText(/delete series|удалить сериал|delete file|удалить файл/i)).toBeNull();
+  });
+
   it('deletes only the mock fixture after confirm', async () => {
     authenticate({ role: 'Admin' });
     const { default: userEvent } = await import('@testing-library/user-event');

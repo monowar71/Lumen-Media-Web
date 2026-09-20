@@ -40,7 +40,9 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
     if (nextSeasonId && seasons.some((s) => s.id === nextSeasonId)) return nextSeasonId;
     return seasons[0]?.id;
   }, [seasons, series.userData.nextUp?.seasonId]);
-  const effectiveSeasonId = seasonOverrideBySeries[series.id] ?? preferredSeasonId;
+  const override = seasonOverrideBySeries[series.id];
+  const effectiveSeasonId =
+    override && seasons.some((s) => s.id === override) ? override : preferredSeasonId;
 
   const { data: episodesData, isLoading: episodesLoading } = useEpisodes(effectiveSeasonId);
   const episodes = episodesData?.items ?? [];
@@ -190,10 +192,14 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                 <MediaFileActions
                   mediaId={series.id}
                   showDownload={false}
+                  showDelete
+                  deleteLabel={t('deleteSeries')}
+                  deleteConfirm={t('deleteSeriesConfirm')}
                   watched={seriesWatched}
                   allowMarkUnwatched={seriesCanMarkUnwatched}
                   trailerUrl={series.trailerUrl}
                   metadataAdmin={metadataAdmin}
+                  onRemovedNavigateTo={`/library/${series.libraryId}`}
                 />
               </div>
               {metadataAdmin && <MetadataAdminHints item={metadataAdmin} />}
@@ -244,27 +250,44 @@ export function SeriesDetailView({ series }: { series: SeriesDetail }) {
                 ))}
               </div>
             )}
-            {effectiveSeasonId && episodes.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {!seasonWatched && (
-                  <Button
-                    size="sm"
-                    variant="secondary"
-                    disabled={markSeason.isPending}
-                    onClick={() => markSeason.mutate({ itemId: effectiveSeasonId, watched: true })}
-                  >
-                    {t('markSeasonWatched')}
-                  </Button>
+            {effectiveSeasonId && (episodes.length > 0 || role === 'Admin') && (
+              <div className="flex flex-wrap items-center gap-2">
+                {episodes.length > 0 && (
+                  <>
+                    {!seasonWatched && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={markSeason.isPending}
+                        onClick={() => markSeason.mutate({ itemId: effectiveSeasonId, watched: true })}
+                      >
+                        {t('markSeasonWatched')}
+                      </Button>
+                    )}
+                    {seasonCanMarkUnwatched && (
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={markSeason.isPending}
+                        onClick={() =>
+                          markSeason.mutate({ itemId: effectiveSeasonId, watched: false })
+                        }
+                      >
+                        {t('markSeasonUnwatched')}
+                      </Button>
+                    )}
+                  </>
                 )}
-                {seasonCanMarkUnwatched && (
-                  <Button
+                {role === 'Admin' && (
+                  <MediaFileActions
+                    mediaId={effectiveSeasonId}
                     size="sm"
-                    variant="secondary"
-                    disabled={markSeason.isPending}
-                    onClick={() => markSeason.mutate({ itemId: effectiveSeasonId, watched: false })}
-                  >
-                    {t('markSeasonUnwatched')}
-                  </Button>
+                    showDownload={false}
+                    showDelete
+                    deleteLabel={t('deleteSeason')}
+                    deleteConfirm={t('deleteSeasonConfirm')}
+                    onRemovedNavigateTo={`/item/${series.id}`}
+                  />
                 )}
               </div>
             )}
