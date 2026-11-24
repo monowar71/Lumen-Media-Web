@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.13] - 2026-11-24
+
+### Added
+
+- Series detail overflow menu: admin can delete all episode files for a series or season (`DELETE /items/{id}/file`).
+
+### Changed
+
+- Series delete action label is **Delete files** / **Удалить файлы**.
+
 ## [0.1.11] - 2026-08-07
 
 ### Added

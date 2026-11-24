@@ -83,14 +83,14 @@ describe('MediaFileActions', () => {
         mediaId="series-bb"
         showDownload={false}
         showDelete
-        deleteLabel="Delete series"
+        deleteLabel="Delete files"
       />,
     );
 
     await user.click(screen.getByRole('button', { name: /more actions|ещё действия/i }));
     const menu = await screen.findByRole('menu');
     expect(within(menu).queryByText(/download|скачать/i)).toBeNull();
-    expect(within(menu).getByText('Delete series')).toBeInTheDocument();
+    expect(within(menu).getByText('Delete files')).toBeInTheDocument();
   });
 
   it('hides series delete for non-admin', async () => {

@@ -27,7 +27,7 @@
   "deleteFile": "Delete file",
   "deleting": "Deleting…",
   "deleteFileConfirm": "Delete this video file from the server? This cannot be undone.",
-  "deleteSeries": "Delete series",
+  "deleteSeries": "Delete files",
   "deleteSeriesConfirm": "Delete this series and all episode files from the server? This cannot be undone.",
   "deleteSeason": "Delete season",
   "deleteSeasonConfirm": "Delete this season and all its episode files from the server? This cannot be undone.",
